@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Test API", description = "Swagger 테스트용 API")
 @RestController
 @RequestMapping("/api/test")
-public class GameController {
+public class TestController {
 
-    @Operation(summary = "헬로 메세지 반환", description = "Yutnori 프로젝트의 Swagger 테스트용 API입니다.")
+    @Operation(summary = "헬로 메세지 반환", description = "Swagger 테스트용 API입니다.")
     @GetMapping("/hello")
     public String hello() {
-        return "Hello, Yutnori!";
+        return "Hello, SW Team.16 ";
     }
 }
