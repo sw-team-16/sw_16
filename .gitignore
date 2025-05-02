@@ -24,4 +24,5 @@ hs_err_pid*
 replay_pid*
 
 .env
-application.yml
+# application 설정 파일 무시
+src/main/resources/application.yml
