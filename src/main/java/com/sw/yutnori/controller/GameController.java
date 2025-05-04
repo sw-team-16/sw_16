@@ -1,53 +1,55 @@
 package com.sw.yutnori.controller;
 
-import com.sw.yutnori.dto.PlayerRequest;
-import com.sw.yutnori.dto.GameCreateRequest;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import com.sw.yutnori.dto.game.request.*;
+import com.sw.yutnori.dto.game.response.*;
+import com.sw.yutnori.service.GameService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/game")
-@Tag(name = "Game", description = "게임 inti 및 세팅")
+@RequiredArgsConstructor
 public class GameController {
 
-    @Operation(summary = "Game 생성", description = "Game을 생성하고 설정합니다.")
+    private final GameService gameService;
+
     @PostMapping
-    public ResponseEntity<?> createGame(@RequestBody GameCreateRequest request) {
-        // 로직 생략
+    public ResponseEntity<Void> createGame(@RequestBody GameCreateRequest request) {
+        gameService.createGame(request);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "player", description = "게임에 player 추가")
     @PostMapping("/{gameId}/players")
-    public ResponseEntity<?> addPlayers(
-            @PathVariable Long gameId,
-            @RequestBody List<PlayerRequest> players) {
-        // 로직 생략
+    public ResponseEntity<Void> addPlayers(@PathVariable Long gameId,
+                                           @RequestBody List<PlayerRequest> players) {
+        gameService.addPlayers(gameId, players);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "윷 랜덤 던지기", description = "랜덤하게 윷 던져 결과 확인")
     @PostMapping("/{gameId}/turn/random")
-    public ResponseEntity<?> throwYutRandom(@PathVariable Long gameId) {
-        // 로직 생략
+    public ResponseEntity<YutThrowResponse> throwYutRandom(@PathVariable Long gameId,
+                                                           @RequestBody AutoThrowRequest request) {
+        return ResponseEntity.ok(gameService.throwYutRandom(gameId, request));
+    }
+
+    @PostMapping("/{gameId}/turn/manual")
+    public ResponseEntity<Void> throwYutManual(@PathVariable Long gameId,
+                                               @RequestBody ManualThrowRequest request) {
+        gameService.throwYutManual(gameId, request);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "현재 Turn Info 조회", description = "현재 Turn Info 반환")
-    @GetMapping("/{gameId}/turn")
-    public ResponseEntity<?> getTurnInfo(@PathVariable Long gameId) {
-        // 로직 생략
-        return ResponseEntity.ok().build();
+    @GetMapping("/{gameId}/turn/movable-pieces")
+    public ResponseEntity<List<Long>> getMovablePieces(@PathVariable Long gameId) {
+        return ResponseEntity.ok(gameService.getMovablePieces(gameId));
     }
 
-    @Operation(summary = "Swagger 확인용")
-    @GetMapping("/test/hello")
-    public String hello() {
-        return "Swagger test 성공ㅇ";
+    @PostMapping("/{gameId}/move")
+    public ResponseEntity<Void> movePiece(@PathVariable Long gameId,
+                                          @RequestBody MovePieceRequest request) {
+        gameService.movePiece(gameId, request);
+        return ResponseEntity.ok().build();
     }
 }
