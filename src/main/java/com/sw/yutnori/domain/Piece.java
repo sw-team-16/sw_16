@@ -3,8 +3,16 @@ package com.sw.yutnori.domain;
 import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.domain.value.BoardPosition;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Piece {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long pieceId;
