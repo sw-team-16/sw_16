@@ -1,7 +1,6 @@
 package com.sw.yutnori.domain;
 
 import com.sw.yutnori.common.enums.PieceState;
-import com.sw.yutnori.domain.value.BoardPosition;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,8 +20,6 @@ public class Piece {
     @JoinColumn(name = "player_id")
     private Player player;
 
-    @Embedded
-    private BoardPosition currentPosition;
 
     @Enumerated(EnumType.STRING)
     private PieceState state;
