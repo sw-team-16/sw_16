@@ -29,9 +29,10 @@ public class BoardLayoutCalculator {
         Node[] corners = new Node[vertexCount];
         int corner0Index = -1;
         double maxY = Double.NEGATIVE_INFINITY, maxX = Double.NEGATIVE_INFINITY;
-        // 꼭짓점 좌표 계산 (사각형은 직접 (사각형 shape), 나머지는 등분각)
+        // 꼭짓점 좌표 계산 (사각형은 직접 좌표 계산, 나머지는 등분각)
         double[] xs = new double[vertexCount];
         double[] ys = new double[vertexCount];
+        // 사각형은 직접 좌표 계산
         if ("square".equals(shape)) {
             xs[0] = centerX + radius; ys[0] = centerY + radius;
             xs[1] = centerX - radius; ys[1] = centerY + radius;
@@ -49,7 +50,7 @@ public class BoardLayoutCalculator {
         }
         // corner0Index 계산
         if ("hexagon".equals(shape)) {
-            // 가장 오른쪽 아래 CORNER를 시작점(POINT)으로 설정정
+            // 가장 오른쪽 아래 CORNER를 시작점(POINT)으로 설정
             double maxSum = Double.NEGATIVE_INFINITY;
             for (int i = 0; i < vertexCount; i++) {
                 double sum = xs[i] + ys[i];
