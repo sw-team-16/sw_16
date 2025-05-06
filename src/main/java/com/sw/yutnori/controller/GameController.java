@@ -2,6 +2,7 @@ package com.sw.yutnori.controller;
 
 import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.*;
+import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +22,18 @@ public class GameController {
         return ResponseEntity.ok().build();
     }
 
-
     @PostMapping("/{gameId}/turn/random")
-    public ResponseEntity<YutThrowResponse> throwYutRandom(@PathVariable Long gameId,
-                                                           @RequestBody AutoThrowRequest request) {
-        return ResponseEntity.ok(gameService.throwYutRandom(gameId, request));
+    public ResponseEntity<AutoThrowResponse> getRandomYutResult(@PathVariable Long gameId,
+                                                                @RequestBody AutoThrowRequest request) {
+        return ResponseEntity.ok(gameService.getRandomYutResultForPlayer(gameId, request));
     }
+    @PostMapping("/{gameId}/turn/random/apply")
+    public ResponseEntity<YutThrowResponse> applyRandomYutResult(@PathVariable Long gameId,
+                                                                 @RequestBody AutoThrowApplyRequest request) {
+        return ResponseEntity.ok(gameService.applyRandomYutResult(gameId, request));
+    }
+
+
 
     @PostMapping("/{gameId}/turn/manual")
     public ResponseEntity<Void> throwYutManual(@PathVariable Long gameId,
@@ -35,9 +42,9 @@ public class GameController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{gameId}/turn/movable-pieces")
-    public ResponseEntity<List<Long>> getMovablePieces(@PathVariable Long gameId) {
-        return ResponseEntity.ok(gameService.getMovablePieces(gameId));
+    @GetMapping("/player/{playerId}/movable-pieces")
+    public ResponseEntity<List<MovablePieceResponse>> getMovablePieces(@PathVariable Long playerId) {
+        return ResponseEntity.ok(gameService.getMovablePiecesByPlayer(playerId));
     }
 
     @PostMapping("/{gameId}/move")

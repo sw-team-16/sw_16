@@ -8,6 +8,7 @@ import com.sw.yutnori.domain.*;
 import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.dto.game.response.YutThrowResponse;
+import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.repository.*;
 
 import com.sw.yutnori.service.GameService;
@@ -68,23 +69,23 @@ public class GameServiceImpl implements GameService {
 
     @Override
     @Transactional
-    public YutThrowResponse throwYutRandom(Long gameId, AutoThrowRequest request) {
+    public YutThrowResponse throwYutRandom(Long gameId, ManualThrowRequest request) { // 수동 윷 던지기
         Player player = playerRepository.findById(request.getPlayerId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid playerId"));
-
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid gameId"));
-
-        // 랜덤 윷 결과 선택
-        YutResult result = getRandomYutResult();
+        Piece piece = pieceRepository.findById(request.getPieceId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid pieceId"));
 
         Turn turn = new Turn();
         turn.setPlayer(player);
         turn.setGame(game);
         turnRepository.save(turn);
 
-        return new YutThrowResponse(result, turn.getTurnId());
+        return new YutThrowResponse(request.getResult(), turn.getTurnId());
     }
+
+
 
     @Override
     public void throwYutManual(Long gameId, ManualThrowRequest request) {
@@ -130,4 +131,50 @@ public class GameServiceImpl implements GameService {
         }
         return values.get(values.size() - 1);
     }
+    @Override
+    public AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request) {
+        Player player = playerRepository.findById(request.getPlayerId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid playerId"));
+
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid gameId"));
+
+        Turn turn = new Turn();
+        turn.setPlayer(player);
+        turn.setGame(game);
+        turn = turnRepository.save(turn);
+
+        YutResult result = getRandomYutResult();
+        return new AutoThrowResponse(result, turn.getTurnId());
+    }
+
+    @Override
+    public YutThrowResponse applyRandomYutResult(Long gameId, AutoThrowApplyRequest request) {
+        Player player = playerRepository.findById(request.getPlayerId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid playerId"));
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid gameId"));
+        Piece piece = pieceRepository.findById(request.getPieceId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid pieceId"));
+
+        Turn turn = turnRepository.findById(request.getTurnId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
+
+        // 실제 적용 로직 필요시 추가 (ex. 말 상태 업데이트 등)
+        return new YutThrowResponse(request.getResult(), turn.getTurnId());
+    }
+    @Override
+    public List<MovablePieceResponse> getMovablePiecesByPlayer(Long playerId) {
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid playerId"));
+
+        List<Piece> pieces = pieceRepository.findByPlayer_PlayerId(player.getPlayerId());
+
+        return pieces.stream()
+                .filter(p -> !p.isFinished()) // 도착 안 한 말만 필터
+                .map(p -> new MovablePieceResponse(p.getPieceId(), p.getState().name()))
+                .collect(Collectors.toList());
+    }
+
+
 }
