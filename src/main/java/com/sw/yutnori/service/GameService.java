@@ -3,6 +3,7 @@ package com.sw.yutnori.service;
 import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.GameStatusResponse;
 import com.sw.yutnori.dto.game.response.GameWinnerResponse;
+import com.sw.yutnori.dto.game.response.TurnInfoResponse;
 import com.sw.yutnori.dto.game.response.YutThrowResponse;
 import java.util.List;
 
@@ -29,6 +30,8 @@ public interface GameService {
     void restartGame(Long gameId, Long winnerPlayerId);
 
     void addPlayersToGame(Long gameId, List<PlayerRequest> players);
+
+    TurnInfoResponse getTurnInfo(Long gameId);
 
 
 }

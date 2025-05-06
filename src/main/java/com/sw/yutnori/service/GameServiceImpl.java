@@ -4,12 +4,9 @@ import com.sw.yutnori.common.enums.GameState;
 import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.domain.*;
-import com.sw.yutnori.dto.game.response.GameStatusResponse;
-import com.sw.yutnori.dto.game.response.GameWinnerResponse;
+import com.sw.yutnori.dto.game.response.*;
 import com.sw.yutnori.dto.game.request.PlayerRequest;
 import com.sw.yutnori.dto.game.request.*;
-import com.sw.yutnori.dto.game.response.AutoThrowResponse;
-import com.sw.yutnori.dto.game.response.YutThrowResponse;
 import com.sw.yutnori.repository.*;
 
 import com.sw.yutnori.service.GameService;
@@ -23,6 +20,7 @@ import com.sw.yutnori.repository.TurnRepository;
 import jakarta.transaction.Transactional;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -136,7 +134,7 @@ public class GameServiceImpl implements GameService {
     }
 
 
-
+    @Override
     public GameStatusResponse getGameStatus(Long gameId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found"));
@@ -164,6 +162,7 @@ public class GameServiceImpl implements GameService {
         );
     }
 
+    @Override
     public GameWinnerResponse getWinner(Long gameId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found"));
@@ -178,6 +177,7 @@ public class GameServiceImpl implements GameService {
         }
     }
 
+    @Override
     public void deleteGame(Long gameId) {
         if (!gameRepository.existsById(gameId)) {
             throw new IllegalArgumentException("Game not found: " + gameId);
@@ -187,6 +187,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Transactional
+    @Override
     public void restartGame(Long gameId, Long winnerPlayerId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found"));
@@ -203,6 +204,7 @@ public class GameServiceImpl implements GameService {
     }
 
     @Transactional
+    @Override
     public void addPlayersToGame(Long gameId, List<PlayerRequest> players) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found"));
@@ -218,5 +220,29 @@ public class GameServiceImpl implements GameService {
         }).toList();
 
         playerRepository.saveAll(playerEntities);
+    }
+
+    @Override
+    public TurnInfoResponse getTurnInfo(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게임이 존재하지 않습니다."));
+
+        Turn latestTurn = turnRepository.findTopByGame_GameIdOrderByTurnIdDesc(gameId);
+        if (latestTurn == null) {
+            throw new IllegalStateException("해당 게임의 턴 정보가 없습니다.");
+        }
+
+        TurnAction latestAction = latestTurn.getActions().stream()
+                .max(Comparator.comparingInt(TurnAction::getMoveOrder))
+                .orElseThrow(() -> new IllegalStateException("해당 턴의 액션 정보가 없습니다."));
+
+        return new TurnInfoResponse(
+                latestTurn.getTurnId(),
+                latestTurn.getPlayer().getPlayerId(),
+                latestTurn.getPlayer().getName(),
+                latestAction.getResult().name(),
+                latestAction.getChosenPiece() != null ? latestAction.getChosenPiece().getPieceId() : null,
+                latestAction.isUsed()
+        );
     }
 }

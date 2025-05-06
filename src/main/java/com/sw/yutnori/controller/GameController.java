@@ -53,8 +53,8 @@ public class GameController {
         return ResponseEntity.ok().build();
     }
     @GetMapping("/{gameId}/turn")
-    public ResponseEntity<?> getTurnInfo(@PathVariable Long gameId) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<TurnInfoResponse> getTurnInfo(@PathVariable Long gameId) {
+        return ResponseEntity.ok(gameService.getTurnInfo(gameId));
     }
 
     @GetMapping("/{gameId}")
