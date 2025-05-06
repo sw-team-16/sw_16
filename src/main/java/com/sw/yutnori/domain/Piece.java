@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(name = "piece")
 public class Piece {
 
     @Id
@@ -30,7 +31,7 @@ public class Piece {
     private boolean isFinished = false;
 
     @Column(nullable = false)
-    private boolean isGrouped = false;
+    private boolean isGrouped = false; // 업기
 
     private Long groupId;
 

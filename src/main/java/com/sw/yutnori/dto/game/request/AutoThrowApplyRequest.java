@@ -9,12 +9,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AutoThrowRequest {
-
-    @Schema(description = "턴 ID", example = "12", required = true)
+public class AutoThrowApplyRequest {
+    @Schema(description = "현재 turn id")
     private Long turnId;
-
-    @Schema(description = "플레이어 ID", example = "1", required = true)
+    @Schema(description = "현재 플레이어 id")
     private Long playerId;
-
+    @Schema(description = "적용할 말 id")
+    private Long pieceId;
+    @Schema(description = "백엔드에서 방금 반환해 준 결과 값 ")
+    private YutResult result;
 }
