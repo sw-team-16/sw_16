@@ -5,29 +5,83 @@ import java.util.*;
 public class BoardLayoutCalculator {
     public static List<Node> createNodes(String boardType, int width, int height) {
         switch (boardType.toLowerCase()) {
-            case "square": return createPolygonBoard(4, width, height);
-            case "pentagon": return createPolygonBoard(5, width, height);
-            case "hexagon": return createPolygonBoard(6, width, height);
-            default: return createPolygonBoard(4, width, height);
+            case "square": return createPolygonBoard(4, width, height, "square");
+            case "pentagon": return createPolygonBoard(5, width, height, "pentagon");
+            case "hexagon": return createPolygonBoard(6, width, height, "hexagon");
+            default: return createPolygonBoard(4, width, height, "square");
         }
     }
 
     // 다각형 판 생성
-    private static List<Node> createPolygonBoard(int vertexCount, int width, int height) {
+    private static List<Node> createPolygonBoard(int vertexCount, int width, int height, String shape) {
         List<Node> nodes = new ArrayList<>();
         double centerX = width / 2.0;
         double centerY = height / 2.0;
-        double radius = Math.min(width, height) * 0.35;
+        double baseRadius = Math.min(width, height) * 0.30;
+        double radius = baseRadius;
+        if (!"square".equals(shape)) {
+            radius = baseRadius * (Math.sin(Math.PI / 4) / Math.sin(Math.PI / vertexCount));
+        }
         Node centerNode = new Node("center", centerX, centerY, NodeType.CENTER);
         nodes.add(centerNode);
 
         // 꼭짓점 노드 생성 (등각 분할)
         Node[] corners = new Node[vertexCount];
+        int corner0Index = -1;
+        double maxY = Double.NEGATIVE_INFINITY, maxX = Double.NEGATIVE_INFINITY;
+        // 꼭짓점 좌표 계산 (사각형은 직접 (사각형 shape), 나머지는 등분각)
+        double[] xs = new double[vertexCount];
+        double[] ys = new double[vertexCount];
+        if ("square".equals(shape)) {
+            xs[0] = centerX + radius; ys[0] = centerY + radius;
+            xs[1] = centerX - radius; ys[1] = centerY + radius;
+            xs[2] = centerX - radius; ys[2] = centerY - radius;
+            xs[3] = centerX + radius; ys[3] = centerY - radius;
+        } else {
+            double[] angles = new double[vertexCount];
+            for (int i = 0; i < vertexCount; i++) {
+                angles[i] = 2 * Math.PI * i / vertexCount - Math.PI / 2;
+            }
+            for (int i = 0; i < vertexCount; i++) {
+                xs[i] = centerX + radius * Math.cos(angles[i]);
+                ys[i] = centerY + radius * Math.sin(angles[i]);
+            }
+        }
+        // corner0Index 계산
+        if ("hexagon".equals(shape)) {
+            // 가장 오른쪽 아래 CORNER를 시작점(POINT)으로 설정정
+            double maxSum = Double.NEGATIVE_INFINITY;
+            for (int i = 0; i < vertexCount; i++) {
+                double sum = xs[i] + ys[i];
+                if (sum > maxSum) {
+                    maxSum = sum;
+                    corner0Index = i;
+                }
+            }
+        } else {
+            for (int i = 0; i < vertexCount; i++) {
+                double x = xs[i];
+                double y = ys[i];
+                // y가 가장 크고, x가 가장 큰 꼭짓점 찾기 (corner0)
+                if (y > maxY || (Math.abs(y - maxY) < 1e-6 && x > maxX)) {
+                    maxY = y;
+                    maxX = x;
+                    corner0Index = i;
+                }
+            }
+        }
+        // corner0부터 반시계방향으로 증가하도록 노드 
+        // !TODO: GUI 더 깔끔하게 수정
         for (int i = 0; i < vertexCount; i++) {
-            double angle = 2 * Math.PI * i / vertexCount - Math.PI / 2;
-            double x = centerX + radius * Math.cos(angle);
-            double y = centerY + radius * Math.sin(angle);
-            corners[i] = new Node("corner" + i, x, y, NodeType.CORNER);
+            int idx = (corner0Index - i + vertexCount) % vertexCount;
+            String id = "corner" + i;
+            if ("hexagon".equals(shape) && i == 0) {
+                corners[i] = new Node(id, xs[idx], ys[idx], NodeType.CORNER, NodeType.POINT);
+            } else if (!"hexagon".equals(shape) && i == 0) {
+                corners[i] = new Node(id, xs[idx], ys[idx], NodeType.CORNER, NodeType.POINT);
+            } else {
+                corners[i] = new Node(id, xs[idx], ys[idx], NodeType.CORNER);
+            }
             nodes.add(corners[i]);
         }
 
@@ -77,23 +131,7 @@ public class BoardLayoutCalculator {
             }
         }
 
-        // 시작/종료점(POINT) 추가 (아래쪽 변 중간)
-        Node pointNode = new Node("point", centerX, centerY + radius + 50, NodeType.POINT, NodeType.CORNER);
-        nodes.add(pointNode);
-        Node connectToPoint = findNodeById(nodes, "edge_" + (vertexCount/2) + "_2");
-        if (connectToPoint != null) {
-            pointNode.addConnection(connectToPoint);
-            connectToPoint.addConnection(pointNode);
-        }
         return nodes;
     }
 
-    private static Node findNodeById(List<Node> nodes, String id) {
-        for (Node node : nodes) {
-            if (node.getId().equals(id)) {
-                return node;
-            }
-        }
-        return null;
-    }
 }

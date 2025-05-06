@@ -49,6 +49,10 @@ public class BoardGraph {
         return result;
     }
 
+    public String getType() {
+        return this.boardType;
+    }
+
     private static class PathNode {
         Node node;
         int steps;
