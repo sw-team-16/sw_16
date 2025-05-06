@@ -4,7 +4,9 @@ import com.sw.yutnori.common.enums.GameState;
 import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.domain.*;
-
+import com.sw.yutnori.dto.game.response.GameStatusResponse;
+import com.sw.yutnori.dto.game.response.GameWinnerResponse;
+import com.sw.yutnori.dto.game.request.PlayerRequest;
 import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.dto.game.response.YutThrowResponse;
@@ -131,5 +133,91 @@ public class x1GameServiceImpl implements GameService {
             if (rnd <= sum) return values.get(i);
         }
         return values.get(values.size() - 1);
+    }
+
+    private final GameRepository gameRepository;
+    private final PieceRepository pieceRepository;
+    private final PlayerRepository playerRepository;
+
+    public GameStatusResponse getGameStatus(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+
+        List<Piece> pieces = pieceRepository.findByPlayer_Game_GameId(gameId);
+
+        List<GameStatusResponse.PieceInfo> pieceInfos = pieces.stream().map(p ->
+                new GameStatusResponse.PieceInfo(
+                        p.getPieceId(),
+                        p.getPlayer().getPlayerId(),
+                        p.getCurrentPosition() != null ? p.getCurrentPosition().toString() : null,
+                        p.isFinished()
+                )
+        ).collect(Collectors.toList());
+
+        return new GameStatusResponse(
+                game.getGameId(),
+                game.getState().name(),
+                game.getBoardType().name(),
+                game.getNumPlayers(),
+                game.getNumPieces(),
+                game.getCurrentTurnPlayer() != null ? game.getCurrentTurnPlayer().getPlayerId() : null,
+                pieceInfos
+        );
+    }
+
+    public GameWinnerResponse getWinner(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+
+        if (game.getState().equals(GameState.FINISHED) && game.getWinnerPlayer() != null) {
+            return new GameWinnerResponse(
+                    game.getWinnerPlayer().getPlayerId(),
+                    game.getWinnerPlayer().getName()
+            );
+        } else {
+            throw new IllegalStateException("Game is not finished or winner not decided yet.");
+        }
+    }
+
+    public void deleteGame(Long gameId) {
+        if (!gameRepository.existsById(gameId)) {
+            throw new IllegalArgumentException("Game not found: " + gameId);
+        }
+
+        gameRepository.deleteById(gameId);
+    }
+
+    @Transactional
+    public void restartGame(Long gameId, Long winnerPlayerId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+
+        Player winner = playerRepository.findById(winnerPlayerId)
+                .orElseThrow(() -> new IllegalArgumentException("Winner player not found"));
+
+        game.setWinnerPlayer(winner);
+        game.setState(GameState.FINISHED);
+        pieceRepository.deleteByPlayerGame(gameId);
+
+        game.setCurrentTurnPlayer(null);
+        gameRepository.save(game);
+    }
+
+    @Transactional
+    public void addPlayersToGame(Long gameId, List<PlayerRequest> players) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+
+        List<Player> playerEntities = players.stream().map(req -> {
+            Player player = new Player();
+            player.setName(req.getName());
+            player.setColor(req.getColor());
+            player.setNumOfPieces(req.getNumOfPieces());
+            player.setFinishedCount(0);
+            player.setGame(game);
+            return player;
+        }).toList();
+
+        playerRepository.saveAll(playerEntities);
     }
 }
