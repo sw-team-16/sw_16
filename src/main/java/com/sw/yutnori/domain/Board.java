@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(name = "board")
 public class Board {
 
     @Id
@@ -17,11 +18,5 @@ public class Board {
     @JoinColumn(name = "game_id", nullable = false)
     private Game game;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private PathType pathType;
 
-    public enum PathType {
-        PATH_ONE, PATH_TWO
-    }
 }
