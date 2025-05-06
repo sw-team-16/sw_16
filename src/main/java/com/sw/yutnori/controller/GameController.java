@@ -50,7 +50,8 @@ public class GameController {
     @PostMapping("/{gameId}/move")
     public ResponseEntity<Void> movePiece(@PathVariable Long gameId,
                                           @RequestBody MovePieceRequest request) {
-        gameService.movePiece(gameId, request);
+        gameService.movePiece(request);
         return ResponseEntity.ok().build();
     }
+
 }

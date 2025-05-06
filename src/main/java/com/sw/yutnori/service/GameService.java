@@ -18,7 +18,8 @@ public interface GameService {
 
     List<Long> getMovablePieces(Long gameId);
 
-    void movePiece(Long gameId, MovePieceRequest request);
+    void movePiece(MovePieceRequest request);
+
     AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request);
 
     YutThrowResponse applyRandomYutResult(Long gameId, AutoThrowApplyRequest request);

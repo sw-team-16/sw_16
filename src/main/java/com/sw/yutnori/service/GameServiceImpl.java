@@ -34,6 +34,7 @@ public class GameServiceImpl implements GameService {
     private final PlayerRepository playerRepository;
     private final TurnRepository turnRepository;
     private final PieceRepository pieceRepository;
+    private final TurnActionRepository turnActionRepository;
 
     @Override
     public Long createGame(GameCreateRequest request) {
@@ -116,9 +117,60 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void movePiece(Long gameId, MovePieceRequest request) {
-        // 말 이동 로직 추후 구현
+    @Transactional
+    public void movePiece(MovePieceRequest request) {
+        Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
+
+        Player owner = movingPiece.getPlayer();
+
+        // 목표 좌표에 있는 다른 말들 조회
+        List<Piece> targetPieces = pieceRepository.findByXAndYAndState(request.getXcoord(), request.getYcoord(), PieceState.ON_BOARD);
+
+        for (Piece target : targetPieces) {
+            if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
+
+            if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
+                // 업기
+                target.setGrouped(true);
+                movingPiece.setGrouped(true);
+            } else {
+                // 잡기
+                target.setFinished(true);
+                target.setGrouped(false);
+                target.setState(PieceState.READY);
+                target.setX(0);
+                target.setY(1);
+            }
+            pieceRepository.save(target);
+        }
+
+        // 말 이동
+        movingPiece.setX(request.getXcoord());
+        movingPiece.setY(request.getYcoord());
+        movingPiece.setState(PieceState.ON_BOARD);
+        pieceRepository.save(movingPiece);
+
+        // 골인 여부 확인
+        if (request.getXcoord() == 0 && request.getYcoord() == 1) {
+            owner.setFinishedCount(owner.getFinishedCount() + 1);
+            playerRepository.save(owner);
+        }
+
+        // TurnAction 저장
+        TurnAction action = new TurnAction();
+        Turn turn = turnRepository.findById(request.getTurnId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
+        action.setTurn(turn);
+        action.setMoveOrder(request.getMoveOrder());
+        action.setResult(null); // 필요 시 설정
+        action.setUsed(true);
+        action.setChosenPiece(movingPiece);
+        action.setChosenPiece(movingPiece);
+        turnActionRepository.save(action);
     }
+
+
 
     private YutResult getRandomYutResult() {
         List<YutResult> values = Arrays.asList(YutResult.values());
@@ -160,7 +212,6 @@ public class GameServiceImpl implements GameService {
         Turn turn = turnRepository.findById(request.getTurnId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
 
-        // 실제 적용 로직 필요시 추가 (ex. 말 상태 업데이트 등)
         return new YutThrowResponse(request.getResult(), turn.getTurnId());
     }
     @Override
@@ -171,7 +222,10 @@ public class GameServiceImpl implements GameService {
         List<Piece> pieces = pieceRepository.findByPlayer_PlayerId(player.getPlayerId());
 
         return pieces.stream()
-                .filter(p -> !p.isFinished()) // 도착 안 한 말만 필터
+                .filter(p -> {
+                    PieceState state = p.getState();
+                    return state == PieceState.READY || state == PieceState.ON_BOARD;
+                })
                 .map(p -> new MovablePieceResponse(p.getPieceId(), p.getState().name()))
                 .collect(Collectors.toList());
     }
