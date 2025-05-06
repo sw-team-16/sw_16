@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -35,8 +37,14 @@ public class Game {
     private Player currentTurnPlayer;
 
     @ManyToOne
-    @JoinColumn(name = "winner_player_id")
+    @JoinColumn(name = "winner_player_id", nullable = true)
     private Player winnerPlayer;
+
+    @OneToMany(mappedBy = "game", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Board> boards;
+
+    @OneToMany(mappedBy = "game", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Turn> turns;
 
 
 }

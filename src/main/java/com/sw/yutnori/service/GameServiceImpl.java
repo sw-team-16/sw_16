@@ -60,7 +60,7 @@ public class GameServiceImpl implements GameService {
             for (int i = 0; i < game.getNumPieces(); i++) {
                 Piece piece = new Piece();
                 piece.setPlayer(player);
-                piece.setState(PieceState.START);
+                piece.setState(PieceState.READY);
                 piece.setFinished(false);
                 piece.setGrouped(false);
                 pieceRepository.save(piece);
@@ -225,17 +225,24 @@ public class GameServiceImpl implements GameService {
     @Override
     public TurnInfoResponse getTurnInfo(Long gameId) {
         Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게임이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("No game error"));
 
         Turn latestTurn = turnRepository.findTopByGame_GameIdOrderByTurnIdDesc(gameId);
         if (latestTurn == null) {
-            throw new IllegalStateException("해당 게임의 턴 정보가 없습니다.");
+            throw new IllegalStateException("No turn error");
         }
-
+        System.out.println(">> Turn ID: " + latestTurn.getTurnId());
+        System.out.println(">> Actions size: " + latestTurn.getActions().size());
         TurnAction latestAction = latestTurn.getActions().stream()
                 .max(Comparator.comparingInt(TurnAction::getMoveOrder))
-                .orElseThrow(() -> new IllegalStateException("해당 턴의 액션 정보가 없습니다."));
-
+                .orElseThrow(() -> new IllegalStateException("No action error"));
+        for (TurnAction action : latestTurn.getActions()) {
+            System.out.println("Action ID: " + action.getActionId()
+                    + ", moveOrder: " + action.getMoveOrder()
+                    + ", result: " + action.getResult()
+                    + ", pieceId: " + (action.getChosenPiece() != null ? action.getChosenPiece().getPieceId() : "null")
+                    + ", used: " + action.isUsed());
+        }
         return new TurnInfoResponse(
                 latestTurn.getTurnId(),
                 latestTurn.getPlayer().getPlayerId(),

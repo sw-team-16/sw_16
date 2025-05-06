@@ -36,6 +36,6 @@ public class Piece {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PieceState state = PieceState.START;
+    private PieceState state = PieceState.READY;
 
 }
