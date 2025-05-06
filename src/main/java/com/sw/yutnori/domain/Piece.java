@@ -2,7 +2,6 @@ package com.sw.yutnori.domain;
 
 import com.sw.yutnori.common.enums.PieceState;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,20 +10,28 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Piece {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long pieceId;
 
     @ManyToOne
-    @JoinColumn(name = "player_id")
+    @JoinColumn(name = "player_id", nullable = false)
     private Player player;
 
+    private String position;
+
+    @Column(nullable = false)
+    private boolean isFinished = false;
+
+    @Column(nullable = false)
+    private boolean isGrouped = false;
+
+    private Long groupId;
 
     @Enumerated(EnumType.STRING)
-    private PieceState state;
+    @Column(nullable = false)
+    private PieceState state = PieceState.START;
 
-    private boolean isFinished;
-    private boolean isGrouped;
-    private Long groupId;
 }

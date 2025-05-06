@@ -1,9 +1,6 @@
 package com.sw.yutnori.domain;
 
 import jakarta.persistence.*;
-import java.util.*;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,20 +9,26 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Player {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long playerId;
 
+    @Column(nullable = false, length = 50)
     private String name;
+
     private String color;
+
+    @Column(nullable = false)
     private int numOfPieces;
-    private int finishedCount;
+
+    @Column(nullable = false)
+    private int finishedCount = 0;
     @ManyToOne
+
     @JoinColumn(name = "game_id")
     private Game game;
 
 
-    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
-    private List<Piece> pieces = new ArrayList<>();
 }
