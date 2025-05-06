@@ -52,4 +52,30 @@ public class GameController {
         gameService.movePiece(gameId, request);
         return ResponseEntity.ok().build();
     }
+    @GetMapping("/{gameId}/turn")
+    public ResponseEntity<?> getTurnInfo(@PathVariable Long gameId) {
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{gameId}")
+    public ResponseEntity<GameStatusResponse> getGameStatus(@PathVariable Long gameId) {
+        return ResponseEntity.ok(gameService.getGameStatus(gameId));
+    }
+
+    @GetMapping("/{gameId}/winner")
+    public ResponseEntity<GameWinnerResponse> getWinner(@PathVariable Long gameId) {
+        return ResponseEntity.ok(gameService.getWinner(gameId));
+    }
+
+    @DeleteMapping("/{gameId}")
+    public ResponseEntity<Void> deleteGame(@PathVariable Long gameId) {
+        gameService.deleteGame(gameId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{gameId}/restart")
+    public ResponseEntity<Void> restartGame(@PathVariable Long gameId, @RequestBody RestartGameRequest request) {
+        gameService.restartGame(gameId, request.getWinnerPlayerId());
+        return ResponseEntity.ok().build();
+    }
 }

@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class x1GameServiceImpl implements GameService {
+public class GameServiceImpl implements GameService {
 
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
@@ -135,21 +135,20 @@ public class x1GameServiceImpl implements GameService {
         return values.get(values.size() - 1);
     }
 
-    private final GameRepository gameRepository;
-    private final PieceRepository pieceRepository;
-    private final PlayerRepository playerRepository;
+
 
     public GameStatusResponse getGameStatus(Long gameId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game not found"));
 
-        List<Piece> pieces = pieceRepository.findByPlayer_Game_GameId(gameId);
+        List<Piece> pieces = pieceRepository.findByPlayer_PlayerId(gameId);
 
         List<GameStatusResponse.PieceInfo> pieceInfos = pieces.stream().map(p ->
                 new GameStatusResponse.PieceInfo(
                         p.getPieceId(),
                         p.getPlayer().getPlayerId(),
-                        p.getCurrentPosition() != null ? p.getCurrentPosition().toString() : null,
+                        p.getXcoord(),
+                        p.getYcoord(),
                         p.isFinished()
                 )
         ).collect(Collectors.toList());

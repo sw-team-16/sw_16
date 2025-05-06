@@ -21,7 +21,8 @@ public class GameStatusResponse {
     public static class PieceInfo {
         private Long pieceId;
         private Long playerId;
-        private String position;
+        private int xCoord;
+        private int yCoord;
         private boolean isFinished;
     }
 }

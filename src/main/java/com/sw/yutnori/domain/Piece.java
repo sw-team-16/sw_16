@@ -20,7 +20,11 @@ public class Piece {
     @JoinColumn(name = "player_id", nullable = false)
     private Player player;
 
-    private String position;
+    @Column(nullable = false)
+    private int xcoord;
+
+    @Column(nullable = false)
+    private int ycoord;
 
     @Column(nullable = false)
     private boolean isFinished = false;
