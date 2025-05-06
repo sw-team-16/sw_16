@@ -8,7 +8,6 @@ public interface GameService {
 
     Long createGame(GameCreateRequest request);
 
-    void addPlayers(Long gameId, List<PlayerRequest> players);
 
     YutThrowResponse throwYutRandom(Long gameId, AutoThrowRequest request);
 

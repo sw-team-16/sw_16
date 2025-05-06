@@ -21,12 +21,6 @@ public class GameController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{gameId}/players")
-    public ResponseEntity<Void> addPlayers(@PathVariable Long gameId,
-                                           @RequestBody List<PlayerRequest> players) {
-        gameService.addPlayers(gameId, players);
-        return ResponseEntity.ok().build();
-    }
 
     @PostMapping("/{gameId}/turn/random")
     public ResponseEntity<YutThrowResponse> throwYutRandom(@PathVariable Long gameId,
