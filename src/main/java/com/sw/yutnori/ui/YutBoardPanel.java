@@ -32,8 +32,10 @@ public class YutBoardPanel extends JPanel {
 
         for (Node node : board.getAllNodes()) {
             for (Node conn : node.getConnections()) {
-                g2.setColor(Color.LIGHT_GRAY);
-                g2.drawLine((int)node.getX(), (int)node.getY(), (int)conn.getX(), (int)conn.getY());
+                if (node.hashCode() < conn.hashCode()) { // 중복선 방지
+                    g2.setColor(Color.LIGHT_GRAY);
+                    g2.drawLine((int)node.getX(), (int)node.getY(), (int)conn.getX(), (int)conn.getY());
+                }
             }
         }
 
@@ -41,11 +43,11 @@ public class YutBoardPanel extends JPanel {
             int x = (int) node.getX();
             int y = (int) node.getY();
             int r = 18;
-            g2.setColor(node.getTypes().stream().anyMatch(t -> t.name().equals("POINT")) ? Color.RED : Color.GRAY);
+            g2.setColor(Color.GRAY);
             g2.fillOval(x - r/2, y - r/2, r, r);
             g2.setColor(Color.BLACK);
             g2.drawOval(x - r/2, y - r/2, r, r);
-            g2.drawString(node.getId(), x - r/2, y - r/2 - 2);
+            g2.drawString("(" + node.getA() + "," + node.getB() + ")", x - r/2, y - r/2 - 2);
         }
         for (String nodeId : piecePositions) {
             Node node = board.getNode(nodeId);

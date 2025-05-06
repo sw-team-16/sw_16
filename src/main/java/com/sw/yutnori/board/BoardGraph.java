@@ -12,7 +12,7 @@ public class BoardGraph {
         this.nodes = BoardLayoutCalculator.createNodes(boardType, width, height);
         this.nodeMap = new HashMap<>();
         for (Node node : nodes) {
-            nodeMap.put(node.getId(), node);
+            nodeMap.put(node.getA() + "," + node.getB(), node);
         }
     }
 
