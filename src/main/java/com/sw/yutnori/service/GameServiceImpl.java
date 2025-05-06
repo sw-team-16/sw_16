@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class GameServiceImpl implements GameService {
+public class x1GameServiceImpl implements GameService {
 
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
