@@ -21,12 +21,11 @@ public class Piece {
     @JoinColumn(name = "player_id", nullable = false)
     private Player player;
 
-    @Column(name = "xcoord",nullable = false)
-    private Integer x;
+    @Column(nullable = false)
+    private int xcoord;
 
-
-    @Column(name = "ycoord",nullable = false)
-    private Integer y;
+    @Column(nullable = false)
+    private int ycoord;
 
     @Column(nullable = false)
     private boolean isFinished = false;
@@ -34,6 +33,7 @@ public class Piece {
     @Column(nullable = false)
     private boolean isGrouped = false; // 업기
 
+    private Long groupId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

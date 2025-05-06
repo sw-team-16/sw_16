@@ -20,6 +20,11 @@ public class PathNode {
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
+    @Column(nullable = false)
+    private int xcoord;
+
+    @Column(nullable = false)
+    private int ycoord;
 
     @ManyToOne
     @JoinColumn(name = "next_node_id")

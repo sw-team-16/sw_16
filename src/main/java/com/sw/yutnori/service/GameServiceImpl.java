@@ -4,7 +4,8 @@ import com.sw.yutnori.common.enums.GameState;
 import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.domain.*;
-
+import com.sw.yutnori.dto.game.response.*;
+import com.sw.yutnori.dto.game.request.PlayerRequest;
 import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.dto.game.response.YutThrowResponse;
@@ -22,6 +23,7 @@ import com.sw.yutnori.repository.TurnRepository;
 import jakarta.transaction.Transactional;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -231,4 +233,124 @@ public class GameServiceImpl implements GameService {
     }
 
 
+
+
+    @Override
+    public GameStatusResponse getGameStatus(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+
+        List<Piece> pieces = pieceRepository.findByPlayer_PlayerId(gameId);
+
+        List<GameStatusResponse.PieceInfo> pieceInfos = pieces.stream().map(p ->
+                new GameStatusResponse.PieceInfo(
+                        p.getPieceId(),
+                        p.getPlayer().getPlayerId(),
+                        p.getXcoord(),
+                        p.getYcoord(),
+                        p.isFinished()
+                )
+        ).collect(Collectors.toList());
+
+        return new GameStatusResponse(
+                game.getGameId(),
+                game.getState().name(),
+                game.getBoardType().name(),
+                game.getNumPlayers(),
+                game.getNumPieces(),
+                game.getCurrentTurnPlayer() != null ? game.getCurrentTurnPlayer().getPlayerId() : null,
+                pieceInfos
+        );
+    }
+
+    @Override
+    public GameWinnerResponse getWinner(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+
+        if (game.getState().equals(GameState.FINISHED) && game.getWinnerPlayer() != null) {
+            return new GameWinnerResponse(
+                    game.getWinnerPlayer().getPlayerId(),
+                    game.getWinnerPlayer().getName()
+            );
+        } else {
+            throw new IllegalStateException("Game is not finished or winner not decided yet.");
+        }
+    }
+
+    @Override
+    public void deleteGame(Long gameId) {
+        if (!gameRepository.existsById(gameId)) {
+            throw new IllegalArgumentException("Game not found: " + gameId);
+        }
+
+        gameRepository.deleteById(gameId);
+    }
+
+    @Transactional
+    @Override
+    public void restartGame(Long gameId, Long winnerPlayerId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+
+        Player winner = playerRepository.findById(winnerPlayerId)
+                .orElseThrow(() -> new IllegalArgumentException("Winner player not found"));
+
+        game.setWinnerPlayer(winner);
+        game.setState(GameState.FINISHED);
+        pieceRepository.deleteByPlayerGame(gameId);
+
+        game.setCurrentTurnPlayer(null);
+        gameRepository.save(game);
+    }
+
+    @Transactional
+    @Override
+    public void addPlayersToGame(Long gameId, List<PlayerRequest> players) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+
+        List<Player> playerEntities = players.stream().map(req -> {
+            Player player = new Player();
+            player.setName(req.getName());
+            player.setColor(req.getColor());
+            player.setNumOfPieces(req.getNumOfPieces());
+            player.setFinishedCount(0);
+            player.setGame(game);
+            return player;
+        }).toList();
+
+        playerRepository.saveAll(playerEntities);
+    }
+
+    @Override
+    public TurnInfoResponse getTurnInfo(Long gameId) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("No game error"));
+
+        Turn latestTurn = turnRepository.findTopByGame_GameIdOrderByTurnIdDesc(gameId);
+        if (latestTurn == null) {
+            throw new IllegalStateException("No turn error");
+        }
+        System.out.println(">> Turn ID: " + latestTurn.getTurnId());
+        System.out.println(">> Actions size: " + latestTurn.getActions().size());
+        TurnAction latestAction = latestTurn.getActions().stream()
+                .max(Comparator.comparingInt(TurnAction::getMoveOrder))
+                .orElseThrow(() -> new IllegalStateException("No action error"));
+        for (TurnAction action : latestTurn.getActions()) {
+            System.out.println("Action ID: " + action.getActionId()
+                    + ", moveOrder: " + action.getMoveOrder()
+                    + ", result: " + action.getResult()
+                    + ", pieceId: " + (action.getChosenPiece() != null ? action.getChosenPiece().getPieceId() : "null")
+                    + ", used: " + action.isUsed());
+        }
+        return new TurnInfoResponse(
+                latestTurn.getTurnId(),
+                latestTurn.getPlayer().getPlayerId(),
+                latestTurn.getPlayer().getName(),
+                latestAction.getResult().name(),
+                latestAction.getChosenPiece() != null ? latestAction.getChosenPiece().getPieceId() : null,
+                latestAction.isUsed()
+        );
+    }
 }
