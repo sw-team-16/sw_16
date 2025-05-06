@@ -19,11 +19,6 @@ public class PathNode {
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
-    @Column(nullable = false)
-    private int xCoord;
-
-    @Column(nullable = false)
-    private int yCoord;
 
     @ManyToOne
     @JoinColumn(name = "next_node_id")

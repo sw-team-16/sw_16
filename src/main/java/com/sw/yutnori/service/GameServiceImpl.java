@@ -60,7 +60,7 @@ public class GameServiceImpl implements GameService {
             for (int i = 0; i < game.getNumPieces(); i++) {
                 Piece piece = new Piece();
                 piece.setPlayer(player);
-                piece.setState(PieceState.START);
+                piece.setState(PieceState.READY);
                 piece.setFinished(false);
                 piece.setGrouped(false);
                 pieceRepository.save(piece);

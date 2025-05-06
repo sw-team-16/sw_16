@@ -1,5 +1,5 @@
 package com.sw.yutnori.common.enums;
 
 public enum PieceState {
-    START, ON_BOARD, FINISHED
+    READY, ON_BOARD, FINISHED
 }
