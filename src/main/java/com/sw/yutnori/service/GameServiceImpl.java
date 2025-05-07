@@ -86,7 +86,6 @@ public class GameServiceImpl implements GameService {
     }
 
 
-
     @Override
     public void throwYutManual(Long gameId, ManualThrowRequest request) {
         Player player = playerRepository.findById(request.getPlayerId())
@@ -95,11 +94,23 @@ public class GameServiceImpl implements GameService {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid gameId"));
 
+        Piece piece = pieceRepository.findById(request.getPieceId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid pieceId"));
+
+        // 1. Turn 저장
         Turn turn = new Turn();
         turn.setPlayer(player);
         turn.setGame(game);
-        // 지정된 결과 저장 필요 시 TurnResult로 확장 가능
-        turnRepository.save(turn);
+        turn = turnRepository.save(turn); // 저장 후 ID 획득
+
+        // 2. TurnAction 저장
+        TurnAction action = new TurnAction();
+        action.setTurn(turn);
+        action.setMoveOrder(1); // 기본값 1회차
+        action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
+        action.setChosenPiece(piece);
+        action.setUsed(false); // 사용 여부는 false로 초기화
+        turnActionRepository.save(action);
     }
 
 
