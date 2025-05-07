@@ -3,10 +3,11 @@ package com.sw.yutnori.client;
 import com.sw.yutnori.dto.game.request.AutoThrowRequest;
 import com.sw.yutnori.dto.game.request.ManualThrowRequest;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
+import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.common.enums.YutResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import java.util.Arrays;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -33,19 +34,10 @@ public class YutnoriApiClient {
         restTemplate.postForObject(url, request, Void.class);
     }
 
-    public List<Long> getMovablePieces(Long gameId) {
-        try {
-            // 백엔드 연동 미구현
-            // String url = baseUrl + "/game/" + gameId + "/movable-pieces";
-            // return restTemplate.getForObject(url, List.class);
-
-            // 임시로 고정된 값 반환
-            System.out.println("임시 구현: 이동 가능한 말 목록 반환");
-            return Arrays.asList(1L, 2L, 3L, 4L);
-        } catch (Exception e) {
-            System.err.println("이동 가능한 말 정보 조회 실패: " + e.getMessage());
-            // 오류 발생 시 빈 목록 반환
-            return Collections.emptyList();
-        }
+    // URL 및 반환 타입 수정
+    public List<MovablePieceResponse> getMovablePieces(Long playerId) {
+        String url = baseUrl + "/game/player/" + playerId + "/movable-pieces";
+        MovablePieceResponse[] response = restTemplate.getForObject(url, MovablePieceResponse[].class);
+        return response != null ? List.of(response) : Collections.emptyList();
     }
 }

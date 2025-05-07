@@ -120,56 +120,56 @@ public class GameServiceImpl implements GameService {
 
     @Override
     @Transactional
-    public void movePiece(MovePieceRequest request) {
-        Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
-
-        Player owner = movingPiece.getPlayer();
-
-        // 목표 좌표에 있는 다른 말들 조회
-        List<Piece> targetPieces = pieceRepository.findByXAndYAndState(request.getXcoord(), request.getYcoord(), PieceState.ON_BOARD);
-
-        for (Piece target : targetPieces) {
-            if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
-
-            if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
-                // 업기
-                target.setGrouped(true);
-                movingPiece.setGrouped(true);
-            } else {
-                // 잡기
-                target.setFinished(true);
-                target.setGrouped(false);
-                target.setState(PieceState.READY);
-                target.setX(0);
-                target.setY(1);
-            }
-            pieceRepository.save(target);
-        }
-
-        // 말 이동
-        movingPiece.setX(request.getXcoord());
-        movingPiece.setY(request.getYcoord());
-        movingPiece.setState(PieceState.ON_BOARD);
-        pieceRepository.save(movingPiece);
-
-        // 골인 여부 확인
-        if (request.getXcoord() == 0 && request.getYcoord() == 1) {
-            owner.setFinishedCount(owner.getFinishedCount() + 1);
-            playerRepository.save(owner);
-        }
-
-        // TurnAction 저장
-        TurnAction action = new TurnAction();
-        Turn turn = turnRepository.findById(request.getTurnId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
-        action.setTurn(turn);
-        action.setMoveOrder(request.getMoveOrder());
-        action.setResult(null); // 필요 시 설정
-        action.setUsed(true);
-        action.setChosenPiece(movingPiece);
-        action.setChosenPiece(movingPiece);
-        turnActionRepository.save(action);
+    public void movePiece(Long gameId, MovePieceRequest request) {
+//        Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
+//                .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
+//
+//        Player owner = movingPiece.getPlayer();
+//
+//        // 목표 좌표에 있는 다른 말들 조회
+//        List<Piece> targetPieces = pieceRepository.findByXAndYAndState(request.getXcoord(), request.getYcoord(), PieceState.ON_BOARD);
+//
+//        for (Piece target : targetPieces) {
+//            if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
+//
+//            if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
+//                // 업기
+//                target.setGrouped(true);
+//                movingPiece.setGrouped(true);
+//            } else {
+//                // 잡기
+//                target.setFinished(true);
+//                target.setGrouped(false);
+//                target.setState(PieceState.READY);
+//                target.setX(0);
+//                target.setY(1);
+//            }
+//            pieceRepository.save(target);
+//        }
+//
+//        // 말 이동
+//        movingPiece.setX(request.getXcoord());
+//        movingPiece.setY(request.getYcoord());
+//        movingPiece.setState(PieceState.ON_BOARD);
+//        pieceRepository.save(movingPiece);
+//
+//        // 골인 여부 확인
+//        if (request.getXcoord() == 0 && request.getYcoord() == 1) {
+//            owner.setFinishedCount(owner.getFinishedCount() + 1);
+//            playerRepository.save(owner);
+//        }
+//
+//        // TurnAction 저장
+//        TurnAction action = new TurnAction();
+//        Turn turn = turnRepository.findById(request.getTurnId())
+//                .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
+//        action.setTurn(turn);
+//        action.setMoveOrder(request.getMoveOrder());
+//        action.setResult(null); // 필요 시 설정
+//        action.setUsed(true);
+//        action.setChosenPiece(movingPiece);
+//        action.setChosenPiece(movingPiece);
+//        turnActionRepository.save(action);
     }
 
 
