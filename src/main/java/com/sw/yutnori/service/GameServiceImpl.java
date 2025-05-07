@@ -162,16 +162,19 @@ public class GameServiceImpl implements GameService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
         action.setTurn(turn);
         action.setMoveOrder(request.getMoveOrder());
-        action.setResult(null); // 필요 시 설정
+        if (request.getResult() != null) {
+            action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
+        } else {
+            throw new IllegalArgumentException("Yut result must not be null");
+        }
         action.setUsed(true);
-        action.setChosenPiece(movingPiece);
         action.setChosenPiece(movingPiece);
         turnActionRepository.save(action);
     }
 
 
 
-    private YutResult getRandomYutResult() {
+    private YutResult getRandomYutResult() { // 랜덤한 값 반환 함수.
         List<YutResult> values = Arrays.asList(YutResult.values());
         List<Double> weights = List.of(0.3, 0.3, 0.2, 0.1, 0.1); // DO, GAE, GEOL, YUT, MO
         double rnd = Math.random();
@@ -182,6 +185,7 @@ public class GameServiceImpl implements GameService {
         }
         return values.get(values.size() - 1);
     }
+
     @Override
     public AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request) {
         Player player = playerRepository.findById(request.getPlayerId())

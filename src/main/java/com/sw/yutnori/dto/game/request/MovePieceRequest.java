@@ -1,5 +1,6 @@
 package com.sw.yutnori.dto.game.request;
 
+import com.sw.yutnori.common.enums.YutResult;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,9 +17,12 @@ public class MovePieceRequest {
     @Schema(description = "이동 순서 (첫 번째 사용된 결과부터)", example = "1")
     private int moveOrder;
 
-    @Schema(description = "이동할 X 좌표: 논리 좌표 a", example = "0")
+    @Schema(description = "이동할 X 좌표: 논리 좌표 a", example = "3")
     private int xcoord;
 
-    @Schema(description = "이동할 Y 좌표 : 존리 좌표 b", example = "1")
+    @Schema(description = "이동할 Y 좌표 : 존리 좌표 b", example = "10")
     private int ycoord;
+
+    @Schema(description = "윷 결과", example = "GEOL")
+    private YutResult result;
 }
