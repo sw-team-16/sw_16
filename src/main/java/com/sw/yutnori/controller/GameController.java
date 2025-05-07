@@ -4,6 +4,8 @@ import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.*;
 import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.service.GameService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,37 +18,65 @@ public class GameController {
 
     private final GameService gameService;
 
-    @PostMapping
+    @Operation(
+            summary = "S1-1. 게임 생성",
+            description = "게임 생성 요청을 처리하고 플레이어를 리스트로 반환"
+    )
+    @ApiResponse(responseCode = "200", description = "게임 생성 성공")
+    @PostMapping("/game/create")
     public ResponseEntity<Void> createGame(@RequestBody GameCreateRequest request) {
         gameService.createGame(request);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{gameId}/turn/random")
+    @Operation(
+            summary = "S2-1. 수동 윷 던지기",
+            description = "프론트에서 선택한 윷 결과를 저장"
+    )
+    @ApiResponse(responseCode = "200", description = "결과 저장성공")
+    @PostMapping("/{gameId}/turn/random/throw") // S 2-1 : 윷 랜덤 던지지
     public ResponseEntity<AutoThrowResponse> getRandomYutResult(@PathVariable Long gameId,
                                                                 @RequestBody AutoThrowRequest request) {
         return ResponseEntity.ok(gameService.getRandomYutResultForPlayer(gameId, request));
     }
-    @PostMapping("/{gameId}/turn/random/apply")
+    @Operation(
+            summary = "S2-3. 자동 윷 결과 값 저장",
+            description = "랜덤 윷 결과를 화면에서 적용 후 DB에 저장"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
+    @PostMapping("/{gameId}/turn/random/apply") // S 2-3 : 랜덤으로 던진 윷 적용
     public ResponseEntity<YutThrowResponse> applyRandomYutResult(@PathVariable Long gameId,
                                                                  @RequestBody AutoThrowApplyRequest request) {
         return ResponseEntity.ok(gameService.applyRandomYutResult(gameId, request));
     }
 
 
-
-    @PostMapping("/{gameId}/turn/manual")
+    @Operation(
+            summary = "S2-2. 자동 윷 던지기",
+            description = "프론트에서 요청 시 랜덤으로 아무 윷 결과를 반환"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
+    @PostMapping("/{gameId}/turn/manual/throw") // S 2-3 : 윷 수동 던지기
     public ResponseEntity<Void> throwYutManual(@PathVariable Long gameId,
                                                @RequestBody ManualThrowRequest request) {
         gameService.throwYutManual(gameId, request);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = "S 3-1. 플레이어 아이디 기준 해당 플레이어의 사용 가능 말 조회",
+            description = "플레이어의 아이디를 가지고 finish 라인에 들어가지 않은 말 들 반환"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
     @GetMapping("/player/{playerId}/movable-pieces")
     public ResponseEntity<List<MovablePieceResponse>> getMovablePieces(@PathVariable Long playerId) {
         return ResponseEntity.ok(gameService.getMovablePiecesByPlayer(playerId));
     }
-
+    @Operation(
+            summary = "S 3-2.말 이동 api",
+            description = "프론트에서 좌표값 반환 시 해당 좌표에 업기 또는 잡기, finishh 여부 판단"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
     @PostMapping("/{gameId}/move")
     public ResponseEntity<Void> movePiece(@PathVariable Long gameId,
                                           @RequestBody MovePieceRequest request) {

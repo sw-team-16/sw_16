@@ -105,18 +105,7 @@ public class GameServiceImpl implements GameService {
         turnRepository.save(turn);
     }
 
-    @Override
-    public List<Long> getMovablePieces(Long gameId) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid gameId"));
-        Player player = game.getCurrentTurnPlayer();
 
-        List<Piece> pieces = pieceRepository.findByPlayer_PlayerId(player.getPlayerId());
-        return pieces.stream()
-                .filter(p -> !p.isFinished())
-                .map(Piece::getPieceId)
-                .collect(Collectors.toList());
-    }
 
     @Override
     @Transactional
