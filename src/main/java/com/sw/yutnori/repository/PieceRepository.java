@@ -14,7 +14,7 @@ public interface PieceRepository extends JpaRepository<Piece, Long> {
     List<Piece> findByPlayer_PlayerId(Long playerId);
 
     @Modifying
-    @Query("DELETE FROM Piece p WHERE p.player.game.id = :gameId")
+    @Query("DELETE FROM Piece p WHERE p.player.game.gameId = :gameId")
 
     void deleteByPlayerGame(@Param("gameId") Long gameId);
     List<Piece> findByPlayer(Player player);

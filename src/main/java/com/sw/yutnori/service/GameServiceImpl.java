@@ -12,7 +12,6 @@ import com.sw.yutnori.dto.game.response.YutThrowResponse;
 import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.repository.*;
 
-import com.sw.yutnori.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,12 +24,11 @@ import jakarta.transaction.Transactional;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class GameServiceImpl implements GameService {
+abstract class GameServiceImpl implements GameService {
 
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
@@ -118,8 +116,8 @@ public class GameServiceImpl implements GameService {
                 .collect(Collectors.toList());
     }
 
-    @Override
     @Transactional
+    @Override
     public void movePiece(MovePieceRequest request) {
         Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
@@ -133,23 +131,50 @@ public class GameServiceImpl implements GameService {
             if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
 
             if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
-                // 업기
+                // 동일 플레이어 말 그룹 적용
+                if (!target.isGrouped() && !movingPiece.isGrouped()) {
+                    Long newGroupId = System.nanoTime(); // Generate unique group ID
+                    target.setGroupId(newGroupId);
+                    movingPiece.setGroupId(newGroupId);
+                }
                 target.setGrouped(true);
                 movingPiece.setGrouped(true);
             } else {
-                // 잡기
-                target.setFinished(true);
-                target.setGrouped(false);
-                target.setState(PieceState.READY);
-                target.setX(0);
-                target.setY(1);
-            }
-            pieceRepository.save(target);
-        }
+                // 다른 플레이어의 말 잡기 (그룹 포함)
+                if (target.isGrouped()) {
+                    List<Piece> groupedPieces = pieceRepository.findByPlayer_PlayerId(target.getPlayer().getPlayerId())
+                            .stream()
+                            .filter(p -> p.getGroupId() != null && p.getGroupId().equals(target.getGroupId()))
+                            .toList();
+                    for (Piece groupedPiece : groupedPieces) {
+                        groupedPiece.setState(PieceState.READY);
+                        groupedPiece.setX(0);
+                        groupedPiece.setY(1);
+                        groupedPiece.setFinished(false);
+                        groupedPiece.setGrouped(false);
+                        groupedPiece.setGroupId(null);
+                        pieceRepository.save(groupedPiece);
+                    }
+                } else {
+                    target.setState(PieceState.READY);
+                    target.setX(0);
+                    target.setY(1);
+                    target.setFinished(false);
+                }
 
+                owner.setFinishedCount(owner.getFinishedCount() + 1);
+
+                pieceRepository.save(target);
+            }
+        }
         // 말 이동
-        movingPiece.setX(request.getXcoord());
-        movingPiece.setY(request.getYcoord());
+        if (request.getXcoord()==5) {                   // 분기점은 항상 x좌표 5를 갖는다.
+            movingPiece.setX(request.getYcoord() * 10); // 대각선은 항상 y좌표 * 10 이다.
+            movingPiece.setY(request.getYcoord());
+        } else {
+            movingPiece.setX(request.getXcoord());
+            movingPiece.setY(request.getYcoord());
+        }
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
 
@@ -157,6 +182,10 @@ public class GameServiceImpl implements GameService {
         if (request.getXcoord() == 0 && request.getYcoord() == 1) {
             owner.setFinishedCount(owner.getFinishedCount() + 1);
             playerRepository.save(owner);
+
+            // Remove piece after finishing
+            pieceRepository.delete(movingPiece);
+            return; // Stop processing this piece
         }
 
         // TurnAction 저장
@@ -170,6 +199,7 @@ public class GameServiceImpl implements GameService {
         action.setChosenPiece(movingPiece);
         action.setChosenPiece(movingPiece);
         turnActionRepository.save(action);
+
     }
 
 

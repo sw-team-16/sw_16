@@ -39,4 +39,10 @@ public class Piece {
     @Column(nullable = false)
     private PieceState state = PieceState.READY;
 
+    public void setX(int i) {
+        this.xcoord = i;
+    }
+    public void setY(int i) {
+        this.ycoord = i;
+    }
 }

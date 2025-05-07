@@ -7,6 +7,7 @@ import com.sw.yutnori.dto.game.response.TurnInfoResponse;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.dto.game.response.YutThrowResponse;
 import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -36,6 +37,9 @@ public interface GameService {
 
     TurnInfoResponse getTurnInfo(Long gameId);
 
+
+    @Transactional
+    void movePiece(MovePieceRequest request);
 
     AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request);
 
