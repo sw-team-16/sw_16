@@ -117,7 +117,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     @Transactional
-    public void movePiece(MovePieceRequest request) {
+    public void movePiece(Long gameId, MovePieceRequest request) {
         Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
 

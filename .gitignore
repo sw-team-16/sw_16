@@ -12,6 +12,9 @@
 build
 .gradle
 gradle
+.gradle/
+.idea/
+build/
 # Package Files #
 *.jar
 *.war
