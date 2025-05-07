@@ -34,7 +34,7 @@ public class YutnoriApiClient {
         restTemplate.postForObject(url, request, Void.class);
     }
 
-    // URL 및 반환 타입 수정
+    // 말 관련 - 별도 구현 필요
     public List<MovablePieceResponse> getMovablePieces(Long playerId) {
         String url = baseUrl + "/game/player/" + playerId + "/movable-pieces";
         MovablePieceResponse[] response = restTemplate.getForObject(url, MovablePieceResponse[].class);

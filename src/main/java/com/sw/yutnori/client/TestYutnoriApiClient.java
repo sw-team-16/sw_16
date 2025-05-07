@@ -15,9 +15,7 @@ public class TestYutnoriApiClient extends YutnoriApiClient {
         YutResult[] values = YutResult.values();
         YutResult result = values[random.nextInt(values.length)];
 
-        AutoThrowResponse response = new AutoThrowResponse(result, turnId + 1);
-
-        return response;
+        return new AutoThrowResponse(result, turnId + 1);
     }
 
 }

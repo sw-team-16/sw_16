@@ -2,7 +2,6 @@ package com.sw.yutnori.ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +13,7 @@ public class YutSelectionPanel extends JPanel {
 
     private JButton doBtn, gaeBtn, geolBtn, yutBtn, moBtn, backDoBtn;
     private JButton cancelBtn, confirmBtn;
-    private List<String> selectedYuts = new ArrayList<>();
+    private final List<String> selectedYuts = new ArrayList<>();
     private JPanel selectedYutsPanel;
     private Consumer<List<String>> onConfirmCallback;
     private Runnable onCancelCallback;
@@ -25,12 +24,14 @@ public class YutSelectionPanel extends JPanel {
         initialize();
     }
 
+    // 패널 설정 및 레이아웃 구성, 버튼 및 레이블 생성
     private void initialize() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setAlignmentX(Component.CENTER_ALIGNMENT);
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 70));
 
-        // 선택된 윷 결과 표시 패널
+        add(Box.createRigidArea(new Dimension(0, 40)));
+
         createSelectedYutsPanel();
         add(Box.createRigidArea(new Dimension(0, 10)));
 
@@ -43,6 +44,7 @@ public class YutSelectionPanel extends JPanel {
         createControlButtons();
     }
 
+    // 선택된 윷 결과를 표시할 패널 생성
     private void createSelectedYutsPanel() {
         JPanel containerPanel = new JPanel();
         containerPanel.setLayout(new BoxLayout(containerPanel, BoxLayout.Y_AXIS));
@@ -56,7 +58,7 @@ public class YutSelectionPanel extends JPanel {
         selectedYutsPanel.setMaximumSize(new Dimension(300, 100));
         selectedYutsPanel.setPreferredSize(new Dimension(300, 100));
 
-        // 초기 라벨 3개 추가
+        // 결과는 최대 3개까지 가능
         for (int i = 0; i < 3; i++) {
             JLabel label = new JLabel("-");
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -66,14 +68,17 @@ public class YutSelectionPanel extends JPanel {
 
         containerPanel.add(selectedYutsPanel);
         add(containerPanel);
+        add(Box.createRigidArea(new Dimension(0, 40)));
     }
 
+    // 윷 버튼 생성 및 이벤트 리스너 설정
     private void createYutButtons() {
-        JPanel buttonContainer = new JPanel(new GridLayout(2, 1, 0, 10));
+        JPanel buttonContainer = new JPanel(new GridLayout(3, 1, 0, 10));
         buttonContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JPanel buttonRow1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        JPanel buttonRow2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        JPanel buttonRow1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        JPanel buttonRow2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        JPanel buttonRow3 = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
 
         doBtn = createYutButton("도");
         gaeBtn = createYutButton("개");
@@ -84,51 +89,49 @@ public class YutSelectionPanel extends JPanel {
 
         buttonRow1.add(doBtn);
         buttonRow1.add(gaeBtn);
-        buttonRow1.add(geolBtn);
+        buttonRow2.add(geolBtn);
         buttonRow2.add(yutBtn);
-        buttonRow2.add(moBtn);
-        buttonRow2.add(backDoBtn);
+        buttonRow3.add(moBtn);
+        buttonRow3.add(backDoBtn);
 
         buttonContainer.add(buttonRow1);
         buttonContainer.add(buttonRow2);
+        buttonContainer.add(buttonRow3);
 
         add(buttonContainer);
         add(Box.createRigidArea(new Dimension(0, 20)));
 
-        ActionListener yutBtnListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JButton source = (JButton) e.getSource();
-                String yutType = source.getText();
+        ActionListener yutBtnListener = e -> {
+            JButton source = (JButton) e.getSource();
+            String yutType = source.getText();
 
-                // 윷놀이 규칙 적용: 도/개/걸/빽도는 단일 선택만 가능
-                if (!yutType.equals("윷") && !yutType.equals("모")) {
-                    // 이미 다른 일반 결과가 있으면 제거
-                    selectedYuts.removeIf(y -> !y.equals("윷") && !y.equals("모"));
+            // 윷놀이 규칙 적용: 도/개/걸/빽도는 단일 선택만 가능
+            if (!yutType.equals("윷") && !yutType.equals("모")) {
+                // 이미 다른 일반 결과가 있으면 제거
+                selectedYuts.removeIf(y -> !y.equals("윷") && !y.equals("모"));
 
-                    // 이미 같은 일반 결과가 있으면 제거 (토글)
-                    if (selectedYuts.contains(yutType)) {
-                        selectedYuts.remove(yutType);
-                        source.setBackground(UIManager.getColor("Button.background"));
-                    } else {
-                        selectedYuts.add(yutType);
-                        source.setBackground(new Color(100, 149, 237));
-                    }
+                // 이미 같은 일반 결과가 있으면 제거 (토글)
+                if (selectedYuts.contains(yutType)) {
+                    selectedYuts.remove(yutType);
+                    source.setBackground(UIManager.getColor("Button.background"));
                 } else {
-                    // 윷이나 모는 계속 추가 가능 (토글 방식 제거)
                     selectedYuts.add(yutType);
                     source.setBackground(new Color(100, 149, 237));
-
-                    // 깜빡임 효과로 버튼 선택 피드백 제공
-                    Timer timer = new Timer(300, evt ->
-                            source.setBackground(UIManager.getColor("Button.background")));
-                    timer.setRepeats(false);
-                    timer.start();
                 }
+            } else {
+                // 윷이나 모는 계속 추가 가능 (토글 방식 제거)
+                selectedYuts.add(yutType);
+                source.setBackground(new Color(100, 149, 237));
 
-                updateSelectedYutsPanel();
-                confirmBtn.setEnabled(!selectedYuts.isEmpty());
+                // 깜빡임 효과로 버튼 선택 피드백 제공
+                Timer timer = new Timer(300, evt ->
+                        source.setBackground(UIManager.getColor("Button.background")));
+                timer.setRepeats(false);
+                timer.start();
             }
+
+            updateSelectedYutsPanel();
+            confirmBtn.setEnabled(!selectedYuts.isEmpty());
         };
 
         doBtn.addActionListener(yutBtnListener);
@@ -139,6 +142,7 @@ public class YutSelectionPanel extends JPanel {
         backDoBtn.addActionListener(yutBtnListener);
     }
 
+    // 선택된 윷 결과를 표시하는 패널 업데이트
     private void updateSelectedYutsPanel() {
         // 결과를 표시할 리스트
         List<String> displayResults = new ArrayList<>();
@@ -158,7 +162,7 @@ public class YutSelectionPanel extends JPanel {
             }
         }
 
-        // 윷과 모 처리
+        // 윷과 모 처리 - HTML 태그 활용해 위첨자로 표현
         for (Map.Entry<String, Integer> entry : yutMoCount.entrySet()) {
             String yut = entry.getKey();
             int count = entry.getValue();
@@ -191,7 +195,7 @@ public class YutSelectionPanel extends JPanel {
         selectedYutsPanel.repaint();
     }
 
-
+    // 취소 및 완료 버튼 생성 후 이벤트 리스너 설정
     private void createControlButtons() {
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
 
@@ -200,7 +204,7 @@ public class YutSelectionPanel extends JPanel {
 
         confirmBtn = new JButton("완료");
         confirmBtn.setPreferredSize(new Dimension(100, 40));
-        confirmBtn.setEnabled(false);
+        confirmBtn.setEnabled(false);   // 선택 전까지 비활성화
 
         cancelBtn.addActionListener(e -> {
             if (onCancelCallback != null) {
@@ -219,6 +223,7 @@ public class YutSelectionPanel extends JPanel {
         add(controlPanel);
     }
 
+    // 도, 개, 걸, 윷, 모, 빽도 버튼 생성
     private JButton createYutButton(String text) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(60, 60));

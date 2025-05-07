@@ -10,6 +10,10 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.List;
+import java.util.Random;
+import java.awt.image.BufferedImage;
+import javax.swing.ImageIcon;
+import java.awt.Image;
 
 public class SwingControlPanel extends JPanel implements GameUI {
 
@@ -29,17 +33,21 @@ public class SwingControlPanel extends JPanel implements GameUI {
     private JButton randomYutBtn;
     private JButton customYutBtn;
 
-    private YutThrowListener yutThrowListener;
     private JLabel currentYutLabel;
-
     private JLabel[] resultLabels;
     private int currentResultIndex = 0;
+
+    private JLabel[] yutSticks;
+    private ImageIcon upIcon;
+    private ImageIcon downIcon;
+    private ImageIcon backDoDownIcon;
 
     public SwingControlPanel(YutnoriApiClient apiClient) {
         this.apiClient = apiClient;
         initialize();
     }
 
+    // 게임 ID와 플레이어 ID를 설정 - 턴이 진행되는 방식에 맞추어 변경되어야 함
     public void setGameContext(Long gameId, Long playerId) {
         this.gameId = gameId;
         this.playerId = playerId;
@@ -98,10 +106,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
                 displayYutResult(koreanResult);
                 updateCurrentYut(result);
 
-                if (yutThrowListener != null) {
-                    yutThrowListener.onYutThrown(result);
-                }
-
                 // 윷이나 모가 나왔을 경우에는 버튼을 활성화 상태로 유지
                 if (yutResult != YutResult.YUT && yutResult != YutResult.MO) {
                     randomYutBtn.setEnabled(false);
@@ -114,9 +118,11 @@ public class SwingControlPanel extends JPanel implements GameUI {
         customYutBtn.addActionListener(e -> showCustomYutSelectionPanel());
     }
 
+    // '지정 윷 던지기' 클릭 시 발생하는 이벤트
     private void showCustomYutSelectionPanel() {
         removeAll();
 
+        // 완료 콜백 - 선택된 윷 결과를 매개변수로 전달받음
         Consumer<List<String>> onConfirm = selectedYuts -> {
             try {
                 if (selectedYuts.isEmpty()) {
@@ -157,7 +163,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
         // 취소 콜백
         Runnable onCancel = this::restoreOriginalPanel;
 
-        // 수정된 YutSelectionPanel 생성
         YutSelectionPanel selectionPanel = new YutSelectionPanel(onConfirm, onCancel);
         add(selectionPanel);
 
@@ -165,6 +170,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
         repaint();
     }
 
+    // '지정 윷 던지기'에서 취소/완료 후 원래 패널로 복원
     private void restoreOriginalPanel() {
         removeAll();
         layoutComponents();
@@ -172,6 +178,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
         repaint();
     }
 
+    // String -> YutResult 변환
     private YutResult convertStringToYutResult(String yutType) {
         return switch (yutType) {
             case "DO" -> YutResult.DO;
@@ -184,6 +191,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
         };
     }
 
+    // 한영 변환
     private String convertYutType(String yutType, boolean toKorean) {
         return switch (yutType) {
             case "도", "DO" -> toKorean ? "도" : "DO";
@@ -216,12 +224,40 @@ public class SwingControlPanel extends JPanel implements GameUI {
         currentResultIndex = 0;
     }
 
+
     private JPanel createYutPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 4, 5, 0));
         panel.setBorder(BorderFactory.createEmptyBorder());
         panel.setMaximumSize(new Dimension(300, 180));
         panel.setPreferredSize(new Dimension(300, 180));
         panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        try {
+            upIcon = new ImageIcon(getClass().getResource("/images/yut_up.png"));
+            downIcon = new ImageIcon(getClass().getResource("/images/yut_down.png"));
+            backDoDownIcon = new ImageIcon(getClass().getResource("/images/yut_backDo_down.png"));
+
+            Image upImg = upIcon.getImage().getScaledInstance(60, 180, Image.SCALE_SMOOTH);
+            Image downImg = downIcon.getImage().getScaledInstance(60, 180, Image.SCALE_SMOOTH);
+            Image backDoDownImg = backDoDownIcon.getImage().getScaledInstance(60, 180, Image.SCALE_SMOOTH);
+
+            upIcon = new ImageIcon(upImg);
+            downIcon = new ImageIcon(downImg);
+            backDoDownIcon = new ImageIcon(backDoDownImg);
+        } catch (Exception e) {
+            upIcon = new ImageIcon(new BufferedImage(60, 180, BufferedImage.TYPE_INT_ARGB));
+            downIcon = new ImageIcon(new BufferedImage(60, 180, BufferedImage.TYPE_INT_ARGB));
+            backDoDownIcon = new ImageIcon(new BufferedImage(60, 180, BufferedImage.TYPE_INT_ARGB));
+        }
+
+        yutSticks = new JLabel[4];
+        for (int i = 0; i < 4; i++) {
+            yutSticks[i] = new JLabel(upIcon);
+            yutSticks[i].setHorizontalAlignment(SwingConstants.CENTER);
+            yutSticks[i].setName("yutStick" + i);
+            panel.add(yutSticks[i]);
+        }
+
         return panel;
     }
 
@@ -273,7 +309,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
 
     private JPanel createCurrentYutPanel() {
         JPanel panel = new JPanel();
-        panel.setBorder(BorderFactory.createTitledBorder("Current_yut"));
+        panel.setBorder(BorderFactory.createTitledBorder("현재 윷"));
         panel.setMaximumSize(new Dimension(150, 80));
         panel.setPreferredSize(new Dimension(150, 80));
         panel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -329,7 +365,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
     private Long getCurrentTurnId() {
         if (currentTurnId == null) {
             try {
-                // 실제 구현에서는 백엔드에서 턴 정보를 가져와야 함
+                // 턴 정보 로직 구현 필요
                 currentTurnId = 1L;
             } catch (Exception e) {
                 showError("턴 정보를 가져오는데 실패했습니다: " + e.getMessage());
@@ -396,10 +432,8 @@ public class SwingControlPanel extends JPanel implements GameUI {
             if (resultLabels[currentResultIndex].getText().equals("-")) {
                 resultLabels[currentResultIndex].setText(result);
             } else {
-                // 현재 칸이 차있으면 다음 칸으로 이동
                 currentResultIndex++;
 
-                // 모든 칸이 찼는지 확인
                 if (currentResultIndex >= resultLabels.length) {
                     resetResults();
                     resultLabels[0].setText(result);
@@ -420,27 +454,58 @@ public class SwingControlPanel extends JPanel implements GameUI {
     @Override
     public void updateCurrentYut(String yutType) {
         currentYutLabel.setText(convertYutTypeToKorean(yutType));
+        updateYutSticks(yutType);
     }
 
     @Override
-    public void throwRandomYut() {
-        // UI 상에서 윷 던지기 애니메이션 등 구현
+    public void updateYutSticks(String yutType) {
+        // 모든 윷 스틱 앞면으로 초기화
+        for (JLabel stick : yutSticks) {
+            stick.setIcon(upIcon);
+        }
+
+        Random random = new Random();
+
+        switch (yutType) {
+            case "DO": // 도 (1개 뒤집힘)
+                flipRandomSticks(1, random);
+                break;
+            case "GAE": // 개 (2개 뒤집힘)
+                flipRandomSticks(2, random);
+                break;
+            case "GEOL": // 걸 (3개 뒤집힘)
+                flipRandomSticks(3, random);
+                break;
+            case "YUT": // 윷 (4개 모두 뒷면)
+                for (JLabel stick : yutSticks) {
+                    stick.setIcon(downIcon);
+                }
+                break;
+            case "MO": // 모 (4개 모두 앞면)
+                // 초기화된 상태와 동일
+                break;
+            case "BACK_DO": // 빽도 (1개 뒤집힘, 특별 처리 필요시)
+                int backDoIndex = random.nextInt(4);
+                yutSticks[backDoIndex].setIcon(backDoDownIcon);
+                break;
+        }
     }
 
-    @Override
-    public void throwCustomYut(String yutType) {
-        // 지정된 윷 표시
+    // 랜덤으로 윷 스틱 뒤집는 로직 추가
+    private void flipRandomSticks(int count, Random random) {
+        boolean[] flipped = new boolean[4];
+        int flippedCount = 0;
+
+        while (flippedCount < count) {
+            int idx = random.nextInt(4);
+            if (!flipped[idx]) {
+                yutSticks[idx].setIcon(downIcon);
+                flipped[idx] = true;
+                flippedCount++;
+            }
+        }
     }
 
-    @Override
-    public void setYutThrowListener(YutThrowListener listener) {
-        this.yutThrowListener = listener;
-    }
-
-    @Override
-    public void updateGameStatus(GameState status) {
-        // 게임 상태에 따른 UI 업데이트
-    }
 
     @Override
     public void showWinner(String winnerName) {
