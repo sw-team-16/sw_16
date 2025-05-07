@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ManualThrowRequest {
-    @Schema(description = "턴 ID", example = "12", required = true)
-    private Long turnId;
 
     @Schema(description = "플레이어 ID", example = "1", required = true)
     private Long playerId;

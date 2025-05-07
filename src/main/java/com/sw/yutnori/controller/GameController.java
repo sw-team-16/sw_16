@@ -52,8 +52,8 @@ public class GameController {
 
 
     @Operation(
-            summary = "S2-2. 자동 윷 던지기",
-            description = "프론트에서 요청 시 랜덤으로 아무 윷 결과를 반환"
+            summary = "S2-2. 수동 윷 던지기",
+            description = "프론트에서 윷의 결과 중 하나와 함께 적용할 말을 선택하여 db 에 저장"
     )
     @ApiResponse(responseCode = "200", description = "반환성공")
     @PostMapping("/{gameId}/turn/manual/throw") // S 2-3 : 윷 수동 던지기

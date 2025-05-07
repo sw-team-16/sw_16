@@ -5,14 +5,12 @@ import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.domain.*;
 import com.sw.yutnori.dto.game.response.*;
-import com.sw.yutnori.dto.game.request.PlayerRequest;
 import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.dto.game.response.YutThrowResponse;
 import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.repository.*;
 
-import com.sw.yutnori.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +23,6 @@ import jakarta.transaction.Transactional;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
