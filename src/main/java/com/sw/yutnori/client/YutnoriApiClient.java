@@ -5,13 +5,12 @@ import com.sw.yutnori.dto.game.request.ManualThrowRequest;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.common.enums.YutResult;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
 
-public class YutnoriApiClient {
+public class YutnoriApiClient implements GameApiClient {
 
     private final RestTemplate restTemplate;
     private final String baseUrl = "http://localhost:8080/api";

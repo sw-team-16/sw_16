@@ -1,4 +1,4 @@
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.display;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,36 +9,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class YutSelectionPanel extends JPanel {
-
+public class SwingSelectionDisplay implements SelectionDisplay {
     private JButton doBtn, gaeBtn, geolBtn, yutBtn, moBtn, backDoBtn;
     private JButton cancelBtn, confirmBtn;
     private final List<String> selectedYuts = new ArrayList<>();
     private JPanel selectedYutsPanel;
     private Consumer<List<String>> onConfirmCallback;
     private Runnable onCancelCallback;
+    private JPanel mainPanel;
 
-    public YutSelectionPanel(Consumer<List<String>> onConfirmCallback, Runnable onCancelCallback) {
-        this.onConfirmCallback = onConfirmCallback;
-        this.onCancelCallback = onCancelCallback;
+    public SwingSelectionDisplay() {
         initialize();
     }
 
-    // 패널 설정 및 레이아웃 구성, 버튼 및 레이블 생성
     private void initialize() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setAlignmentX(Component.CENTER_ALIGNMENT);
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 70));
+        mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 70));
 
-        add(Box.createRigidArea(new Dimension(0, 40)));
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
         createSelectedYutsPanel();
-        add(Box.createRigidArea(new Dimension(0, 10)));
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
         JLabel infoLabel = new JLabel("윷을 선택하세요");
         infoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        add(infoLabel);
-        add(Box.createRigidArea(new Dimension(0, 20)));
+        mainPanel.add(infoLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         createYutButtons();
         createControlButtons();
@@ -67,11 +65,10 @@ public class YutSelectionPanel extends JPanel {
         }
 
         containerPanel.add(selectedYutsPanel);
-        add(containerPanel);
-        add(Box.createRigidArea(new Dimension(0, 40)));
+        mainPanel.add(containerPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
     }
 
-    // 윷 버튼 생성 및 이벤트 리스너 설정
     private void createYutButtons() {
         JPanel buttonContainer = new JPanel(new GridLayout(3, 1, 0, 10));
         buttonContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -98,8 +95,8 @@ public class YutSelectionPanel extends JPanel {
         buttonContainer.add(buttonRow2);
         buttonContainer.add(buttonRow3);
 
-        add(buttonContainer);
-        add(Box.createRigidArea(new Dimension(0, 20)));
+        mainPanel.add(buttonContainer);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         ActionListener yutBtnListener = e -> {
             JButton source = (JButton) e.getSource();
@@ -142,8 +139,42 @@ public class YutSelectionPanel extends JPanel {
         backDoBtn.addActionListener(yutBtnListener);
     }
 
-    // 선택된 윷 결과를 표시하는 패널 업데이트
-    private void updateSelectedYutsPanel() {
+    private void createControlButtons() {
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+
+        cancelBtn = new JButton("취소");
+        cancelBtn.setPreferredSize(new Dimension(100, 40));
+
+        confirmBtn = new JButton("완료");
+        confirmBtn.setPreferredSize(new Dimension(100, 40));
+        confirmBtn.setEnabled(false);   // 선택 전까지 비활성화
+
+        cancelBtn.addActionListener(e -> {
+            if (onCancelCallback != null) {
+                onCancelCallback.run();
+            }
+        });
+
+        confirmBtn.addActionListener(e -> {
+            if (!selectedYuts.isEmpty() && onConfirmCallback != null) {
+                onConfirmCallback.accept(selectedYuts);
+            }
+        });
+
+        controlPanel.add(cancelBtn);
+        controlPanel.add(confirmBtn);
+        mainPanel.add(controlPanel);
+    }
+
+    private JButton createYutButton(String text) {
+        JButton button = new JButton(text);
+        button.setPreferredSize(new Dimension(60, 60));
+        button.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        return button;
+    }
+
+    @Override
+    public void updateSelectedYutsPanel() {
         // 결과를 표시할 리스트
         List<String> displayResults = new ArrayList<>();
 
@@ -169,8 +200,7 @@ public class YutSelectionPanel extends JPanel {
 
             if (count > 1) {
                 displayResults.add("<html><span style='font-size:18pt'>" +
-                        yut + "<sup style='color:red'>" + count +
-                        "</sup></span></html>");
+                        yut + "<sup>" + count + "</sup></span></html>");
             } else {
                 displayResults.add(yut);
             }
@@ -195,43 +225,24 @@ public class YutSelectionPanel extends JPanel {
         selectedYutsPanel.repaint();
     }
 
-    // 취소 및 완료 버튼 생성 후 이벤트 리스너 설정
-    private void createControlButtons() {
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
-
-        cancelBtn = new JButton("취소");
-        cancelBtn.setPreferredSize(new Dimension(100, 40));
-
-        confirmBtn = new JButton("완료");
-        confirmBtn.setPreferredSize(new Dimension(100, 40));
-        confirmBtn.setEnabled(false);   // 선택 전까지 비활성화
-
-        cancelBtn.addActionListener(e -> {
-            if (onCancelCallback != null) {
-                onCancelCallback.run();
-            }
-        });
-
-        confirmBtn.addActionListener(e -> {
-            if (!selectedYuts.isEmpty() && onConfirmCallback != null) {
-                onConfirmCallback.accept(selectedYuts);
-            }
-        });
-
-        controlPanel.add(cancelBtn);
-        controlPanel.add(confirmBtn);
-        add(controlPanel);
-    }
-
-    // 도, 개, 걸, 윷, 모, 빽도 버튼 생성
-    private JButton createYutButton(String text) {
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(60, 60));
-        button.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        return button;
-    }
-
+    @Override
     public List<String> getSelectedYuts() {
         return new ArrayList<>(selectedYuts);
     }
+
+    @Override
+    public void setOnConfirmCallback(Consumer<List<String>> callback) {
+        this.onConfirmCallback = callback;
+    }
+
+    @Override
+    public void setOnCancelCallback(Runnable callback) {
+        this.onCancelCallback = callback;
+    }
+
+    @Override
+    public JPanel getPanel() {
+        return mainPanel;
+    }
+
 }

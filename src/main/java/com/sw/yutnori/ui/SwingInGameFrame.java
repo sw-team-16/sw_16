@@ -1,5 +1,6 @@
 package com.sw.yutnori.ui;
 
+import com.sw.yutnori.client.GameApiClient;
 import com.sw.yutnori.client.TestYutnoriApiClient;
 import com.sw.yutnori.client.YutnoriApiClient;
 
@@ -8,17 +9,18 @@ import java.awt.*;
 
 public class SwingInGameFrame extends JFrame {
     public SwingInGameFrame() {
-        setTitle("In-Game Frame");
+        setTitle("윷놀이 게임");
         setSize(1200, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // 테스트용 API 클라이언트 생성
-        YutnoriApiClient apiClient = new TestYutnoriApiClient();
+        // 테스트용 - new TestYutnoriApiClient() 대입 / API 연동 - new YutnoriApiClient() 대입
+        GameApiClient apiClient = new YutnoriApiClient();
 
         // 컨트롤 패널에 API 클라이언트 전달
         SwingControlPanel controlPanel = new SwingControlPanel(apiClient);
-        // 필요한 경우 게임 컨텍스트 설정
+
+        // 게임아이디 및 플레이어 아이디 알맞은 설정 필요
         controlPanel.setGameContext(1L, 1L);
 
 //        add(new BoardPanel(), BorderLayout.CENTER);

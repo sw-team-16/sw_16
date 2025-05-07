@@ -1,23 +1,23 @@
 package com.sw.yutnori.ui;
 
-import com.sw.yutnori.client.YutnoriApiClient;
+import com.sw.yutnori.client.GameApiClient;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.common.enums.GameState;
+import com.sw.yutnori.ui.display.ResultDisplay;
+import com.sw.yutnori.ui.display.SwingResultDisplay;
+import com.sw.yutnori.ui.display.SwingYutDisplay;
+import com.sw.yutnori.ui.display.YutDisplay;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.List;
-import java.util.Random;
 import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
 import java.awt.Image;
 
 public class SwingControlPanel extends JPanel implements GameUI {
-
-    private YutnoriApiClient apiClient;
 
     private Long gameId;
     private Long playerId;
@@ -35,16 +35,21 @@ public class SwingControlPanel extends JPanel implements GameUI {
 
     private JLabel currentYutLabel;
     private JLabel[] resultLabels;
-    private int currentResultIndex = 0;
 
     private JLabel[] yutSticks;
     private ImageIcon upIcon;
     private ImageIcon downIcon;
     private ImageIcon backDoDownIcon;
 
-    public SwingControlPanel(YutnoriApiClient apiClient) {
+    private final GameApiClient apiClient;
+    private final YutDisplay yutDisplay;
+    private final ResultDisplay resultDisplay;
+
+    public SwingControlPanel(GameApiClient apiClient) {
         this.apiClient = apiClient;
         initialize();
+        this.yutDisplay = new SwingYutDisplay(yutSticks, upIcon, downIcon, backDoDownIcon);
+        this.resultDisplay = new SwingResultDisplay(resultLabels, currentYutLabel);
     }
 
     // 게임 ID와 플레이어 ID를 설정 - 턴이 진행되는 방식에 맞추어 변경되어야 함
@@ -88,6 +93,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
         add(Box.createRigidArea(new Dimension(0, 10)));
     }
 
+    // '랜덤 윷 던지기' 및 '지정 윷 던지기' 버튼 클릭 시 발생하는 이벤트 초기화
     private void setupEventListeners() {
         randomYutBtn.addActionListener(e -> {
             try {
@@ -102,7 +108,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
                 YutResult yutResult = response.getResult();
                 String result = yutResult.name();
 
-                String koreanResult = convertYutTypeToKorean(result);
+                String koreanResult = resultDisplay.convertYutTypeToKorean(result);
                 displayYutResult(koreanResult);
                 updateCurrentYut(result);
 
@@ -118,7 +124,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
         customYutBtn.addActionListener(e -> showCustomYutSelectionPanel());
     }
 
-    // '지정 윷 던지기' 클릭 시 발생하는 이벤트
+    // '지정 윷 던지기' 클릭 시 창 변경
     private void showCustomYutSelectionPanel() {
         removeAll();
 
@@ -137,7 +143,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
                 // 모든 선택된 결과들을 백엔드로 전송
                 for (String selectedYut : selectedYuts) {
                     // 한국어 윷 결과를 백엔드 전송용 영어로 변환
-                    String yutType = convertYutTypeToEnglish(selectedYut);
+                    String yutType = resultDisplay.convertYutTypeToEnglish(selectedYut);
                     YutResult result = convertStringToYutResult(yutType);
 
                     // 백엔드 API 호출
@@ -147,7 +153,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
                 }
 
                 // 마지막 선택 윷을 현재 윷으로 표시
-                String lastYutType = convertYutTypeToEnglish(selectedYuts.get(selectedYuts.size() - 1));
+                String lastYutType = resultDisplay.convertYutTypeToEnglish(selectedYuts.get(selectedYuts.size() - 1));
                 updateCurrentYut(lastYutType);
 
                 resetPieceSelection();
@@ -163,11 +169,23 @@ public class SwingControlPanel extends JPanel implements GameUI {
         // 취소 콜백
         Runnable onCancel = this::restoreOriginalPanel;
 
-        YutSelectionPanel selectionPanel = new YutSelectionPanel(onConfirm, onCancel);
+        SwingYutSelectionPanel selectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
         add(selectionPanel);
 
         revalidate();
         repaint();
+    }
+
+    private YutResult convertStringToYutResult(String yutType) {
+        return switch (yutType) {
+            case "DO" -> YutResult.DO;
+            case "GAE" -> YutResult.GAE;
+            case "GEOL" -> YutResult.GEOL;
+            case "YUT" -> YutResult.YUT;
+            case "MO" -> YutResult.MO;
+            case "BACK_DO" -> YutResult.BACK_DO;
+            default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
+        };
     }
 
     // '지정 윷 던지기'에서 취소/완료 후 원래 패널로 복원
@@ -177,53 +195,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
         revalidate();
         repaint();
     }
-
-    // String -> YutResult 변환
-    private YutResult convertStringToYutResult(String yutType) {
-        return switch (yutType) {
-            case "DO" -> YutResult.DO;
-            case "GAE" -> YutResult.GAE;
-            case "GEOL" -> YutResult.GEOL;
-            case "YUT" -> YutResult.YUT;
-            case "MO" -> YutResult.MO;
-            case "BACKDO" -> YutResult.BACK_DO;
-            default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
-        };
-    }
-
-    // 한영 변환
-    private String convertYutType(String yutType, boolean toKorean) {
-        return switch (yutType) {
-            case "도", "DO" -> toKorean ? "도" : "DO";
-            case "개", "GAE" -> toKorean ? "개" : "GAE";
-            case "걸", "GEOL" -> toKorean ? "걸" : "GEOL";
-            case "윷", "YUT" -> toKorean ? "윷" : "YUT";
-            case "모", "MO" -> toKorean ? "모" : "MO";
-            case "빽도", "BACKDO", "BACK_DO" -> toKorean ? "빽도" : "BACKDO";
-            default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
-        };
-    }
-
-    private String convertYutTypeToKorean(String englishYutType) {
-        return convertYutType(englishYutType, true);
-    }
-
-    private String convertYutTypeToEnglish(String koreanYutType) {
-        return convertYutType(koreanYutType, false);
-    }
-
-    public void startNewTurn() {
-        resetResults();
-        currentYutLabel.setText("-");
-        randomYutBtn.setEnabled(true);
-        customYutBtn.setEnabled(true);
-    }
-
-    private void resetResults() {
-        Arrays.stream(resultLabels).forEach(label -> label.setText("-"));
-        currentResultIndex = 0;
-    }
-
 
     private JPanel createYutPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 4, 5, 0));
@@ -278,33 +249,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
         }
 
         return panel;
-    }
-
-    public static String formatYutResultWithSuperscript(String result, String currentText) {
-        // HTML 태그가 있는지 확인
-        if (currentText.startsWith("<html>")) {
-            // 기존 텍스트에서 결과와 횟수 추출
-            String content = currentText.substring(6, currentText.length() - 7);
-            int startIndex = content.indexOf("<sup>");
-
-            if (startIndex > 0) {
-                String baseText = content.substring(0, startIndex);
-                String countText = content.substring(startIndex + 5, content.indexOf("</sup>"));
-
-                // 같은 결과인 경우에만 횟수 증가
-                if (baseText.equals(result)) {
-                    try {
-                        int count = Integer.parseInt(countText);
-                        return "<html>" + result + "<sup>" + (count + 1) + "</sup></html>";
-                    } catch (NumberFormatException e) {
-                        return "<html>" + result + "<sup>2</sup></html>";
-                    }
-                }
-            }
-        }
-
-        // 처음 중복되는 경우 - 횟수 2부터 시작
-        return "<html>" + result + "<sup>2</sup></html>";
     }
 
     private JPanel createCurrentYutPanel() {
@@ -362,6 +306,15 @@ public class SwingControlPanel extends JPanel implements GameUI {
 
 
 
+    // 게임 턴이 변경될 때 호출 - 아직 미적용
+    public void startNewTurn() {
+        resultDisplay.resetResults();
+        currentYutLabel.setText("-");
+        randomYutBtn.setEnabled(true);
+        customYutBtn.setEnabled(true);
+    }
+
+    // 게임 진행 관련
     private Long getCurrentTurnId() {
         if (currentTurnId == null) {
             try {
@@ -387,125 +340,27 @@ public class SwingControlPanel extends JPanel implements GameUI {
         this.selectedPieceId = null;
     }
 
+
+
+    // GameUI 인터페이스 메소드 구현
     @Override
     public void displayYutResult(String result) {
-        // 윷이나 모인 경우 특별 처리
-        if (result.equals("윷") || result.equals("모")) {
-            // 현재 칸의 텍스트 확인
-            String currentText = resultLabels[currentResultIndex].getText();
+        resultDisplay.displayYutResult(result);
 
-            // 현재 칸이 비어있으면 결과 표시
-            if (currentText.equals("-")) {
-                resultLabels[currentResultIndex].setText(result);
-                // 버튼 활성화 상태 유지
-                randomYutBtn.setEnabled(true);
-                return;
-            }
-
-            // 현재 칸에 같은 결과가 있으면 위첨자로 표시
-            if (currentText.equals(result) ||
-                    (currentText.startsWith("<html>") && currentText.contains(result))) {
-                resultLabels[currentResultIndex].setText(
-                        formatYutResultWithSuperscript(result, currentText));
-                // 버튼 활성화 상태 유지
-                randomYutBtn.setEnabled(true);
-                return;
-            }
-
-            // 다른 결과가 있으면 다음 칸으로 이동
-            currentResultIndex++;
-
-            // 모든 칸이 찼는지 확인
-            if (currentResultIndex >= resultLabels.length) {
-                resetResults();
-                resultLabels[0].setText(result);
-                currentResultIndex = 0;
-            } else {
-                resultLabels[currentResultIndex].setText(result);
-            }
-
-            // 버튼 활성화 상태 유지
-            randomYutBtn.setEnabled(true);
-        } else {
-            // 도, 개, 걸, 빽도 등 다른 결과일 경우
-            // 현재 칸이 비어있으면 현재 칸에 표시
-            if (resultLabels[currentResultIndex].getText().equals("-")) {
-                resultLabels[currentResultIndex].setText(result);
-            } else {
-                currentResultIndex++;
-
-                if (currentResultIndex >= resultLabels.length) {
-                    resetResults();
-                    resultLabels[0].setText(result);
-                    currentResultIndex = 0;
-                } else {
-                    resultLabels[currentResultIndex].setText(result);
-                }
-            }
-
-            // 윷이나 모가 아니면 버튼 비활성화
-            randomYutBtn.setEnabled(false);
-        }
-
-        // 현재 윷 결과 업데이트
-        updateCurrentYut(convertYutTypeToEnglish(result));
+        // 버튼 활성화/비활성화 로직
+        randomYutBtn.setEnabled(resultDisplay.isSpecialResult(result));
     }
 
     @Override
     public void updateCurrentYut(String yutType) {
-        currentYutLabel.setText(convertYutTypeToKorean(yutType));
-        updateYutSticks(yutType);
+        resultDisplay.updateCurrentYut(yutType);
+        yutDisplay.displayYutResult(yutType);
     }
 
     @Override
     public void updateYutSticks(String yutType) {
-        // 모든 윷 스틱 앞면으로 초기화
-        for (JLabel stick : yutSticks) {
-            stick.setIcon(upIcon);
-        }
-
-        Random random = new Random();
-
-        switch (yutType) {
-            case "DO": // 도 (1개 뒤집힘)
-                flipRandomSticks(1, random);
-                break;
-            case "GAE": // 개 (2개 뒤집힘)
-                flipRandomSticks(2, random);
-                break;
-            case "GEOL": // 걸 (3개 뒤집힘)
-                flipRandomSticks(3, random);
-                break;
-            case "YUT": // 윷 (4개 모두 뒷면)
-                for (JLabel stick : yutSticks) {
-                    stick.setIcon(downIcon);
-                }
-                break;
-            case "MO": // 모 (4개 모두 앞면)
-                // 초기화된 상태와 동일
-                break;
-            case "BACK_DO": // 빽도 (1개 뒤집힘, 특별 처리 필요시)
-                int backDoIndex = random.nextInt(4);
-                yutSticks[backDoIndex].setIcon(backDoDownIcon);
-                break;
-        }
+        yutDisplay.displayYutResult(yutType);
     }
-
-    // 랜덤으로 윷 스틱 뒤집는 로직 추가
-    private void flipRandomSticks(int count, Random random) {
-        boolean[] flipped = new boolean[4];
-        int flippedCount = 0;
-
-        while (flippedCount < count) {
-            int idx = random.nextInt(4);
-            if (!flipped[idx]) {
-                yutSticks[idx].setIcon(downIcon);
-                flipped[idx] = true;
-                flippedCount++;
-            }
-        }
-    }
-
 
     @Override
     public void showWinner(String winnerName) {
