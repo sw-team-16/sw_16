@@ -1,17 +1,22 @@
 package com.sw.yutnori.domain;
 
-import com.sw.yutnori.common.enums.PathType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
+@NoArgsConstructor
+@Table(name = "board")
 public class Board {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long boardId;
 
-    @OneToOne
-    @JoinColumn(name = "game_id")
+    @ManyToOne
+    @JoinColumn(name = "game_id", nullable = false)
     private Game game;
 
-    @Enumerated(EnumType.STRING)
-    private PathType pathType;
+
 }
