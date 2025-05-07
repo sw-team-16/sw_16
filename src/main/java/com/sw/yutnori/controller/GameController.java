@@ -83,27 +83,51 @@ public class GameController {
         gameService.movePiece(request);
         return ResponseEntity.ok().build();
     }
+    @Operation(
+            summary = "Y 4-1. 턴 정보 조회 ",
+            description = "현재 순서인 플레이어 및 턴 상태 확인"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
     @GetMapping("/{gameId}/turn")
     public ResponseEntity<TurnInfoResponse> getTurnInfo(@PathVariable Long gameId) {
         return ResponseEntity.ok(gameService.getTurnInfo(gameId));
     }
 
-    @GetMapping("/{gameId}")
+    @Operation(
+            summary = "Y 4-2. 전체 게임 상태 조회",
+            description = "말 위치, 종료 여부, 점수 등"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
+    @GetMapping("/{gameId}/status")
     public ResponseEntity<GameStatusResponse> getGameStatus(@PathVariable Long gameId) {
         return ResponseEntity.ok(gameService.getGameStatus(gameId));
     }
 
+    @Operation(
+            summary = "Y 4-3. 승리 여부 조회",
+            description = "이긴 사람"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
     @GetMapping("/{gameId}/winner")
     public ResponseEntity<GameWinnerResponse> getWinner(@PathVariable Long gameId) {
         return ResponseEntity.ok(gameService.getWinner(gameId));
     }
 
-    @DeleteMapping("/{gameId}")
+    @Operation(
+            summary = "Y 5-1. 게임 종료 ",
+            description = "게임 종료, 게임 세션 삭제"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
+    @DeleteMapping("/{gameId}/delete")
     public ResponseEntity<Void> deleteGame(@PathVariable Long gameId) {
         gameService.deleteGame(gameId);
         return ResponseEntity.noContent().build();
     }
-
+    @Operation(
+            summary = "Y 5-2. 게임 재 시작 ",
+            description = "기존 설정 유지하며 새 게임 시작"
+    )
+    @ApiResponse(responseCode = "200", description = "반환성공")
     @PostMapping("/{gameId}/restart")
     public ResponseEntity<Void> restartGame(@PathVariable Long gameId, @RequestBody RestartGameRequest request) {
         gameService.restartGame(gameId, request.getWinnerPlayerId());
