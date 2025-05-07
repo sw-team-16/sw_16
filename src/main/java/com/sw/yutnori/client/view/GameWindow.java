@@ -26,7 +26,7 @@ public class GameWindow extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        
+
     }
 
 }
