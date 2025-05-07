@@ -21,11 +21,11 @@ public class Piece {
     @JoinColumn(name = "player_id", nullable = false)
     private Player player;
 
-    @Column(nullable = false)
-    private int xcoord;
+    @Column(name = "xcoord", nullable = false)
+    private int x;
 
-    @Column(nullable = false)
-    private int ycoord;
+    @Column(name = "ycoord",nullable = false)
+    private int y;
 
     @Column(nullable = false)
     private boolean isFinished = false;

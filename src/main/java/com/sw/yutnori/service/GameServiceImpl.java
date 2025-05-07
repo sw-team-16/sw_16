@@ -246,8 +246,8 @@ public class GameServiceImpl implements GameService {
                 new GameStatusResponse.PieceInfo(
                         p.getPieceId(),
                         p.getPlayer().getPlayerId(),
-                        p.getXcoord(),
-                        p.getYcoord(),
+                        p.getX(),
+                        p.getY(),
                         p.isFinished()
                 )
         ).collect(Collectors.toList());
@@ -302,25 +302,6 @@ public class GameServiceImpl implements GameService {
 
         game.setCurrentTurnPlayer(null);
         gameRepository.save(game);
-    }
-
-    @Transactional
-    @Override
-    public void addPlayersToGame(Long gameId, List<PlayerRequest> players) {
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
-
-        List<Player> playerEntities = players.stream().map(req -> {
-            Player player = new Player();
-            player.setName(req.getName());
-            player.setColor(req.getColor());
-            player.setNumOfPieces(req.getNumOfPieces());
-            player.setFinishedCount(0);
-            player.setGame(game);
-            return player;
-        }).toList();
-
-        playerRepository.saveAll(playerEntities);
     }
 
     @Override

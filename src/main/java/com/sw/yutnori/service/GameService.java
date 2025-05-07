@@ -22,7 +22,7 @@ public interface GameService {
     List<Long> getMovablePieces(Long gameId);
 
 
-    void movePiece(Long gameId, MovePieceRequest request);
+    void movePiece(MovePieceRequest request);
 
     GameStatusResponse getGameStatus(Long gameId);
 
@@ -31,8 +31,6 @@ public interface GameService {
     void deleteGame(Long gameId);
 
     void restartGame(Long gameId, Long winnerPlayerId);
-
-    void addPlayersToGame(Long gameId, List<PlayerRequest> players);
 
     TurnInfoResponse getTurnInfo(Long gameId);
 
