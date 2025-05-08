@@ -1,9 +1,16 @@
+/*
+ * SwingControlPanel.java
+ * 윷놀이 게임 컨트롤 패널 클래스
+ *  - 윷 던지기 버튼 클릭 시 이벤트 처리
+ *  - 지정 윷 던지기 클릭 시 창 변경
+ * 
+ * 
+ */
 package com.sw.yutnori.ui;
 
 import com.sw.yutnori.client.GameApiClient;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.common.enums.YutResult;
-import com.sw.yutnori.common.enums.GameState;
 import com.sw.yutnori.ui.display.ResultDisplay;
 import com.sw.yutnori.ui.display.SwingResultDisplay;
 import com.sw.yutnori.ui.display.SwingYutDisplay;
@@ -28,7 +35,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
     private JPanel resultPanel;
     private JPanel currentYutPanel;
     private JPanel buttonPanel;
-    private JPanel pieceControlPanel;
 
     private JButton randomYutBtn;
     private JButton customYutBtn;
@@ -77,7 +83,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
         resultPanel = createResultPanel();
         currentYutPanel = createCurrentYutPanel();
         buttonPanel = createButtonPanel();
-        pieceControlPanel = createPieceControlPanel();
     }
 
     private void layoutComponents() {
@@ -89,8 +94,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
         add(Box.createRigidArea(new Dimension(0, 20)));
         add(buttonPanel);
         add(Box.createVerticalGlue());
-        add(pieceControlPanel);
-        add(Box.createRigidArea(new Dimension(0, 10)));
     }
 
     // '랜덤 윷 던지기' 및 '지정 윷 던지기' 버튼 클릭 시 발생하는 이벤트 초기화
@@ -293,19 +296,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
         return button;
     }
 
-    private JPanel createPieceControlPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        panel.setOpaque(false);
-        panel.setMaximumSize(new Dimension(300, 150));
-        panel.setPreferredSize(new Dimension(300, 150));
-        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        panel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-
-        return panel;
-    }
-
-
-
     // 게임 턴이 변경될 때 호출 - 아직 미적용
     public void startNewTurn() {
         resultDisplay.resetResults();
@@ -339,8 +329,6 @@ public class SwingControlPanel extends JPanel implements GameUI {
     public void resetPieceSelection() {
         this.selectedPieceId = null;
     }
-
-
 
     // GameUI 인터페이스 메소드 구현
     @Override
