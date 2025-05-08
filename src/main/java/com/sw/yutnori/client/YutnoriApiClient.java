@@ -20,14 +20,14 @@ public class YutnoriApiClient implements GameApiClient {
     }
 
     public AutoThrowResponse getRandomYutResult(Long gameId, Long turnId, Long playerId) {
-        AutoThrowRequest request = new AutoThrowRequest(turnId, playerId);
+        AutoThrowRequest request = new AutoThrowRequest( playerId);
 
         String url = baseUrl + "/game/" + gameId + "/turn/random";
         return restTemplate.postForObject(url, request, AutoThrowResponse.class);
     }
 
     public void throwYutManual(Long gameId, Long turnId, Long playerId, Long pieceId, YutResult result) {
-        ManualThrowRequest request = new ManualThrowRequest(turnId, playerId, pieceId, result);
+        ManualThrowRequest request = new ManualThrowRequest( playerId, pieceId, result);
 
         String url = baseUrl + "/game/" + gameId + "/turn/manual";
         restTemplate.postForObject(url, request, Void.class);

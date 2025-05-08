@@ -80,7 +80,7 @@ public class GameController {
     @PostMapping("/{gameId}/move")
     public ResponseEntity<Void> movePiece(@PathVariable Long gameId,
                                           @RequestBody MovePieceRequest request) {
-        gameService.movePiece(request);
+        gameService.movePiece(gameId,request);
         return ResponseEntity.ok().build();
     }
     @Operation(

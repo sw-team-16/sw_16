@@ -15,12 +15,10 @@ public interface GameService {
     Long createGame(GameCreateRequest request);
 
 
-    YutThrowResponse throwYutRandom(Long gameId, ManualThrowRequest request);
-
     void throwYutManual(Long gameId, ManualThrowRequest request);
 
 
-    void movePiece(MovePieceRequest request);
+    void movePiece(Long gameId,MovePieceRequest request);
 
     GameStatusResponse getGameStatus(Long gameId);
 

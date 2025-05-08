@@ -67,23 +67,6 @@ public class GameServiceImpl implements GameService {
     }
 
 
-    @Override
-    @Transactional
-    public YutThrowResponse throwYutRandom(Long gameId, ManualThrowRequest request) { // 수동 윷 던지기
-        Player player = playerRepository.findById(request.getPlayerId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid playerId"));
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid gameId"));
-        Piece piece = pieceRepository.findById(request.getPieceId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid pieceId"));
-
-        Turn turn = new Turn();
-        turn.setPlayer(player);
-        turn.setGame(game);
-        turnRepository.save(turn);
-
-        return new YutThrowResponse(request.getResult(), turn.getTurnId());
-    }
 
 
     @Override
