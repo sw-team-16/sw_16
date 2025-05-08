@@ -8,6 +8,10 @@
 package com.sw.yutnori.controller;
 
 import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.board.BoardModel;
+import com.sw.yutnori.client.GameApiClient;
+import com.sw.yutnori.client.YutnoriApiClient;
+import com.sw.yutnori.controller.InGameController;
 
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -18,9 +22,16 @@ import java.util.function.Consumer;
 
 public class GameSetupController {
     private static final String API_URL = "http://localhost:8080";
+    private InGameController inGameController;
+    private GameSetupDisplay.SetupData lastSetupData;
+    private final Consumer<InGameController> onGameStartCallback;
 
     // Callback: (성공 여부, 메시지)
     private Consumer<Result> resultCallback;
+
+    public GameSetupController(Consumer<InGameController> onGameStartCallback) {
+        this.onGameStartCallback = onGameStartCallback;
+    }
 
     public void setResultCallback(Consumer<Result> callback) {
         this.resultCallback = callback;
@@ -78,13 +89,47 @@ public class GameSetupController {
             // 응답 코드 확인
             int responseCode = conn.getResponseCode();
             if (responseCode == 200) {
+                // 게임 설정 데이터 저장
+                this.lastSetupData = data;
+                // InGameController 생성
+                this.inGameController = createInGameController(data);
                 if (resultCallback != null) resultCallback.accept(new Result(true, "게임 설정이 서버에 전송되었습니다!"));
+                // 게임 시작 콜백 호출
+                if (onGameStartCallback != null) {
+                    onGameStartCallback.accept(this.inGameController);
+                }
             } else {
                 if (resultCallback != null) resultCallback.accept(new Result(false, "서버 오류:\n" + responseCode));
             }
         } catch (Exception ex) {
             if (resultCallback != null) resultCallback.accept(new Result(false, "API 요청 실패:\n" + ex.getMessage()));
         }
+    }
+
+    private InGameController createInGameController(GameSetupDisplay.SetupData data) {
+        // 보드 타입에 따른 크기 설정
+        int frameWidth = 1600;
+        int frameHeight = 1100;
+        int controlPanelWidth = 350;
+        int statusPanelHeight = 100;
+        int boardPanelWidth = frameWidth - controlPanelWidth;
+        int boardPanelHeight = frameHeight - statusPanelHeight;
+
+        // 보드 타입 변환
+        String boardType = "square";
+        if ("오각형".equals(data.boardType())) boardType = "pentagon";
+        else if ("육각형".equals(data.boardType())) boardType = "hexagon";
+
+        // BoardModel 생성
+        BoardModel model = new BoardModel(boardType, boardPanelWidth, boardPanelHeight);
+        // API 클라이언트 생성
+        GameApiClient apiClient = new YutnoriApiClient();
+        // InGameController 생성
+        return new InGameController(model, apiClient, data);
+    }
+
+    public InGameController getInGameController() {
+        return inGameController;
     }
 
     public record Result(boolean success, String message) {}

@@ -51,11 +51,6 @@ public class Node {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(a, b);
-    }
-
-    @Override
     public String toString() {
         return "Node(" + a + ", " + b + ", x=" + x + ", y=" + y + ")";
     }
