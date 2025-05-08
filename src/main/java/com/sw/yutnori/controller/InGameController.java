@@ -34,6 +34,8 @@ public class InGameController {
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
         
         // 게임 설정 정보 전달
+        // !TODO: GameId, PlayerId 전달
+        // this.controlPanel.setGameContext(setupData.gameId(), setupData.playerId());
         this.controlPanel.setGameContext(1L, 1L); // 게임/플레이어 ID
     }
 

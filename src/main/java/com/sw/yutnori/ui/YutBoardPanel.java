@@ -42,6 +42,7 @@ public class YutBoardPanel extends JPanel {
         g2.setStroke(new BasicStroke(2f));
         for (Node node : boardNodes) {
             for (Node conn : node.getConnections()) {
+                // 각 연결선을 한 번만 그리기 위해 getA()와 getB() 값을 기준으로 정렬
                 if (node.getA() < conn.getA() || (node.getA() == conn.getA() && node.getB() < conn.getB())) {
 
                     g2.setColor(new Color(120, 120, 120, 80));

@@ -64,8 +64,8 @@ public class SwingInGameFrame extends JFrame {
         GameApiClient apiClient = new YutnoriApiClient();
         // 임의의 플레이어 정보 생성
         java.util.List<com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo> players = java.util.List.of(
-            new com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo("플레이어1", "#FF0000"),
-            new com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo("플레이어2", "#0000FF")
+            new com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo("플레이어1", "RED"),
+            new com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo("플레이어2", "BLUE")
         );
         com.sw.yutnori.ui.display.GameSetupDisplay.SetupData setupData =
             new com.sw.yutnori.ui.display.GameSetupDisplay.SetupData("오각형", 2, 4, players);
