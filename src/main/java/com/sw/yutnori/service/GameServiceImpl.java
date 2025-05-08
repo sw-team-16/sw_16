@@ -67,8 +67,6 @@ public class GameServiceImpl implements GameService {
     }
 
 
-
-
     @Override
     public void throwYutManual(Long gameId, ManualThrowRequest request) {
         Player player = playerRepository.findById(request.getPlayerId())
@@ -96,7 +94,6 @@ public class GameServiceImpl implements GameService {
         turnActionRepository.save(action);
     }
 
-
     @Override
     @Transactional
     public void movePiece(Long gameId, MovePieceRequest request) {
@@ -122,6 +119,7 @@ public class GameServiceImpl implements GameService {
                 target.setState(PieceState.READY);
                 target.setX(0);
                 target.setY(1);
+
                 // 잡았을 때, 잡은 사람에게 한 턴 추가
                 Turn extraTurn = new Turn();
                 extraTurn.setPlayer(owner);
@@ -129,6 +127,26 @@ public class GameServiceImpl implements GameService {
                 turnRepository.save(extraTurn);
             }
             pieceRepository.save(target);
+        }
+
+        int currentX = movingPiece.getX();
+        int currentY = movingPiece.getY();
+        int nextX = request.getXcoord();
+        int nextY = request.getYcoord();
+
+        if(currentX == 5) {
+            boolean chooseJunction = request.isGoJunction();
+            if (chooseJunction) {
+                movingPiece.setX(currentY * 10);
+                movingPiece.setY(request.getXcoord());
+                if(request.getXcoord() > 2) {
+                    // roundabout에서 움직일 로직 구현 필요
+                }
+            }
+        else{
+            movingPiece.setX(request.getXcoord());
+            movingPiece.setY(request.getYcoord());
+            }
         }
 
         movingPiece.setState(PieceState.ON_BOARD);

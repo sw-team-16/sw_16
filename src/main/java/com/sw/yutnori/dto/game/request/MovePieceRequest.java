@@ -25,4 +25,10 @@ public class MovePieceRequest {
 
     @Schema(description = "윷 결과", example = "GEOL")
     private YutResult result;
+
+    @Schema(description = "분기점 선택", example = "yes")
+    private boolean goJunction;
+
+    @Schema(description = "roundabout 선택", example = "1")
+    private int roundabout;
 }
