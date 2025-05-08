@@ -1,5 +1,6 @@
 package com.sw.yutnori.service;
 
+import com.sw.yutnori.common.enums.BoardType;
 import com.sw.yutnori.common.enums.GameState;
 import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.common.enums.YutResult;
@@ -140,13 +141,30 @@ public class GameServiceImpl implements GameService {
                 movingPiece.setX(currentY * 10);
                 movingPiece.setY(request.getXcoord());
                 if(request.getXcoord() > 2) {
-                    // roundabout에서 움직일 로직 구현 필요
+                    int movable = request.getYcoord() - 2;
+                    String boardType = getGameStatus(gameId).getBoardType();
+                    nextX = switch (boardType) {
+                        case "SQUARE" -> 40;
+                        case "PENTAGON" -> 50;
+                        case "HEXAGON" -> 60;
+                        default -> nextX;
+                    };
+                    movingPiece.setY(movable);
+                    movingPiece.setX(nextX);
                 }
             }
-        else{
-            movingPiece.setX(request.getXcoord());
-            movingPiece.setY(request.getYcoord());
-            }
+        }else if(nextX == 3 && nextY == 10) {
+            String boardType = getGameStatus(gameId).getBoardType();
+            nextY = switch (boardType) {
+                case "SQUARE" -> 40;
+                case "PENTAGON" -> 50;
+                case "HEXAGON" -> 60;
+                default -> nextY;
+            };
+            movingPiece.setX(nextX);
+        }else{
+            movingPiece.setX(nextX);
+            movingPiece.setY(nextY);
         }
 
         movingPiece.setState(PieceState.ON_BOARD);
