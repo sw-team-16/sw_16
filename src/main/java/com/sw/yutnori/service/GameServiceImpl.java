@@ -97,7 +97,6 @@ public class GameServiceImpl implements GameService {
     }
 
 
-
     @Override
     @Transactional
     public void movePiece(Long gameId, MovePieceRequest request) {
@@ -123,13 +122,15 @@ public class GameServiceImpl implements GameService {
                 target.setState(PieceState.READY);
                 target.setX(0);
                 target.setY(1);
+                // 잡았을 때, 잡은 사람에게 한 턴 추가
+                Turn extraTurn = new Turn();
+                extraTurn.setPlayer(owner);
+                extraTurn.setGame(movingPiece.getPlayer().getGame());
+                turnRepository.save(extraTurn);
             }
             pieceRepository.save(target);
         }
 
-        // 말 이동
-        movingPiece.setX(request.getXcoord());
-        movingPiece.setY(request.getYcoord());
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
 
@@ -154,7 +155,6 @@ public class GameServiceImpl implements GameService {
         action.setChosenPiece(movingPiece);
         turnActionRepository.save(action);
     }
-
 
 
     private YutResult getRandomYutResult() { // 랜덤한 값 반환 함수.
