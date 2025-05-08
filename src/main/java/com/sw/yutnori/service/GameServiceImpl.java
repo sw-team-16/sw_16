@@ -20,6 +20,7 @@ import com.sw.yutnori.repository.PlayerRepository;
 import com.sw.yutnori.repository.TurnRepository;
 import jakarta.transaction.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +37,7 @@ public class GameServiceImpl implements GameService {
     private final TurnActionRepository turnActionRepository;
 
     @Override
-    public Long createGame(GameCreateRequest request) {
+    public GameCreateResponse createGame(GameCreateRequest request) {
         Game game = new Game();
         game.setBoardType(request.getBoardType());
         game.setNumPlayers(request.getPlayers().size());
@@ -44,6 +45,7 @@ public class GameServiceImpl implements GameService {
         game.setState(GameState.SETUP);
         game = gameRepository.save(game);
 
+        List<GameCreateResponse.PlayerInfo> playerInfoList = new ArrayList<>();
         for (PlayerInitRequest playerReq : request.getPlayers()) {
             Player player = new Player();
             player.setName(playerReq.getName());
@@ -52,6 +54,8 @@ public class GameServiceImpl implements GameService {
             player.setNumOfPieces(request.getNumPieces());
             player.setFinishedCount(0);
             player = playerRepository.save(player);
+
+            playerInfoList.add(new GameCreateResponse.PlayerInfo(player.getPlayerId(), player.getName(), player.getColor()));
 
             for (int i = 0; i < request.getNumPieces(); i++) {
                 Piece piece = new Piece();
@@ -63,8 +67,9 @@ public class GameServiceImpl implements GameService {
             }
         }
 
-        return game.getGameId();
+        return new GameCreateResponse(game.getGameId(), playerInfoList);
     }
+
 
 
 

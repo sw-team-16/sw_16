@@ -44,9 +44,9 @@ class GameServiceImplTest {
         savedGame.setGameId(1L);
         when(gameRepository.save(any(Game.class))).thenReturn(savedGame);
 
-        Long gameId = gameService.createGame(request);
+        GameCreateResponse response = gameService.createGame(request);
 
-        assertThat(gameId).isEqualTo(1L);
+        assertThat(response.getGameId()).isEqualTo(1L);
         verify(gameRepository).save(any(Game.class));
         verify(playerRepository, atLeastOnce()).save(any(Player.class));
         verify(pieceRepository, atLeastOnce()).save(any(Piece.class));
@@ -155,7 +155,7 @@ class GameServiceImplTest {
 
         AutoThrowApplyRequest request = new AutoThrowApplyRequest();
         request.setPlayerId(1L);
-        request.setGameId(1L);
+        //request.setGameId(1L);
         request.setPieceId(1L);
         request.setTurnId(1L);
         request.setResult(YutResult.YUT);

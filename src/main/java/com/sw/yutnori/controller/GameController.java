@@ -23,14 +23,13 @@ public class GameController {
             description = "게임 생성 요청을 처리하고 플레이어를 리스트로 반환"
     )
     @ApiResponse(responseCode = "200", description = "게임 생성 성공")
-    @PostMapping("/game/create")
-    public ResponseEntity<Void> createGame(@RequestBody GameCreateRequest request) {
-        gameService.createGame(request);
-        return ResponseEntity.ok().build();
+    @PostMapping("/create")
+    public ResponseEntity<GameCreateResponse> createGame(@RequestBody GameCreateRequest request) {
+        return ResponseEntity.ok(gameService.createGame(request));
     }
 
     @Operation(
-            summary = "S2-1. 수동 윷 던지기",
+            summary = "S2-1. 랜덤 윷 던지기",
             description = "프론트에서 선택한 윷 결과를 저장"
     )
     @ApiResponse(responseCode = "200", description = "결과 저장성공")
