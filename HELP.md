@@ -22,6 +22,10 @@ cd sw_16
 ./gradlew bootRun
 ```
 
+## 프론트엔드 실행
+```bash
+./gradlew run
+```
 
 ## Database가 필요한 경우
 

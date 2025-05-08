@@ -5,6 +5,7 @@
  *  - 윷 컨트롤 패널 (오른쪽)
  *  - 플레이어 상태 패널 (하단)
  * 
+ * 
  */
 package com.sw.yutnori.ui;
 
@@ -61,7 +62,14 @@ public class SwingInGameFrame extends JFrame {
         int boardPanelHeight = frameHeight - statusPanelHeight;
         BoardModel model = new BoardModel("pentagon", boardPanelWidth, boardPanelHeight);
         GameApiClient apiClient = new YutnoriApiClient();
-        InGameController controller = new InGameController(model, apiClient);
+        // 임의의 플레이어 정보 생성
+        java.util.List<com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo> players = java.util.List.of(
+            new com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo("플레이어1", "RED"),
+            new com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo("플레이어2", "BLUE")
+        );
+        com.sw.yutnori.ui.display.GameSetupDisplay.SetupData setupData =
+            new com.sw.yutnori.ui.display.GameSetupDisplay.SetupData("오각형", 2, 4, players);
+        InGameController controller = new InGameController(model, apiClient, setupData);
         SwingUtilities.invokeLater(() -> new SwingInGameFrame(controller));
     }
 }

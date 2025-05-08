@@ -5,6 +5,8 @@
  *  - 윷판 패널 관리
  *  - 컨트롤 패널 관리
  *  - 상태 패널 관리
+ * 
+ * 
  */
 package com.sw.yutnori.controller;
 
@@ -13,6 +15,7 @@ import com.sw.yutnori.client.GameApiClient;
 import com.sw.yutnori.ui.YutBoardPanel;
 import com.sw.yutnori.ui.SwingControlPanel;
 import com.sw.yutnori.ui.SwingStatusPanel;
+import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 public class InGameController {
     private final BoardModel boardModel;
@@ -20,14 +23,20 @@ public class InGameController {
     private final YutBoardPanel yutBoardPanel;
     private final SwingControlPanel controlPanel;
     private final SwingStatusPanel statusPanel;
+    private final GameSetupDisplay.SetupData setupData;
 
-    public InGameController(BoardModel boardModel, GameApiClient apiClient) {
+    public InGameController(BoardModel boardModel, GameApiClient apiClient, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
         this.apiClient = apiClient;
+        this.setupData = setupData;
         this.yutBoardPanel = new YutBoardPanel(boardModel);
         this.controlPanel = new SwingControlPanel(apiClient);
-        this.statusPanel = new SwingStatusPanel();
-        this.controlPanel.setGameContext(1L, 1L); // 예시: 실제 게임/플레이어 ID로 대체
+        this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
+        
+        // 게임 설정 정보 전달
+        // !TODO: GameId, PlayerId 전달
+        // this.controlPanel.setGameContext(setupData.gameId(), setupData.playerId());
+        this.controlPanel.setGameContext(1L, 1L); // 게임/플레이어 ID
     }
 
     public YutBoardPanel getYutBoardPanel() {
@@ -44,5 +53,8 @@ public class InGameController {
     }
     public GameApiClient getApiClient() {
         return apiClient;
+    }
+    public GameSetupDisplay.SetupData getSetupData() {
+        return setupData;
     }
 } 
