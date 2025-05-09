@@ -1,6 +1,5 @@
 package com.sw.yutnori.repository;
 
-import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.domain.Piece;
 import com.sw.yutnori.domain.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +17,6 @@ public interface PieceRepository extends JpaRepository<Piece, Long> {
 
     void deleteByPlayerGame(@Param("gameId") Long gameId);
     List<Piece> findByPlayer(Player player);
-    List<Piece> findByXAndYAndState(int x, int y, PieceState state);
 
 
 }
