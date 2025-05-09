@@ -12,6 +12,9 @@ package com.sw.yutnori.controller;
 
 import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.client.GameApiClient;
+import com.sw.yutnori.client.PieceApiClient;
+import com.sw.yutnori.common.LogicalPosition;
+import com.sw.yutnori.ui.PiecePositionDisplayManager;
 import com.sw.yutnori.ui.SwingYutBoardPanel;
 import com.sw.yutnori.ui.SwingYutControlPanel;
 import com.sw.yutnori.ui.SwingStatusPanel;
@@ -29,6 +32,8 @@ public class InGameController {
     private final SwingYutControlPanel controlPanel;
     private final SwingStatusPanel statusPanel;
     private final GameSetupDisplay.SetupData setupData;
+    private final PieceApiClient pieceApiClient = new PieceApiClient();
+    private final PiecePositionDisplayManager displayManager;
     private Long gameId;
     private Long playerId;
     private Long currentTurnId = null;
@@ -46,6 +51,7 @@ public class InGameController {
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
         this.yutBoardPanel.setInGameController(this);
 
+        this.displayManager = new PiecePositionDisplayManager(boardModel, yutBoardPanel);
         // 게임 설정 정보 전달
     }
     public void onConfirmButtonClicked(List<String> selectedYuts) {
@@ -118,6 +124,18 @@ public class InGameController {
                 selectedYuts.get(selectedYuts.size() - 1)
             );
             controlPanel.updateCurrentYut(lastYutType);
+
+            try {
+                var pieceInfo = pieceApiClient.getPieceInfo(pieceId);
+                System.out.println("[DEBUG] pieceId = " + pieceInfo.getPieceId());
+                System.out.println("[DEBUG] 위치 a = " + pieceInfo.getA() + ", b = " + pieceInfo.getB());
+                System.out.println("[DEBUG] 상태 = " + pieceInfo.getState());
+
+                LogicalPosition newPos = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
+                displayManager.showLogicalPosition(newPos, pieceId);
+            } catch (Exception e) {
+                controlPanel.showError("말 위치 표시 중 오류 발생: " + e.getMessage());
+            }
 
             resetPieceSelection();
             controlPanel.enableRandomButton(false);

@@ -71,6 +71,9 @@ public class GameServiceImpl implements GameService {
                 piece.setState(PieceState.READY);
                 piece.setFinished(false);
                 piece.setGrouped(false);
+                piece.setA(0);
+                piece.setB(1);
+
                 piece = pieceRepository.save(piece);
                 pieceIds.add(piece.getPieceId());
             }
