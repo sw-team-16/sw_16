@@ -116,6 +116,7 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
         Consumer<List<String>> onConfirm = selectedYuts -> {
             controller.promptPieceSelection(playerId); // 말 선택 창 띄움
             controller.onConfirmButtonClicked(selectedYuts); // 선택된 윷 처리
+
         };
         Runnable onCancel = this::restoreOriginalPanel;
 

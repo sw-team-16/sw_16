@@ -48,6 +48,10 @@ public class InGameController {
 
         // 게임 설정 정보 전달
     }
+    public void onConfirmButtonClicked(List<String> selectedYuts) {
+        onCustomYutButtonClicked(selectedYuts);
+    }
+
 
     public void setGameContext(Long gameId, Long playerId) {
         this.gameId = gameId;
