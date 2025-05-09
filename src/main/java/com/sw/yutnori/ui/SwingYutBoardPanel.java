@@ -122,34 +122,48 @@ public class SwingYutBoardPanel extends JPanel {
         g2.setStroke(new BasicStroke(1));
     }
 
+    // 윷판에 플레이어의 말을 렌더링
     public void renderPiecesForPlayer(Long playerId, List<Long> pieceIds) {
-        removeAll();
-        pieceButtons.clear();
-        int x = 50;
-        int y = 50;
+        removeAll(); // 모든 기존 컴포넌트 제거
+        pieceButtons.clear(); // 버튼 관리 맵 초기화
+
+        int x = 50; // 말의 시작 위치 (x 좌표)
+        int y = 50; // 말의 시작 위치 (y 좌표)
+        final int spacing = 50; // 각 버튼의 간격
+
+        // 말 ID마다 버튼을 생성하고 추가
         for (Long pieceId : pieceIds) {
-            JButton pieceBtn = new JButton("말 " + pieceId);
-            pieceBtn.setBounds(x, y, 80, 40);
-            pieceBtn.setBackground(Color.LIGHT_GRAY);
+            JButton pieceBtn = new JButton("말 " + pieceId); // 말 버튼 생성
+            pieceBtn.setBounds(x, y, 80, 40); // 버튼 위치와 크기 설정
+            pieceBtn.setBackground(Color.LIGHT_GRAY); // 기본 배경색 설정
+
+            // 클릭 시 이벤트 핸들러 추가
             pieceBtn.addActionListener(e -> {
-                highlightSelectedPiece(pieceId);
-                controller.setSelectedPieceId(pieceId);
+                highlightSelectedPiece(pieceId); // 선택된 말 강조
+                controller.setSelectedPieceId(pieceId); // 선택한 말 ID를 컨트롤러로 전달
             });
+
+            // 버튼을 맵에 저장하고 패널에 추가
             pieceButtons.put(pieceId, pieceBtn);
             add(pieceBtn);
-            y += 50;
+
+            // 다음 말의 Y 좌표 계산
+            y += spacing;
         }
-        revalidate();
-        repaint();
+
+        revalidate(); // UI 갱신을 위해 유효성 검사
+        repaint(); // UI 다시 그리기
     }
-    // 선택된 말 강조 표시
+
+    // 선택된 말을 강조 표시
     private void highlightSelectedPiece(Long selectedId) {
         for (Map.Entry<Long, JButton> entry : pieceButtons.entrySet()) {
             if (entry.getKey().equals(selectedId)) {
-                entry.getValue().setBackground(Color.ORANGE);
+                entry.getValue().setBackground(Color.ORANGE); // 선택된 말 강조 (주황색)
             } else {
-                entry.getValue().setBackground(Color.LIGHT_GRAY);
+                entry.getValue().setBackground(Color.LIGHT_GRAY); // 나머지는 기본 색상
             }
         }
     }
+
 }

@@ -243,4 +243,5 @@ public class InGameController {
         controlPanel.enableRandomButton(true);
         updateAllViews();
     }
-} 
+}
+
