@@ -97,6 +97,11 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
         add(buttonPanel);
         add(Box.createVerticalGlue());
     }
+    // 선택 UI 또는 패널 활성화 로직
+    public void enableYutSelection() {
+        System.out.println("윷 선택 UI를 활성화합니다.");
+    }
+
 
     // '랜덤 윷 던지기' 및 '지정 윷 던지기' 버튼 클릭 시 발생하는 이벤트 초기화
     private void setupEventListeners() {

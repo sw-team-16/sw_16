@@ -44,7 +44,8 @@ public class InGameController {
         this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
         this.controlPanel = new SwingYutControlPanel(apiClient, this);
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
-        
+        this.yutBoardPanel.setInGameController(this);
+
         // 게임 설정 정보 전달
     }
 
@@ -186,6 +187,24 @@ public class InGameController {
     public void setSelectedPieceId(Long pieceId) {
         this.selectedPieceId = pieceId;
     }
+
+
+    private int calculateStepCount(List<String> yuts) {
+        int total = 0;
+        for (String y : yuts) {
+            total += switch (y) {
+                case "도" -> 1;
+                case "개" -> 2;
+                case "걸" -> 3;
+                case "윷" -> 4;
+                case "모" -> 5;
+                case "빽도" -> -1;
+                default -> 0;
+            };
+        }
+        return total;
+    }
+
     // 윷 타입 문자열을 윷 결과 열거형으로 변환
     private com.sw.yutnori.common.enums.YutResult convertStringToYutResult(String yutType) {
         return switch (yutType) {
