@@ -52,6 +52,7 @@ public class GameServiceImpl implements GameService {
         game = gameRepository.save(game);
 
         List<GameCreateResponse.PlayerInfo> playerInfoList = new ArrayList<>();
+
         for (PlayerInitRequest playerReq : request.getPlayers()) {
             Player player = new Player();
             player.setName(playerReq.getName());
@@ -61,16 +62,23 @@ public class GameServiceImpl implements GameService {
             player.setFinishedCount(0);
             player = playerRepository.save(player);
 
-            playerInfoList.add(new GameCreateResponse.PlayerInfo(player.getPlayerId(), player.getName(), player.getColor()));
-
+            List<Long> pieceIds = new ArrayList<>();
             for (int i = 0; i < request.getNumPieces(); i++) {
                 Piece piece = new Piece();
                 piece.setPlayer(player);
                 piece.setState(PieceState.READY);
                 piece.setFinished(false);
                 piece.setGrouped(false);
-                pieceRepository.save(piece);
+                piece = pieceRepository.save(piece);
+                pieceIds.add(piece.getPieceId());
             }
+
+            playerInfoList.add(new GameCreateResponse.PlayerInfo(
+                    player.getPlayerId(),
+                    player.getName(),
+                    player.getColor(),
+                    pieceIds
+            ));
         }
 
         return new GameCreateResponse(game.getGameId(), playerInfoList);

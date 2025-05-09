@@ -83,6 +83,10 @@ public class InGameController {
 
             Long turnId = getCurrentTurnId();
             Long pieceId = getSelectedPieceId();
+            if (pieceId == null) {
+                controlPanel.showError("말이 선택되지 않았습니다.");
+                return;
+            }
 
             // 모든 선택된 결과들을 백엔드로 전송
             for (String selectedYut : selectedYuts) {
