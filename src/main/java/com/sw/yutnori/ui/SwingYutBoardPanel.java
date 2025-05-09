@@ -12,14 +12,31 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class YutBoardPanel extends JPanel {
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.sw.yutnori.board.BoardModel;
+import com.sw.yutnori.controller.InGameController;
+
+public class SwingYutBoardPanel extends JPanel {
     private final BoardModel boardModel;
     private static final int BOARD_WIDTH = 1200;
     private static final int BOARD_HEIGHT = 1000;
+    private final Map<Long, JButton> pieceButtons = new HashMap<>();
+    private InGameController controller;
 
-    public YutBoardPanel(BoardModel boardModel) {
+    public SwingYutBoardPanel(BoardModel boardModel) {
         this.boardModel = boardModel;
-        setBackground(Color.WHITE);
+        setLayout(null);
+        setPreferredSize(new Dimension(boardModel.getWidth(), boardModel.getHeight()));
+    }
+    public void setInGameController(InGameController controller) {
+        this.controller = controller;
     }
 
     @Override
@@ -103,5 +120,36 @@ public class YutBoardPanel extends JPanel {
         g2.setStroke(new BasicStroke(innerStrokeWidth));
         g2.drawOval(x - innerR/2, y - innerR/2, innerR, innerR);
         g2.setStroke(new BasicStroke(1));
+    }
+
+    public void renderPiecesForPlayer(Long playerId, List<Long> pieceIds) {
+        removeAll();
+        pieceButtons.clear();
+        int x = 50;
+        int y = 50;
+        for (Long pieceId : pieceIds) {
+            JButton pieceBtn = new JButton("말 " + pieceId);
+            pieceBtn.setBounds(x, y, 80, 40);
+            pieceBtn.setBackground(Color.LIGHT_GRAY);
+            pieceBtn.addActionListener(e -> {
+                highlightSelectedPiece(pieceId);
+                controller.setSelectedPieceId(pieceId);
+            });
+            pieceButtons.put(pieceId, pieceBtn);
+            add(pieceBtn);
+            y += 50;
+        }
+        revalidate();
+        repaint();
+    }
+    // 선택된 말 강조 표시
+    private void highlightSelectedPiece(Long selectedId) {
+        for (Map.Entry<Long, JButton> entry : pieceButtons.entrySet()) {
+            if (entry.getKey().equals(selectedId)) {
+                entry.getValue().setBackground(Color.ORANGE);
+            } else {
+                entry.getValue().setBackground(Color.LIGHT_GRAY);
+            }
+        }
     }
 }

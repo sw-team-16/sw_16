@@ -11,6 +11,7 @@ package com.sw.yutnori.ui;
 
 import com.sw.yutnori.client.GameApiClient;
 import com.sw.yutnori.client.YutnoriApiClient;
+// import com.sw.yutnori.client.TestYutnoriApiClient; // 테스트용 클라이언트
 import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.controller.InGameController;
 
@@ -18,8 +19,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SwingInGameFrame extends JFrame {
-    private final YutBoardPanel yutBoardPanel;
-    private final SwingControlPanel controlPanel;
+    private final SwingYutBoardPanel yutBoardPanel;
+    private final SwingYutControlPanel controlPanel;
     private final SwingStatusPanel statusPanel;
 
     public SwingInGameFrame(InGameController controller) {
@@ -61,6 +62,7 @@ public class SwingInGameFrame extends JFrame {
         int boardPanelWidth = frameWidth - controlPanelWidth;
         int boardPanelHeight = frameHeight - statusPanelHeight;
         BoardModel model = new BoardModel("pentagon", boardPanelWidth, boardPanelHeight);
+        // GameApiClient apiClient = new TestYutnoriApiClient();
         GameApiClient apiClient = new YutnoriApiClient();
         // 임의의 플레이어 정보 생성
         java.util.List<com.sw.yutnori.ui.display.GameSetupDisplay.PlayerInfo> players = java.util.List.of(

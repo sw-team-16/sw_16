@@ -1,5 +1,6 @@
 package com.sw.yutnori.domain;
 
+import com.sw.yutnori.common.enums.YutResult;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,10 +23,6 @@ public class TurnAction {
     @Column(nullable = false)
     private int moveOrder;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ResultType result;
-
     @Column(nullable = false)
     private boolean isUsed = false;
 
@@ -34,7 +31,7 @@ public class TurnAction {
     private Piece chosenPiece;
 
 
-    public enum ResultType {
-        BACK_DO, DO, GAE, GEOL, YUT, MO
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private YutResult result;
 }

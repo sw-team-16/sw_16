@@ -21,8 +21,15 @@ public class GameStatusResponse {
     public static class PieceInfo {
         private Long pieceId;
         private Long playerId;
-        private int xCoord;
-        private int yCoord;
+        private int x;
+        private int y;
         private boolean isFinished;
+        private int a;
+        private int b;
+
+        /**
+         * (a, b): 논리 좌표 (메인 로직용)
+         * (x, y): 실제 좌표 (DB/GUI용)
+         */
     }
 }

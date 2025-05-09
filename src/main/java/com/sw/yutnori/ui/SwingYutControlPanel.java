@@ -1,20 +1,20 @@
 /*
  * SwingControlPanel.java
  * 윷놀이 게임 컨트롤 패널 클래스
- *  - 윷 던지기 버튼 클릭 시 이벤트 처리
- *  - 지정 윷 던지기 클릭 시 창 변경
+ *  ui 화면만 구현
+ * 
  * 
  * 
  */
 package com.sw.yutnori.ui;
 
 import com.sw.yutnori.client.GameApiClient;
-import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.ui.display.ResultDisplay;
 import com.sw.yutnori.ui.display.SwingResultDisplay;
 import com.sw.yutnori.ui.display.SwingYutDisplay;
 import com.sw.yutnori.ui.display.YutDisplay;
+import com.sw.yutnori.controller.InGameController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,7 +24,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
 import java.awt.Image;
 
-public class SwingControlPanel extends JPanel implements GameUI {
+public class SwingYutControlPanel extends JPanel implements GameUI {
 
     private Long gameId;
     private Long playerId;
@@ -48,11 +48,13 @@ public class SwingControlPanel extends JPanel implements GameUI {
     private ImageIcon backDoDownIcon;
 
     private final GameApiClient apiClient;
+    private final InGameController controller;
     private final YutDisplay yutDisplay;
     private final ResultDisplay resultDisplay;
 
-    public SwingControlPanel(GameApiClient apiClient) {
+    public SwingYutControlPanel(GameApiClient apiClient, InGameController controller) {
         this.apiClient = apiClient;
+        this.controller = controller;
         initialize();
         this.yutDisplay = new SwingYutDisplay(yutSticks, upIcon, downIcon, backDoDownIcon);
         this.resultDisplay = new SwingResultDisplay(resultLabels, currentYutLabel);
@@ -98,83 +100,20 @@ public class SwingControlPanel extends JPanel implements GameUI {
 
     // '랜덤 윷 던지기' 및 '지정 윷 던지기' 버튼 클릭 시 발생하는 이벤트 초기화
     private void setupEventListeners() {
-        randomYutBtn.addActionListener(e -> {
-            try {
-                Long turnId = getCurrentTurnId();
-                AutoThrowResponse response = apiClient.getRandomYutResult(gameId, turnId, playerId);
-
-                if (response.getTurnId() != null) {
-                    updateTurnId(response.getTurnId());
-                }
-
-                // YutResult 열거형을 String으로 변환
-                YutResult yutResult = response.getResult();
-                String result = yutResult.name();
-
-                String koreanResult = resultDisplay.convertYutTypeToKorean(result);
-                displayYutResult(koreanResult);
-                updateCurrentYut(result);
-
-                // 윷이나 모가 나왔을 경우에는 버튼을 활성화 상태로 유지
-                if (yutResult != YutResult.YUT && yutResult != YutResult.MO) {
-                    randomYutBtn.setEnabled(false);
-                }
-            } catch (Exception ex) {
-                showError("서버 통신 오류: " + ex.getMessage());
-            }
-        });
-
+        randomYutBtn.addActionListener(e -> controller.onRandomYutButtonClicked());
         customYutBtn.addActionListener(e -> showCustomYutSelectionPanel());
     }
 
     // '지정 윷 던지기' 클릭 시 창 변경
     private void showCustomYutSelectionPanel() {
         removeAll();
-
-        // 완료 콜백 - 선택된 윷 결과를 매개변수로 전달받음
         Consumer<List<String>> onConfirm = selectedYuts -> {
-            try {
-                if (selectedYuts.isEmpty()) {
-                    showError("선택된 윷 결과가 없습니다.");
-                    restoreOriginalPanel();
-                    return;
-                }
-
-                Long turnId = getCurrentTurnId();
-                Long pieceId = getSelectedPieceId();
-
-                // 모든 선택된 결과들을 백엔드로 전송
-                for (String selectedYut : selectedYuts) {
-                    // 한국어 윷 결과를 백엔드 전송용 영어로 변환
-                    String yutType = resultDisplay.convertYutTypeToEnglish(selectedYut);
-                    YutResult result = convertStringToYutResult(yutType);
-
-                    // 백엔드 API 호출
-                    apiClient.throwYutManual(gameId, turnId, playerId, pieceId, result);
-
-                    displayYutResult(selectedYut);
-                }
-
-                // 마지막 선택 윷을 현재 윷으로 표시
-                String lastYutType = resultDisplay.convertYutTypeToEnglish(selectedYuts.get(selectedYuts.size() - 1));
-                updateCurrentYut(lastYutType);
-
-                resetPieceSelection();
-                randomYutBtn.setEnabled(false);
-                restoreOriginalPanel();
-
-            } catch (Exception ex) {
-                showError("서버 통신 오류: " + ex.getMessage());
-                restoreOriginalPanel();
-            }
+            controller.promptPieceSelection(playerId); // 말 선택 창 띄움
+            controller.onCustomYutButtonClicked(selectedYuts); // 선택된 윷 처리
         };
-
-        // 취소 콜백
         Runnable onCancel = this::restoreOriginalPanel;
-
         SwingYutSelectionPanel selectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
         add(selectionPanel);
-
         revalidate();
         repaint();
     }
@@ -197,6 +136,10 @@ public class SwingControlPanel extends JPanel implements GameUI {
         layoutComponents();
         revalidate();
         repaint();
+    }
+
+    public void restorePanel() {
+        restoreOriginalPanel();
     }
 
     private JPanel createYutPanel() {
@@ -296,7 +239,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
         return button;
     }
 
-    // 게임 턴이 변경될 때 호출 - 아직 미적용
+    // !TODO: 게임 턴이 변경될 때 호출 - 아직 미적용
     public void startNewTurn() {
         resultDisplay.resetResults();
         currentYutLabel.setText("-");
@@ -308,7 +251,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
     private Long getCurrentTurnId() {
         if (currentTurnId == null) {
             try {
-                // 턴 정보 로직 구현 필요
+                // !TODO: 턴 정보 로직 구현 필요
                 currentTurnId = 1L;
             } catch (Exception e) {
                 showError("턴 정보를 가져오는데 실패했습니다: " + e.getMessage());
@@ -352,7 +295,7 @@ public class SwingControlPanel extends JPanel implements GameUI {
 
     @Override
     public void showWinner(String winnerName) {
-        JOptionPane.showMessageDialog(this, winnerName + "님이 승리했습니다!", "게임 종료", JOptionPane.INFORMATION_MESSAGE);
+        // Controller logic is now handled in InGameController
     }
 
     @Override
@@ -366,5 +309,63 @@ public class SwingControlPanel extends JPanel implements GameUI {
         if (window != null) {
             window.dispose();
         }
+    }
+
+    public ResultDisplay getResultDisplay() {
+        return resultDisplay;
+    }
+
+    public void setRandomYutButtonEnabled(boolean enabled) {
+        randomYutBtn.setEnabled(enabled);
+    }
+
+    public void showWinnerDialog(String winnerName) {
+        JOptionPane.showMessageDialog(this, winnerName + "님이 승리했습니다!", "게임 종료", JOptionPane.INFORMATION_MESSAGE);
+        String message = winnerName + "님이 승리했습니다!";
+        String[] options = {"재시작", "종료"};
+        int choice = JOptionPane.showOptionDialog(
+            this,
+            message,
+            "게임 종료",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+        if (choice == JOptionPane.YES_OPTION) {
+            // Controller logic is now handled in InGameController
+        } else if (choice == JOptionPane.NO_OPTION) {
+            System.exit(0);
+        }
+    }
+
+    public void closeWindowAndOpenSetup() {
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window != null) {
+            window.dispose();
+        }
+        SwingUtilities.invokeLater(() -> {
+            SwingGameSetupFrame frame = new SwingGameSetupFrame();
+            frame.setVisible(true);
+        });
+    }
+
+    // 윷 결과 업데이트
+    public void updateYutResult(String koreanResult, String result) {
+        displayYutResult(koreanResult);
+        updateCurrentYut(result);
+        updateYutSticks(result);
+    }
+
+    // 랜덤 윷 버튼 활성화
+    public void enableRandomButton(boolean enabled) {
+        randomYutBtn.setEnabled(enabled);
+    }
+
+    // 오류 메시지 표시 및 원래 패널로 복원
+    public void showErrorAndRestore(String message) {
+        showError(message);
+        restoreOriginalPanel();
     }
 }

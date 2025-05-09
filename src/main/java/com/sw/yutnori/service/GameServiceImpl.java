@@ -1,13 +1,11 @@
 /*
  * GameServiceImpl.java
- * 프론트엔드에서 게임 관련 API 요청을 처리하는 서비스 클래스
- * 
+ * 백엔드 서비스 로직 구현
  * 
  * 
  */
 package com.sw.yutnori.service;
 
-import com.sw.yutnori.board.Node;
 import com.sw.yutnori.common.enums.GameState;
 import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.common.enums.YutResult;
@@ -43,7 +41,7 @@ public class GameServiceImpl implements GameService {
     private final TurnRepository turnRepository;
     private final PieceRepository pieceRepository;
     private final TurnActionRepository turnActionRepository;
-    private final BoardRepository boardRepository;
+    private final PathNodeRepository pathNodeRepository;
 
     @Override
     public GameCreateResponse createGame(GameCreateRequest request) {
@@ -55,6 +53,7 @@ public class GameServiceImpl implements GameService {
         game = gameRepository.save(game);
 
         List<GameCreateResponse.PlayerInfo> playerInfoList = new ArrayList<>();
+
         for (PlayerInitRequest playerReq : request.getPlayers()) {
             Player player = new Player();
             player.setName(playerReq.getName());
@@ -64,20 +63,28 @@ public class GameServiceImpl implements GameService {
             player.setFinishedCount(0);
             player = playerRepository.save(player);
 
-            playerInfoList.add(new GameCreateResponse.PlayerInfo(player.getPlayerId(), player.getName(), player.getColor()));
-
+            List<Long> pieceIds = new ArrayList<>();
             for (int i = 0; i < request.getNumPieces(); i++) {
                 Piece piece = new Piece();
                 piece.setPlayer(player);
                 piece.setState(PieceState.READY);
                 piece.setFinished(false);
                 piece.setGrouped(false);
-                pieceRepository.save(piece);
+                piece = pieceRepository.save(piece);
+                pieceIds.add(piece.getPieceId());
             }
+
+            playerInfoList.add(new GameCreateResponse.PlayerInfo(
+                    player.getPlayerId(),
+                    player.getName(),
+                    player.getColor(),
+                    pieceIds
+            ));
         }
 
         return new GameCreateResponse(game.getGameId(), playerInfoList);
     }
+
 
 
     @Override
@@ -101,99 +108,70 @@ public class GameServiceImpl implements GameService {
         TurnAction action = new TurnAction();
         action.setTurn(turn);
         action.setMoveOrder(1); // 기본값 1회차
-        action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
+        action.setResult(request.getResult());
         action.setChosenPiece(piece);
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
     }
 
-    // 노드 기반 로직 구현을 위한 함수
-    private Node handleJunction(Node currentNode) {
-        // 단순 구현: 첫 번째 연결 노드를 선택
-        return currentNode.getConnections().get(0);
-    }
-
-    // 골인 노드 확인 함수
-    private boolean isGoalNode(Node node) {
-        // 논리 좌표 a=0, b=0이면 골인지점으로 간주
-        return node.getA() == 0 && node.getB() == 0;
-    }
 
 
     @Override
     @Transactional
     public void movePiece(Long gameId, MovePieceRequest request) {
-        boolean capturedOpponentPiece = false;
-
-        // 이동할 말 id로 가져오기
         Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
 
         Player owner = movingPiece.getPlayer();
 
-        // 현재 위치의 Node 저장
-        Node currentNode = boardRepository.findNodeByCoordinates(movingPiece.getA(), movingPiece.getB());
-
-        // 이동할 노드 찾기
-        Node targetNode = boardRepository.findNodeByCoordinates(request.getAcoord(), request.getBcoord());
-
-        // 분기점 처리: 연결된 노드가 여러 개인 경우
-        if (currentNode.getConnections().size() > 1) {
-            targetNode = handleJunction(currentNode); // 분기점 처리 추가 로직
-        }
-        // 중간점 처리: 연결된 노드가 하나인 경우
-        else if (currentNode.getConnections().size() == 1) {
-            targetNode = currentNode.getConnections().get(0); // 다음 노드로 이동
-        }
-
-        // 목표 위치에서 다른 피스 충돌 처리
-        List<Piece> targetPieces = pieceRepository.findByAAndBAndState(
-                targetNode.getA(), targetNode.getB(), PieceState.ON_BOARD);
-
+        // 목표 논리 좌표(a, b)로 PathNode 조회
+        PathNode targetNode = pathNodeRepository.findByBoardAndAAndB(movingPiece.getPlayer().getGame().getBoards().get(0), request.getA(), request.getB())
+            .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
+        // 모든 로직은 (a, b) 기준으로 처리
+        // 목표 좌표에 있는 다른 말들 조회 (a, b 기준)
+        List<Piece> targetPieces = pieceRepository.findByPlayer_PlayerId(owner.getPlayerId()).stream()
+            .filter(p -> p.getA() == request.getA() && p.getB() == request.getB() && p.getState() == PieceState.ON_BOARD)
+            .toList();
         for (Piece target : targetPieces) {
             if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
-
             if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
-                // 같은 팀: 업기 처리
+                // 업기
                 target.setGrouped(true);
                 movingPiece.setGrouped(true);
             } else {
-                // 다른 팀: 잡기 처리
+                // 잡기
                 target.setFinished(true);
                 target.setGrouped(false);
-                target.setState(PieceState.READY); // 보드에서 다시 시작
-                target.setA(0);
-                target.setB(0); // 시작점으로 리셋
-                capturedOpponentPiece = true;
+                target.setState(PieceState.READY);
+                // 논리좌표 (0,1) == 시작점으로 이동
+                target.setLogicalPosition(0, 1);
             }
-
-            // 저장
             pieceRepository.save(target);
         }
-
-        // 피스 이동 적용
-        movingPiece.setA(targetNode.getA());
-        movingPiece.setB(targetNode.getB());
+        // 말 이동
+        movingPiece.setLogicalPosition(request.getA(), request.getB());
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
-
-        // 골인지점 처리
-        if (isGoalNode(targetNode)) {
-            owner.setFinishedCount(owner.getFinishedCount() + 1); // 골인한 피스 수 증가
+        // 골인 여부 확인 (논리좌표 기준)
+        if (request.getA() == 0 && request.getB() == 1) {
+            owner.setFinishedCount(owner.getFinishedCount() + 1);
             playerRepository.save(owner);
         }
 
-        // TurnAction 기록
+        // TurnAction 저장
         TurnAction action = new TurnAction();
         Turn turn = turnRepository.findById(request.getTurnId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
-
         action.setTurn(turn);
         action.setMoveOrder(request.getMoveOrder());
+        if (request.getResult() != null) {
+            action.setResult(request.getResult());  // enum 그대로 할당
+        } else {
+            throw new IllegalArgumentException("Yut result must not be null");
+        }
+
         action.setUsed(true);
         action.setChosenPiece(movingPiece);
-        action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
-
         turnActionRepository.save(action);
     }
 
@@ -268,15 +246,27 @@ public class GameServiceImpl implements GameService {
 
         List<Piece> pieces = pieceRepository.findByPlayer_PlayerId(gameId);
 
-        List<GameStatusResponse.PieceInfo> pieceInfos = pieces.stream().map(p ->
-                new GameStatusResponse.PieceInfo(
-                        p.getPieceId(),
-                        p.getPlayer().getPlayerId(),
-                        p.getX(),
-                        p.getY(),
-                        p.isFinished()
-                )
-        ).collect(Collectors.toList());
+        List<GameStatusResponse.PieceInfo> pieceInfos = pieces.stream().map(p -> {
+            int a = p.getA();
+            int b = p.getB();
+            int x = -1;
+            int y = -1;
+            // (a, b) 기준으로 PathNode를 찾아 실제 좌표 변환
+            PathNode node = pathNodeRepository.findByBoardAndAAndB(p.getPlayer().getGame().getBoards().get(0), a, b).orElse(null);
+            if (node != null) {
+                x = node.getX();
+                y = node.getY();
+            }
+            return new GameStatusResponse.PieceInfo(
+                    p.getPieceId(),
+                    p.getPlayer().getPlayerId(),
+                    x,
+                    y,
+                    p.isFinished(),
+                    a,
+                    b
+            );
+        }).collect(Collectors.toList());
 
         return new GameStatusResponse(
                 game.getGameId(),

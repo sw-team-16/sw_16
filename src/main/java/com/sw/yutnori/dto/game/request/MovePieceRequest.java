@@ -17,11 +17,11 @@ public class MovePieceRequest {
     @Schema(description = "이동 순서 (첫 번째 사용된 결과부터)", example = "1")
     private int moveOrder;
 
-    @Schema(description = "이동할 X 좌표: 논리 좌표 a", example = "3")
-    private int xcoord;
+    @Schema(description = "이동할 논리 좌표 a", example = "3")
+    private int a;
 
-    @Schema(description = "이동할 Y 좌표 : 존리 좌표 b", example = "10")
-    private int ycoord;
+    @Schema(description = "이동할 논리 좌표 b", example = "10")
+    private int b;
 
     @Schema(description = "논리좌표 a")
     private int acoord;
