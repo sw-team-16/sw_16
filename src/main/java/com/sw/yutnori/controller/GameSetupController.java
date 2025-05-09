@@ -20,6 +20,10 @@ import java.net.URL;
 import java.util.List;
 import java.util.function.Consumer;
 
+// JSON 파싱을 위한 org.json import
+import org.json.JSONObject;
+import org.json.JSONArray;
+
 public class GameSetupController {
     private static final String API_URL = "http://localhost:8080";
     private InGameController inGameController;
@@ -89,10 +93,30 @@ public class GameSetupController {
             // 응답 코드 확인
             int responseCode = conn.getResponseCode();
             if (responseCode == 200) {
+                // 응답 본문 읽기
+                java.io.InputStream is = conn.getInputStream();
+                java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+                String responseBody = s.hasNext() ? s.next() : "";
+                is.close();
+
+                // JSON 파싱 (org.json 사용)
+                org.json.JSONObject obj = new org.json.JSONObject(responseBody);
+                long gameId = obj.getLong("gameId");
+                org.json.JSONArray playersArr = obj.getJSONArray("players");
+                java.util.List<Long> playerIds = new java.util.ArrayList<>();
+                for (int i = 0; i < playersArr.length(); i++) {
+                    org.json.JSONObject p = playersArr.getJSONObject(i);
+                    playerIds.add(p.getLong("playerId"));
+                }
+
                 // 게임 설정 데이터 저장
                 this.lastSetupData = data;
                 // InGameController 생성
                 this.inGameController = createInGameController(data);
+                // gameId, playerId(첫 번째 플레이어) 전달
+                if (!playerIds.isEmpty()) {
+                    this.inGameController.setGameContext(gameId, playerIds.get(0));
+                }
                 if (resultCallback != null) resultCallback.accept(new Result(true, "게임 설정이 서버에 전송되었습니다!"));
                 // 게임 시작 콜백 호출
                 if (onGameStartCallback != null) {
