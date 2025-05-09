@@ -1,10 +1,4 @@
-/*
- * GameServiceImpl.java
- * 프론트엔드에서 게임 관련 API 요청을 처리하는 서비스 클래스
- * 
- * 
- * 
- */
+
 package com.sw.yutnori.service;
 
 import com.sw.yutnori.common.enums.GameState;
