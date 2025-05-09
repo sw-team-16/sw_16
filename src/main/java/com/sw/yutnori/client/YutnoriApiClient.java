@@ -2,6 +2,7 @@ package com.sw.yutnori.client;
 
 import com.sw.yutnori.dto.game.request.AutoThrowRequest;
 import com.sw.yutnori.dto.game.request.ManualThrowRequest;
+import com.sw.yutnori.dto.game.request.RestartGameRequest;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.common.enums.YutResult;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +31,14 @@ public class YutnoriApiClient implements GameApiClient {
         ManualThrowRequest request = new ManualThrowRequest( playerId, pieceId, result);
 
         String url = baseUrl + "/api/game/" + gameId + "/turn/manual/throw";
+        restTemplate.postForObject(url, request, Void.class);
+    }
+
+    // 게임 재시작 API 호출
+    @Override
+    public void restartGame(Long gameId, Long winnerPlayerId) {
+        RestartGameRequest request = new RestartGameRequest(winnerPlayerId);
+        String url = baseUrl + "/api/game/" + gameId + "/restart";
         restTemplate.postForObject(url, request, Void.class);
     }
 

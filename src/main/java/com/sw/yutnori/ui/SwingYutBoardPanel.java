@@ -12,12 +12,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class YutBoardPanel extends JPanel {
+public class SwingYutBoardPanel extends JPanel {
     private final BoardModel boardModel;
     private static final int BOARD_WIDTH = 1200;
     private static final int BOARD_HEIGHT = 1000;
 
-    public YutBoardPanel(BoardModel boardModel) {
+    public SwingYutBoardPanel(BoardModel boardModel) {
         this.boardModel = boardModel;
         setBackground(Color.WHITE);
     }

@@ -18,8 +18,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SwingInGameFrame extends JFrame {
-    private final YutBoardPanel yutBoardPanel;
-    private final SwingControlPanel controlPanel;
+    private final SwingYutBoardPanel yutBoardPanel;
+    private final SwingYutControlPanel controlPanel;
     private final SwingStatusPanel statusPanel;
 
     public SwingInGameFrame(InGameController controller) {

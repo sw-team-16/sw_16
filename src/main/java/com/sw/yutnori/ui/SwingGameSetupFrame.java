@@ -15,11 +15,11 @@ import com.sw.yutnori.controller.InGameController;
 import javax.swing.*;
 import java.awt.*;
 
-public class GameSetupFrame extends JFrame {
+public class SwingGameSetupFrame extends JFrame {
     private final GameSetupDisplay setupDisplay;
     private final GameSetupController controller;
 
-    public GameSetupFrame() {
+    public SwingGameSetupFrame() {
         setTitle("윷놀이 게임 설정");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(400, 350);
@@ -32,10 +32,10 @@ public class GameSetupFrame extends JFrame {
         controller = new GameSetupController(this::startGame);
         controller.setResultCallback(result -> {
             if (result.success()) {
-                JOptionPane.showMessageDialog(GameSetupFrame.this,
+                JOptionPane.showMessageDialog(SwingGameSetupFrame.this,
                         result.message(), "성공", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(GameSetupFrame.this,
+                JOptionPane.showMessageDialog(SwingGameSetupFrame.this,
                         result.message(), "오류", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -57,7 +57,7 @@ public class GameSetupFrame extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GameSetupFrame frame = new GameSetupFrame();
+            SwingGameSetupFrame frame = new SwingGameSetupFrame();
             frame.setVisible(true);
         });
     }
