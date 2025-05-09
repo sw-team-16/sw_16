@@ -107,30 +107,20 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
     // '지정 윷 던지기' 클릭 시 창 변경
     private void showCustomYutSelectionPanel() {
         removeAll();
+
         Consumer<List<String>> onConfirm = selectedYuts -> {
             controller.promptPieceSelection(playerId); // 말 선택 창 띄움
-            controller.onCustomYutButtonClicked(selectedYuts); // 선택된 윷 처리
+            controller.onConfirmYutButtonClicked(selectedYuts); // 선택된 윷 처리
         };
         Runnable onCancel = this::restoreOriginalPanel;
+
         SwingYutSelectionPanel selectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
         add(selectionPanel);
         revalidate();
         repaint();
     }
 
-    private YutResult convertStringToYutResult(String yutType) {
-        return switch (yutType) {
-            case "DO" -> YutResult.DO;
-            case "GAE" -> YutResult.GAE;
-            case "GEOL" -> YutResult.GEOL;
-            case "YUT" -> YutResult.YUT;
-            case "MO" -> YutResult.MO;
-            case "BACK_DO" -> YutResult.BACK_DO;
-            default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
-        };
-    }
-
-    // '지정 윷 던지기'에서 취소/완료 후 원래 패널로 복원
+    // '지정 윷 던지기'에서 취소 후 원래 패널로 복원
     private void restoreOriginalPanel() {
         removeAll();
         layoutComponents();
@@ -239,47 +229,18 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
         return button;
     }
 
-    // !TODO: 게임 턴이 변경될 때 호출 - 아직 미적용
+    // !TODO: 게임 턴이 변경될 때 호출 - 턴 변경 로직 적용 이후 수정 및 확인 필요
     public void startNewTurn() {
         resultDisplay.resetResults();
         currentYutLabel.setText("-");
-        randomYutBtn.setEnabled(true);
-        customYutBtn.setEnabled(true);
-    }
-
-    // 게임 진행 관련
-    private Long getCurrentTurnId() {
-        if (currentTurnId == null) {
-            try {
-                // !TODO: 턴 정보 로직 구현 필요
-                currentTurnId = 1L;
-            } catch (Exception e) {
-                showError("턴 정보를 가져오는데 실패했습니다: " + e.getMessage());
-                currentTurnId = 1L;
-            }
-        }
-        return currentTurnId;
-    }
-
-    public void updateTurnId(Long turnId) {
-        this.currentTurnId = turnId;
-    }
-
-    private Long getSelectedPieceId() {
-        return selectedPieceId;
-    }
-
-    public void resetPieceSelection() {
-        this.selectedPieceId = null;
+        enableRandomButton(true);
+        enableCustomButton(true);
     }
 
     // GameUI 인터페이스 메소드 구현
     @Override
     public void displayYutResult(String result) {
         resultDisplay.displayYutResult(result);
-
-        // 버튼 활성화/비활성화 로직
-        randomYutBtn.setEnabled(resultDisplay.isSpecialResult(result));
     }
 
     @Override
@@ -313,10 +274,6 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
 
     public ResultDisplay getResultDisplay() {
         return resultDisplay;
-    }
-
-    public void setRandomYutButtonEnabled(boolean enabled) {
-        randomYutBtn.setEnabled(enabled);
     }
 
     public void showWinnerDialog(String winnerName) {
@@ -358,9 +315,14 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
         updateYutSticks(result);
     }
 
-    // 랜덤 윷 버튼 활성화
+    // 랜덤 윷 버튼 활성화 및 비활성화
     public void enableRandomButton(boolean enabled) {
         randomYutBtn.setEnabled(enabled);
+    }
+
+    // 지정 윷 버튼 활성화 및 비활성화
+    public void enableCustomButton(boolean enabled) {
+        customYutBtn.setEnabled(enabled);
     }
 
     // 오류 메시지 표시 및 원래 패널로 복원
