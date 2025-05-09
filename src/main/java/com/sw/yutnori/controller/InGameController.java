@@ -16,6 +16,7 @@ import com.sw.yutnori.ui.SwingYutBoardPanel;
 import com.sw.yutnori.ui.SwingYutControlPanel;
 import com.sw.yutnori.ui.SwingStatusPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.common.enums.YutResult;
 
 import java.util.List;
 
@@ -38,16 +39,16 @@ public class InGameController {
         this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
         this.controlPanel = new SwingYutControlPanel(apiClient, this);
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
-        
-        // 게임 설정 정보 전달
     }
 
+    // 게임 설정 정보 전달
     public void setGameContext(Long gameId, Long playerId) {
         this.gameId = gameId;
         this.playerId = playerId;
         this.controlPanel.setGameContext(gameId, playerId);
     }
-    // 윷 랜덤 던지기 (SwingYutControlPanel에서 여기로 이동)
+
+    // '랜덤 윷 던지기' 버튼 클릭 시 발생하는 이벤트
     public void onRandomYutButtonClicked() {
         try {
             Long turnId = getCurrentTurnId();
@@ -57,6 +58,9 @@ public class InGameController {
                 updateTurnId(response.getTurnId());
             }
 
+            // 랜덤 윷 던지기를 클릭했을 때는 다음 턴까지 지정 윷 던지기 버튼 비활성화
+            controlPanel.enableCustomButton(false);
+
             var yutResult = response.getResult();
             String result = yutResult.name();
 
@@ -64,8 +68,8 @@ public class InGameController {
             controlPanel.updateYutResult(koreanResult, result);
 
             // 윷이나 모가 나왔을 경우에는 버튼을 활성화 상태로 유지
-            if (yutResult != com.sw.yutnori.common.enums.YutResult.YUT && 
-                yutResult != com.sw.yutnori.common.enums.YutResult.MO) {
+            if (yutResult != YutResult.YUT &&
+                yutResult != YutResult.MO) {
                 controlPanel.enableRandomButton(false);
             }
         } catch (Exception ex) {
@@ -73,8 +77,8 @@ public class InGameController {
         }
     }
 
-    // 윷 수동 던지기 (SwingYutControlPanel에서 여기로 이동)
-    public void onCustomYutButtonClicked(List<String> selectedYuts) {
+    // 지정한 윳 선택 이후 '완료' 버튼 클릭 시 발생하는 이벤트
+    public void onConfirmButtonClicked(List<String> selectedYuts) {
         try {
             if (selectedYuts.isEmpty()) {
                 controlPanel.showErrorAndRestore("선택된 윷 결과가 없습니다.");
@@ -104,9 +108,11 @@ public class InGameController {
             );
             controlPanel.updateCurrentYut(lastYutType);
 
+            // 지정 윷 선택 완료되면 다음 턴까지 두 버튼 모두 비활성화
             resetPieceSelection();
-            controlPanel.enableRandomButton(false);
             controlPanel.restorePanel();
+            controlPanel.enableRandomButton(false);
+            controlPanel.enableCustomButton(false);
         } catch (Exception ex) {
             handleError(ex);
         }
@@ -149,14 +155,14 @@ public class InGameController {
     }
 
     // 윷 타입 문자열을 윷 결과 열거형으로 변환
-    private com.sw.yutnori.common.enums.YutResult convertStringToYutResult(String yutType) {
+    private YutResult convertStringToYutResult(String yutType) {
         return switch (yutType) {
-            case "DO" -> com.sw.yutnori.common.enums.YutResult.DO;
-            case "GAE" -> com.sw.yutnori.common.enums.YutResult.GAE;
-            case "GEOL" -> com.sw.yutnori.common.enums.YutResult.GEOL;
-            case "YUT" -> com.sw.yutnori.common.enums.YutResult.YUT;
-            case "MO" -> com.sw.yutnori.common.enums.YutResult.MO;
-            case "BACK_DO" -> com.sw.yutnori.common.enums.YutResult.BACK_DO;
+            case "DO" -> YutResult.DO;
+            case "GAE" -> YutResult.GAE;
+            case "GEOL" -> YutResult.GEOL;
+            case "YUT" -> YutResult.YUT;
+            case "MO" -> YutResult.MO;
+            case "BACK_DO" -> YutResult.BACK_DO;
             default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
         };
     }
