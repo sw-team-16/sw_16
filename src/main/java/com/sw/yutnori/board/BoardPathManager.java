@@ -66,8 +66,84 @@ public class BoardPathManager {
             default -> throw new IllegalArgumentException("Invalid yut result: " + yutResult);
         };
     }
-    public static LogicalPosition calculateDestination(Long pieceId, Long currentTurnId, YutResult result,  BoardType boardType) {
-        // TODO: 실제 경로 계산 로직으로 교체
-        return new LogicalPosition(pieceId, 3, 10);
+
+    public static LogicalPosition calculateDestination(
+            Long pieceId,
+            int currentA,
+            int currentB,
+            YutResult result,
+            BoardType boardType
+    ) {
+        return switch (boardType) {
+            case SQUARE -> calculateSQUARE(pieceId, currentA, currentB, result);
+            case PENTAGON -> calculatePENTAGON(pieceId, currentA, currentB, result);
+            case HEXAGON -> calculateHEXAGON(pieceId, currentA, currentB, result);
+        };
     }
+
+    private static LogicalPosition calculateSQUARE(Long pieceId, int a, int b, YutResult result) {
+        int steps = switch (result) {
+            case DO -> 1;
+            case GAE -> 2;
+            case GEOL -> 3;
+            case YUT -> 4;
+            case MO -> 5;
+            case BACK_DO -> -1;
+        };
+
+        if (a == 5 && b == 1) {
+            return switch (result) {
+                case DO -> new LogicalPosition(pieceId, 1, 10);
+                case GAE -> new LogicalPosition(pieceId, 2, 10);
+                case GEOL -> new LogicalPosition(pieceId, 3, 10);
+                case YUT -> new LogicalPosition(pieceId, 2, 30);
+                case MO -> new LogicalPosition(pieceId, 1, 30);
+                case BACK_DO -> new LogicalPosition(pieceId, 4, 1);
+            };
+        } else if (a == 5 && b == 2) {
+            return switch (result) {
+                case DO -> new LogicalPosition(pieceId, 1, 20);
+                case GAE -> new LogicalPosition(pieceId, 2, 20);
+                case GEOL -> new LogicalPosition(pieceId, 3, 10);
+                case YUT -> new LogicalPosition(pieceId, 2, 40);
+                case MO -> new LogicalPosition(pieceId, 1, 40);
+                case BACK_DO -> new LogicalPosition(pieceId, 4, 2);
+            };
+        } else if (a == 3 && b == 10) {
+            return switch (result) {
+                case DO -> new LogicalPosition(pieceId, 2, 40);
+                case GAE -> new LogicalPosition(pieceId, 1, 40);
+                case GEOL, YUT, MO -> new LogicalPosition(pieceId, 0, 1);
+                case BACK_DO -> new LogicalPosition(pieceId, 2, 10);
+            };
+        }
+
+        int[][] mainPath = {
+                {0,1}, {1,1}, {2,1}, {3,1}, {4,1}, {5,1},
+                {1,2}, {2,2}, {3,2}, {4,2}, {5,2},
+                {1,3}, {2,3}, {3,3}, {4,3}, {5,3},
+                {1,4}, {2,4}, {3,4}, {4,4}, {0,1}
+        };
+
+        for (int i = 0; i < mainPath.length; i++) {
+            if (mainPath[i][0] == a && mainPath[i][1] == b) {
+                int newIndex = i + steps;
+                if (newIndex >= mainPath.length) newIndex = mainPath.length - 1;
+                if (newIndex < 0) newIndex = 0;
+                return new LogicalPosition(pieceId, mainPath[newIndex][0], mainPath[newIndex][1]);
+            }
+        }
+
+        return new LogicalPosition(pieceId, a, b);
+    }
+
+    private static LogicalPosition calculatePENTAGON(Long pieceId, int a, int b, YutResult result) {
+        return new LogicalPosition(pieceId, 4, 9);
+    }
+
+    private static LogicalPosition calculateHEXAGON(Long pieceId, int a, int b,YutResult result) {
+        return new LogicalPosition(pieceId, 5, 8);
+    }
+
+
 }

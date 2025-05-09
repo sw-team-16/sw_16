@@ -19,6 +19,7 @@ import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.common.enums.BoardType;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.dto.game.request.MovePieceRequest;
+import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
 import com.sw.yutnori.ui.PiecePositionDisplayManager;
 import com.sw.yutnori.ui.SwingYutBoardPanel;
 import com.sw.yutnori.ui.SwingYutControlPanel;
@@ -44,6 +45,7 @@ public class InGameController {
     private Long currentTurnId = null;
     private Long selectedPieceId = null;
     private Map<Long, List<Long>> playerPieceMap = new HashMap<>();
+    private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
 
 
 
@@ -126,16 +128,24 @@ public class InGameController {
 
             // 마지막 선택 윷을 현재 윷으로 표시
             String lastYutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(
-                selectedYuts.get(selectedYuts.size() - 1)
+                    selectedYuts.get(selectedYuts.size() - 1)
             );
             controlPanel.updateCurrentYut(lastYutType);
 
-
-
             YutResult result = convertStringToYutResult(lastYutType);
             BoardType boardType = parseBoardType(setupData.boardType());
-            LogicalPosition dest = BoardPathManager.calculateDestination(pieceId, currentTurnId, result, boardType);
 
+// 이동 계산 전에 이전 위치 저장
+            PieceInfoResponse pieceInfo = pieceApiClient.getPieceInfo(pieceId);
+            LogicalPosition prevPos = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
+            piecePrevPositionMap.put(pieceId, prevPos);
+
+// 목적지 계산 시 prevPos 전달
+            LogicalPosition dest = BoardPathManager.calculateDestination(
+                    pieceId, prevPos.getA(), prevPos.getB(), result, boardType
+            );
+
+// 실제 이동 요청
             MovePieceRequest moveRequest = new MovePieceRequest();
             moveRequest.setPlayerId(playerId);
             moveRequest.setChosenPieceId(pieceId);
@@ -143,37 +153,18 @@ public class InGameController {
             moveRequest.setA(dest.getA());
             moveRequest.setB(dest.getB());
             moveRequest.setResult(result);
-            ObjectMapper mapper = new ObjectMapper();
-//            try {
-//                System.out.println("[DEBUG] 요청 JSON = " + mapper.writeValueAsString(moveRequest));
-//            } catch (Exception e) {
-//                System.out.println("[DEBUG] JSON 직렬화 중 오류: " + e.getMessage());
-//            }
-
-
-//            System.out.println("[DEBUG] movePiece 요청 직전 정보");
-//            System.out.println("  gameId = " + gameId);
-//            System.out.println("  player Id = " + moveRequest.getPlayerId());
-//            System.out.println("  chosenPieceId = " + moveRequest.getChosenPieceId());
-//            System.out.println("  moveOrder = " + moveRequest.getMoveOrder());
-//            System.out.println("  (a, b) = (" + moveRequest.getA() + ", " + moveRequest.getB() + ")");
-//            System.out.println("  result = " + moveRequest.getResult());
 
             pieceApiClient.movePiece(gameId, moveRequest);
 
-
+// UI 갱신
             try {
-                var pieceInfo = pieceApiClient.getPieceInfo(pieceId);
-//                System.out.println("[DEBUG] pieceId = " + pieceInfo.getPieceId());
-//                System.out.println("[DEBUG] 위치 a = " + pieceInfo.getA() + ", b = " + pieceInfo.getB());
-//                System.out.println("[DEBUG] 상태 = " + pieceInfo.getState());
-
-
-                LogicalPosition newPos = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
+                PieceInfoResponse updatedPieceInfo = pieceApiClient.getPieceInfo(pieceId);
+                LogicalPosition newPos = new LogicalPosition(pieceId, updatedPieceInfo.getA(), updatedPieceInfo.getB());
                 displayManager.showLogicalPosition(newPos, pieceId);
             } catch (Exception e) {
                 controlPanel.showError("말 위치 표시 중 오류 발생: " + e.getMessage());
             }
+
 
             resetPieceSelection();
             controlPanel.enableRandomButton(false);
