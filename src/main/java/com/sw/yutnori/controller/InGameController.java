@@ -10,10 +10,14 @@
  */
 package com.sw.yutnori.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sw.yutnori.board.BoardModel;
+import com.sw.yutnori.board.BoardPathManager;
 import com.sw.yutnori.client.GameApiClient;
 import com.sw.yutnori.client.PieceApiClient;
 import com.sw.yutnori.common.LogicalPosition;
+import com.sw.yutnori.common.enums.YutResult;
+import com.sw.yutnori.dto.game.request.MovePieceRequest;
 import com.sw.yutnori.ui.PiecePositionDisplayManager;
 import com.sw.yutnori.ui.SwingYutBoardPanel;
 import com.sw.yutnori.ui.SwingYutControlPanel;
@@ -125,11 +129,43 @@ public class InGameController {
             );
             controlPanel.updateCurrentYut(lastYutType);
 
+
+            YutResult result = convertStringToYutResult(lastYutType);
+            LogicalPosition dest = BoardPathManager.calculateDestination(pieceId, currentTurnId, result);  // dest 선언 포함
+
+
+            MovePieceRequest moveRequest = new MovePieceRequest();
+            moveRequest.setPlayerId(playerId);
+            moveRequest.setChosenPieceId(pieceId);
+            moveRequest.setMoveOrder(1);
+            moveRequest.setA(dest.getA());
+            moveRequest.setB(dest.getB());
+            moveRequest.setResult(result);
+            ObjectMapper mapper = new ObjectMapper();
+//            try {
+//                System.out.println("[DEBUG] 요청 JSON = " + mapper.writeValueAsString(moveRequest));
+//            } catch (Exception e) {
+//                System.out.println("[DEBUG] JSON 직렬화 중 오류: " + e.getMessage());
+//            }
+
+
+//            System.out.println("[DEBUG] movePiece 요청 직전 정보");
+//            System.out.println("  gameId = " + gameId);
+//            System.out.println("  player Id = " + moveRequest.getPlayerId());
+//            System.out.println("  chosenPieceId = " + moveRequest.getChosenPieceId());
+//            System.out.println("  moveOrder = " + moveRequest.getMoveOrder());
+//            System.out.println("  (a, b) = (" + moveRequest.getA() + ", " + moveRequest.getB() + ")");
+//            System.out.println("  result = " + moveRequest.getResult());
+
+            pieceApiClient.movePiece(gameId, moveRequest);
+
+
             try {
                 var pieceInfo = pieceApiClient.getPieceInfo(pieceId);
-                System.out.println("[DEBUG] pieceId = " + pieceInfo.getPieceId());
-                System.out.println("[DEBUG] 위치 a = " + pieceInfo.getA() + ", b = " + pieceInfo.getB());
-                System.out.println("[DEBUG] 상태 = " + pieceInfo.getState());
+//                System.out.println("[DEBUG] pieceId = " + pieceInfo.getPieceId());
+//                System.out.println("[DEBUG] 위치 a = " + pieceInfo.getA() + ", b = " + pieceInfo.getB());
+//                System.out.println("[DEBUG] 상태 = " + pieceInfo.getState());
+
 
                 LogicalPosition newPos = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
                 displayManager.showLogicalPosition(newPos, pieceId);

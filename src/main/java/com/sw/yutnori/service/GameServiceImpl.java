@@ -43,7 +43,7 @@ public class GameServiceImpl implements GameService {
     private final PieceRepository pieceRepository;
     private final TurnActionRepository turnActionRepository;
     private final PathNodeRepository pathNodeRepository;
-
+    private final BoardRepository boardRepository;
     @Override
     public GameCreateResponse createGame(GameCreateRequest request) {
         Game game = new Game();
@@ -52,6 +52,10 @@ public class GameServiceImpl implements GameService {
         game.setNumPieces(request.getNumPieces());
         game.setState(GameState.SETUP);
         game = gameRepository.save(game);
+
+        Board board = new Board();
+        board.setGame(game);
+        boardRepository.save(board);
 
         List<GameCreateResponse.PlayerInfo> playerInfoList = new ArrayList<>();
 
@@ -119,42 +123,55 @@ public class GameServiceImpl implements GameService {
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
     }
-
     @Transactional
     @Override
     public void movePiece(Long gameId, MovePieceRequest request) {
+       // System.out.println(">> movePiece");
+
         // 1. 엔티티 조회
         Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
-        Player owner = movingPiece.getPlayer();
-        Game game = owner.getGame();
-        Board board = game.getBoards().get(0); // 첫 번째 보드 사용
+        Player player = playerRepository.findById(request.getPlayerId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid player ID"));
+        Game game = player.getGame();
+
+        if (game.getBoards() == null || game.getBoards().isEmpty()) {
+            throw new IllegalStateException("게임에 연결된 보드가 없습니다.");
+        }
+
+        Board board = game.getBoards().get(0);
+
 
         // 2. 목표 노드 조회
-        PathNode targetNode = pathNodeRepository.findByBoardAndAAndB(board, request.getA(), request.getB())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
+        //PathNode targetNode = pathNodeRepository.findByBoardAndAAndB(board, request.getA(), request.getB())
+         //       .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
 
         // 3. 잡기 및 업기 처리
         handleCaptureOrStacking(movingPiece, request.getA(), request.getB());
 
-        // 4. 말 이동 및 상태 갱신
+        // 4. 말 이동
         movingPiece.setLogicalPosition(request.getA(), request.getB());
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
 
-        // 5. 골인 처리 (Game의 BoardType 기준)
+        // 5. 골인 처리
         BoardType boardType = game.getBoardType();
         if (isEndPoint(request.getA(), request.getB(), boardType)) {
-            owner.setFinishedCount(owner.getFinishedCount() + 1);
-            playerRepository.save(owner);
+            player.setFinishedCount(player.getFinishedCount() + 1);
+            playerRepository.save(player);
         }
 
-        // 6. TurnAction 저장
-        Turn turn = turnRepository.findById(request.getTurnId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
+        // 6. 새로운 Turn 생성
+        Turn newTurn = new Turn();
+        newTurn.setGame(game);
+        newTurn.setPlayer(player);
+        turnRepository.save(newTurn);
 
-        saveTurnAction(turn, request.getMoveOrder(), request.getResult(), movingPiece);
+        // 7. TurnAction 저장
+        saveTurnAction(newTurn, request.getMoveOrder(), request.getResult(), movingPiece);
     }
+
+
 
     private void handleCaptureOrStacking(Piece movingPiece, int a, int b) {
         List<Piece> piecesAtTarget = pieceRepository.findAllByAAndB(a, b);
