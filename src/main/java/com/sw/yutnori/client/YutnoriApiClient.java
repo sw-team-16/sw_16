@@ -19,7 +19,7 @@ public class YutnoriApiClient implements GameApiClient {
     // S2-1 : 윷 랜덤 던지기
     @Override
     public AutoThrowResponse getRandomYutResult(Long gameId, Long turnId, Long playerId) {
-        AutoThrowRequest request = new AutoThrowRequest( playerId);
+        AutoThrowRequest request = new AutoThrowRequest(playerId);
 
         String url = baseUrl + "/api/game/" + gameId + "/turn/random/throw";
         return restTemplate.postForObject(url, request, AutoThrowResponse.class);
