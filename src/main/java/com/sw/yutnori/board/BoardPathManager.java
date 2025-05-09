@@ -1,6 +1,7 @@
 package com.sw.yutnori.board;
 
 import com.sw.yutnori.common.LogicalPosition;
+import com.sw.yutnori.common.enums.BoardType;
 import com.sw.yutnori.common.enums.YutResult;
 
 import java.util.ArrayList;
@@ -65,8 +66,8 @@ public class BoardPathManager {
             default -> throw new IllegalArgumentException("Invalid yut result: " + yutResult);
         };
     }
-    public static LogicalPosition calculateDestination(Long pieceId, Long currentTurnId, YutResult result) {
+    public static LogicalPosition calculateDestination(Long pieceId, Long currentTurnId, YutResult result,  BoardType boardType) {
         // TODO: 실제 경로 계산 로직으로 교체
-        return new LogicalPosition(pieceId, 1, 1);
+        return new LogicalPosition(pieceId, 3, 10);
     }
 }

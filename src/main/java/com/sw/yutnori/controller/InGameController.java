@@ -16,6 +16,7 @@ import com.sw.yutnori.board.BoardPathManager;
 import com.sw.yutnori.client.GameApiClient;
 import com.sw.yutnori.client.PieceApiClient;
 import com.sw.yutnori.common.LogicalPosition;
+import com.sw.yutnori.common.enums.BoardType;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.dto.game.request.MovePieceRequest;
 import com.sw.yutnori.ui.PiecePositionDisplayManager;
@@ -130,9 +131,10 @@ public class InGameController {
             controlPanel.updateCurrentYut(lastYutType);
 
 
-            YutResult result = convertStringToYutResult(lastYutType);
-            LogicalPosition dest = BoardPathManager.calculateDestination(pieceId, currentTurnId, result);  // dest 선언 포함
 
+            YutResult result = convertStringToYutResult(lastYutType);
+            BoardType boardType = parseBoardType(setupData.boardType());
+            LogicalPosition dest = BoardPathManager.calculateDestination(pieceId, currentTurnId, result, boardType);
 
             MovePieceRequest moveRequest = new MovePieceRequest();
             moveRequest.setPlayerId(playerId);
@@ -320,4 +322,14 @@ public class InGameController {
         controlPanel.enableRandomButton(true);
         updateAllViews();
     }
+    private BoardType parseBoardType(String rawType) {
+        return switch (rawType) {
+            case "사각형" -> BoardType.SQUARE;
+            case "오각형" -> BoardType.PENTAGON;
+            case "육각형" -> BoardType.HEXAGON;
+            default -> throw new IllegalArgumentException("알 수 없는 보드 타입: " + rawType);
+        };
+    }
+
+
 } 
