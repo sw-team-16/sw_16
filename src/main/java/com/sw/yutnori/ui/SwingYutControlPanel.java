@@ -14,6 +14,7 @@ import com.sw.yutnori.ui.display.ResultDisplay;
 import com.sw.yutnori.ui.display.SwingResultDisplay;
 import com.sw.yutnori.ui.display.SwingYutDisplay;
 import com.sw.yutnori.ui.display.YutDisplay;
+import com.sw.yutnori.controller.InGameController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,11 +48,13 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
     private ImageIcon backDoDownIcon;
 
     private final GameApiClient apiClient;
+    private final InGameController controller;
     private final YutDisplay yutDisplay;
     private final ResultDisplay resultDisplay;
 
-    public SwingYutControlPanel(GameApiClient apiClient) {
+    public SwingYutControlPanel(GameApiClient apiClient, InGameController controller) {
         this.apiClient = apiClient;
+        this.controller = controller;
         initialize();
         this.yutDisplay = new SwingYutDisplay(yutSticks, upIcon, downIcon, backDoDownIcon);
         this.resultDisplay = new SwingResultDisplay(resultLabels, currentYutLabel);
@@ -97,9 +100,7 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
 
     // '랜덤 윷 던지기' 및 '지정 윷 던지기' 버튼 클릭 시 발생하는 이벤트 초기화
     private void setupEventListeners() {
-        randomYutBtn.addActionListener(e -> {
-            // Controller logic is now handled in InGameController
-        });
+        randomYutBtn.addActionListener(e -> controller.onRandomYutButtonClicked());
         customYutBtn.addActionListener(e -> showCustomYutSelectionPanel());
     }
 
@@ -107,6 +108,7 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
     private void showCustomYutSelectionPanel() {
         removeAll();
         Consumer<List<String>> onConfirm = selectedYuts -> {
+            controller.onCustomYutButtonClicked(selectedYuts);
         };
         Runnable onCancel = this::restoreOriginalPanel;
         SwingYutSelectionPanel selectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
@@ -346,5 +348,23 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
             SwingGameSetupFrame frame = new SwingGameSetupFrame();
             frame.setVisible(true);
         });
+    }
+
+    // 윷 결과 업데이트
+    public void updateYutResult(String koreanResult, String result) {
+        displayYutResult(koreanResult);
+        updateCurrentYut(result);
+        updateYutSticks(result);
+    }
+
+    // 랜덤 윷 버튼 활성화
+    public void enableRandomButton(boolean enabled) {
+        randomYutBtn.setEnabled(enabled);
+    }
+
+    // 오류 메시지 표시 및 원래 패널로 복원
+    public void showErrorAndRestore(String message) {
+        showError(message);
+        restoreOriginalPanel();
     }
 }

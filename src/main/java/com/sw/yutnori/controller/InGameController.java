@@ -17,6 +17,8 @@ import com.sw.yutnori.ui.SwingYutControlPanel;
 import com.sw.yutnori.ui.SwingStatusPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
+import java.util.List;
+
 public class InGameController {
     private final BoardModel boardModel;
     private final GameApiClient apiClient;
@@ -34,7 +36,7 @@ public class InGameController {
         this.apiClient = apiClient;
         this.setupData = setupData;
         this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
-        this.controlPanel = new SwingYutControlPanel(apiClient);
+        this.controlPanel = new SwingYutControlPanel(apiClient, this);
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
         
         // 게임 설정 정보 전달
@@ -59,45 +61,50 @@ public class InGameController {
             String result = yutResult.name();
 
             String koreanResult = controlPanel.getResultDisplay().convertYutTypeToKorean(result);
-            controlPanel.displayYutResult(koreanResult);
-            controlPanel.updateCurrentYut(result);
+            controlPanel.updateYutResult(koreanResult, result);
 
-            if (yutResult != com.sw.yutnori.common.enums.YutResult.YUT && yutResult != com.sw.yutnori.common.enums.YutResult.MO) {
-                controlPanel.setRandomYutButtonEnabled(false);
+            // 윷이나 모가 나왔을 경우에는 버튼을 활성화 상태로 유지
+            if (yutResult != com.sw.yutnori.common.enums.YutResult.YUT && 
+                yutResult != com.sw.yutnori.common.enums.YutResult.MO) {
+                controlPanel.enableRandomButton(false);
             }
         } catch (Exception ex) {
-            controlPanel.showError("서버 통신 오류: " + ex.getMessage());
+            handleError(ex);
         }
     }
 
     // 윷 수동 던지기 (SwingYutControlPanel에서 여기로 이동)
-    public void onCustomYutButtonClicked(java.util.List<String> selectedYuts) {
+    public void onCustomYutButtonClicked(List<String> selectedYuts) {
         try {
             if (selectedYuts.isEmpty()) {
-                controlPanel.showError("선택된 윷 결과가 없습니다.");
-                controlPanel.restorePanel();
+                controlPanel.showErrorAndRestore("선택된 윷 결과가 없습니다.");
                 return;
             }
 
             Long turnId = getCurrentTurnId();
             Long pieceId = getSelectedPieceId();
 
+            // 모든 선택된 결과들을 백엔드로 전송
             for (String selectedYut : selectedYuts) {
+                // 한국어 윷 결과를 백엔드 전송용 영어로 변환
                 String yutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
                 var result = convertStringToYutResult(yutType);
+                // 백엔드 API 호출
                 apiClient.throwYutManual(gameId, turnId, playerId, pieceId, result);
-                controlPanel.displayYutResult(selectedYut);
+                controlPanel.updateYutResult(selectedYut, yutType);
             }
 
-            String lastYutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYuts.get(selectedYuts.size() - 1));
+            // 마지막 선택 윷을 현재 윷으로 표시
+            String lastYutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(
+                selectedYuts.get(selectedYuts.size() - 1)
+            );
             controlPanel.updateCurrentYut(lastYutType);
 
             resetPieceSelection();
-            controlPanel.setRandomYutButtonEnabled(false);
+            controlPanel.enableRandomButton(false);
             controlPanel.restorePanel();
         } catch (Exception ex) {
-            controlPanel.showError("서버 통신 오류: " + ex.getMessage());
-            controlPanel.restorePanel();
+            handleError(ex);
         }
     }
 
@@ -167,5 +174,31 @@ public class InGameController {
     }
     public GameSetupDisplay.SetupData getSetupData() {
         return setupData;
+    }
+
+    // View 업데이트 메서드들
+    private void updateGameState(String result, String koreanResult) {
+        controlPanel.displayYutResult(koreanResult);
+        controlPanel.updateCurrentYut(result);
+        controlPanel.updateYutSticks(result);
+        // 보드 상태는 나중에 구현
+    }
+
+    private void updateAllViews() {
+        yutBoardPanel.repaint();  // 보드 다시 그리기
+        statusPanel.repaint();    // 상태 패널 업데이트
+        controlPanel.revalidate();
+        controlPanel.repaint();
+    }
+
+    private void handleError(Exception ex) {
+        controlPanel.showErrorAndRestore("게임 진행 중 오류 발생: " + ex.getMessage());
+        resetGameState();
+    }
+
+    private void resetGameState() {
+        resetPieceSelection();
+        controlPanel.enableRandomButton(true);
+        updateAllViews();
     }
 } 
