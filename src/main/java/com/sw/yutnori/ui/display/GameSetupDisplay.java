@@ -14,4 +14,5 @@ public interface GameSetupDisplay {
     
     JPanel getPanel();
     void setOnStartCallback(java.util.function.Consumer<SetupData> callback);
+
 } 
