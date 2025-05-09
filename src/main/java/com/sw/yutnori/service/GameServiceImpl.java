@@ -41,6 +41,7 @@ public class GameServiceImpl implements GameService {
     private final TurnRepository turnRepository;
     private final PieceRepository pieceRepository;
     private final TurnActionRepository turnActionRepository;
+    private final PathNodeRepository pathNodeRepository;
 
     @Override
     public GameCreateResponse createGame(GameCreateRequest request) {
@@ -125,12 +126,16 @@ public class GameServiceImpl implements GameService {
 
         Player owner = movingPiece.getPlayer();
 
-        // 목표 좌표에 있는 다른 말들 조회
-        List<Piece> targetPieces = pieceRepository.findByXAndYAndState(request.getXcoord(), request.getYcoord(), PieceState.ON_BOARD);
-
+        // 목표 논리 좌표(a, b)로 PathNode 조회
+        PathNode targetNode = pathNodeRepository.findByBoardAndAAndB(movingPiece.getPlayer().getGame().getBoards().get(0), request.getA(), request.getB())
+            .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
+        // 모든 로직은 (a, b) 기준으로 처리
+        // 목표 좌표에 있는 다른 말들 조회 (a, b 기준)
+        List<Piece> targetPieces = pieceRepository.findByPlayer_PlayerId(owner.getPlayerId()).stream()
+            .filter(p -> p.getA() == request.getA() && p.getB() == request.getB() && p.getState() == PieceState.ON_BOARD)
+            .toList();
         for (Piece target : targetPieces) {
             if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
-
             if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
                 // 업기
                 target.setGrouped(true);
@@ -140,20 +145,17 @@ public class GameServiceImpl implements GameService {
                 target.setFinished(true);
                 target.setGrouped(false);
                 target.setState(PieceState.READY);
-                target.setX(0);
-                target.setY(1);
+                // 논리좌표 (0,1) == 시작점으로 이동
+                target.setLogicalPosition(0, 1);
             }
             pieceRepository.save(target);
         }
-
         // 말 이동
-        movingPiece.setX(request.getXcoord());
-        movingPiece.setY(request.getYcoord());
+        movingPiece.setLogicalPosition(request.getA(), request.getB());
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
-
-        // 골인 여부 확인
-        if (request.getXcoord() == 0 && request.getYcoord() == 1) {
+        // 골인 여부 확인 (논리좌표 기준)
+        if (request.getA() == 0 && request.getB() == 1) {
             owner.setFinishedCount(owner.getFinishedCount() + 1);
             playerRepository.save(owner);
         }
@@ -246,15 +248,27 @@ public class GameServiceImpl implements GameService {
 
         List<Piece> pieces = pieceRepository.findByPlayer_PlayerId(gameId);
 
-        List<GameStatusResponse.PieceInfo> pieceInfos = pieces.stream().map(p ->
-                new GameStatusResponse.PieceInfo(
-                        p.getPieceId(),
-                        p.getPlayer().getPlayerId(),
-                        p.getX(),
-                        p.getY(),
-                        p.isFinished()
-                )
-        ).collect(Collectors.toList());
+        List<GameStatusResponse.PieceInfo> pieceInfos = pieces.stream().map(p -> {
+            int a = p.getA();
+            int b = p.getB();
+            int x = -1;
+            int y = -1;
+            // (a, b) 기준으로 PathNode를 찾아 실제 좌표 변환
+            PathNode node = pathNodeRepository.findByBoardAndAAndB(p.getPlayer().getGame().getBoards().get(0), a, b).orElse(null);
+            if (node != null) {
+                x = node.getX();
+                y = node.getY();
+            }
+            return new GameStatusResponse.PieceInfo(
+                    p.getPieceId(),
+                    p.getPlayer().getPlayerId(),
+                    x,
+                    y,
+                    p.isFinished(),
+                    a,
+                    b
+            );
+        }).collect(Collectors.toList());
 
         return new GameStatusResponse(
                 game.getGameId(),

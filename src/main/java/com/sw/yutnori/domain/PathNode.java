@@ -20,15 +20,21 @@ public class PathNode {
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
+    // 논리 좌표 a
     @Column(nullable = false)
-    private int xcoord;
+    private int a;
 
+    // 논리 좌표 b
     @Column(nullable = false)
-    private int ycoord;
+    private int b;
 
-    @ManyToOne
-    @JoinColumn(name = "next_node_id")
-    private PathNode nextNode;
+    // 실제 좌표 x
+    @Column(nullable = false)
+    private int x;
+
+    // 실제 좌표 y
+    @Column(nullable = false)
+    private int y;
 
     @Column(nullable = false)
     private boolean isCenter = false;
