@@ -78,7 +78,7 @@ public class GameSetupController {
         // API 요청
         try {
             // `api/game/game/create` 요청
-            URL url = new URI(API_URL + "/api/game/game/create").toURL();
+            URL url = new URI(API_URL + "/api/game/create").toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
