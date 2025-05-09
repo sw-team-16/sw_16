@@ -7,6 +7,7 @@
  */
 package com.sw.yutnori.service;
 
+import com.sw.yutnori.board.Node;
 import com.sw.yutnori.common.enums.GameState;
 import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.common.enums.YutResult;
@@ -42,6 +43,7 @@ public class GameServiceImpl implements GameService {
     private final TurnRepository turnRepository;
     private final PieceRepository pieceRepository;
     private final TurnActionRepository turnActionRepository;
+    private final BoardRepository boardRepository;
 
     @Override
     public GameCreateResponse createGame(GameCreateRequest request) {
@@ -78,9 +80,6 @@ public class GameServiceImpl implements GameService {
     }
 
 
-
-
-
     @Override
     public void throwYutManual(Long gameId, ManualThrowRequest request) {
         Player player = playerRepository.findById(request.getPlayerId())
@@ -108,65 +107,96 @@ public class GameServiceImpl implements GameService {
         turnActionRepository.save(action);
     }
 
+    // 노드 기반 로직 구현을 위한 함수
+    private Node handleJunction(Node currentNode) {
+        // 단순 구현: 첫 번째 연결 노드를 선택
+        return currentNode.getConnections().get(0);
+    }
+
+    // 골인 노드 확인 함수
+    private boolean isGoalNode(Node node) {
+        // 논리 좌표 a=0, b=0이면 골인지점으로 간주
+        return node.getA() == 0 && node.getB() == 0;
+    }
 
 
     @Override
     @Transactional
     public void movePiece(Long gameId, MovePieceRequest request) {
+        boolean capturedOpponentPiece = false;
+
+        // 이동할 말 id로 가져오기
         Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
 
         Player owner = movingPiece.getPlayer();
 
-        // 목표 좌표에 있는 다른 말들 조회
-        List<Piece> targetPieces = pieceRepository.findByXAndYAndState(request.getXcoord(), request.getYcoord(), PieceState.ON_BOARD);
+        // 현재 위치의 Node 저장
+        Node currentNode = boardRepository.findNodeByCoordinates(movingPiece.getA(), movingPiece.getB());
+
+        // 이동할 노드 찾기
+        Node targetNode = boardRepository.findNodeByCoordinates(request.getAcoord(), request.getBcoord());
+
+        // 분기점 처리: 연결된 노드가 여러 개인 경우 (분기점)
+        if (currentNode.getConnections().size() > 1) {
+            targetNode = handleJunction(currentNode); // 분기점 처리 추가 로직
+        }
+        // 중간점 처리: 연결된 노드가 하나인 경우 (중간점)
+        else if (currentNode.getConnections().size() == 1) {
+            targetNode = currentNode.getConnections().get(0); // 다음 노드로 이동
+        }
+
+        // 목표 위치에서 다른 피스 충돌 처리
+        List<Piece> targetPieces = pieceRepository.findByAAndBAndState(
+                targetNode.getA(), targetNode.getB(), PieceState.ON_BOARD);
 
         for (Piece target : targetPieces) {
             if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
 
             if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
-                // 업기
+                // 같은 팀: 업기 처리
                 target.setGrouped(true);
                 movingPiece.setGrouped(true);
             } else {
-                // 잡기
+                // 다른 팀: 잡기 처리
                 target.setFinished(true);
                 target.setGrouped(false);
-                target.setState(PieceState.READY);
-                target.setX(0);
-                target.setY(1);
+                target.setState(PieceState.READY); // 보드에서 다시 시작
+                target.setA(0);
+                target.setB(0); // 시작점으로 리셋
+                capturedOpponentPiece = true;
             }
+
+            // 저장
             pieceRepository.save(target);
         }
 
-        // 말 이동
-        movingPiece.setX(request.getXcoord());
-        movingPiece.setY(request.getYcoord());
+        // 피스 이동 적용
+        movingPiece.setA(targetNode.getA());
+        movingPiece.setB(targetNode.getB());
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
 
-        // 골인 여부 확인
-        if (request.getXcoord() == 0 && request.getYcoord() == 1) {
-            owner.setFinishedCount(owner.getFinishedCount() + 1);
+        // 골인지점 처리
+        if (isGoalNode(targetNode)) {
+            owner.setFinishedCount(owner.getFinishedCount() + 1); // 골인한 피스 수 증가
             playerRepository.save(owner);
         }
 
-        // TurnAction 저장
+        // TurnAction 기록
         TurnAction action = new TurnAction();
         Turn turn = turnRepository.findById(request.getTurnId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
+
         action.setTurn(turn);
         action.setMoveOrder(request.getMoveOrder());
-        if (request.getResult() != null) {
-            action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
-        } else {
-            throw new IllegalArgumentException("Yut result must not be null");
-        }
         action.setUsed(true);
         action.setChosenPiece(movingPiece);
+        action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
+
         turnActionRepository.save(action);
     }
-
+    
 
 
     private YutResult getRandomYutResult() { // 랜덤한 값 반환 함수.

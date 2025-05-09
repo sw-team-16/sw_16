@@ -27,6 +27,13 @@ public class Piece {
     @Column(name = "ycoord",nullable = false)
     private int y;
 
+    // Logical Coordinate를 위해 추가
+    @Column(name = "a", nullable = false)
+    private int a;
+
+    @Column(name = "b", nullable = false)
+    private int b;
+
     @Column(nullable = false)
     private boolean isFinished = false;
 

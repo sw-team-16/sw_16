@@ -42,6 +42,7 @@ public class Node {
 
     public List<Node> getConnections() { return connections; }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

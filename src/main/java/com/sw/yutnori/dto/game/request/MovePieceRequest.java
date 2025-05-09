@@ -23,6 +23,14 @@ public class MovePieceRequest {
     @Schema(description = "이동할 Y 좌표 : 존리 좌표 b", example = "10")
     private int ycoord;
 
+    @Schema(description = "논리좌표 a")
+    private int acoord;
+
+    @Schema(description = "논리좌표 b")
+    private int bcoord;
+
     @Schema(description = "윷 결과", example = "GEOL")
     private YutResult result;
+
+
 }

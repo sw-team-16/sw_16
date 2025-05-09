@@ -19,6 +19,6 @@ public interface PieceRepository extends JpaRepository<Piece, Long> {
     void deleteByPlayerGame(@Param("gameId") Long gameId);
     List<Piece> findByPlayer(Player player);
     List<Piece> findByXAndYAndState(int x, int y, PieceState state);
-
+    List<Piece> findByAAndBAndState(int a, int b, PieceState state);
 
 }
