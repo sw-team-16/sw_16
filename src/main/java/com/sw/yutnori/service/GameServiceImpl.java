@@ -157,7 +157,7 @@ public class GameServiceImpl implements GameService {
         action.setTurn(turn);
         action.setMoveOrder(request.getMoveOrder());
         if (request.getResult() != null) {
-            action.setResult(request.getResult());  // ✅ enum 그대로 할당
+            action.setResult(request.getResult());  // enum 그대로 할당
         } else {
             throw new IllegalArgumentException("Yut result must not be null");
         }
