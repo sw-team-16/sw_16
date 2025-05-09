@@ -126,12 +126,12 @@ public class GameServiceImpl implements GameService {
 
         // 목표 논리 좌표(a, b)로 PathNode 조회
         PathNode targetNode = pathNodeRepository.findByBoardAndAAndB(movingPiece.getPlayer().getGame().getBoards().get(0), request.getA(), request.getB())
-            .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
         // 모든 로직은 (a, b) 기준으로 처리
         // 목표 좌표에 있는 다른 말들 조회 (a, b 기준)
         List<Piece> targetPieces = pieceRepository.findByPlayer_PlayerId(owner.getPlayerId()).stream()
-            .filter(p -> p.getA() == request.getA() && p.getB() == request.getB() && p.getState() == PieceState.ON_BOARD)
-            .toList();
+                .filter(p -> p.getA() == request.getA() && p.getB() == request.getB() && p.getState() == PieceState.ON_BOARD)
+                .toList();
         for (Piece target : targetPieces) {
             if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
             if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
@@ -174,7 +174,6 @@ public class GameServiceImpl implements GameService {
         action.setChosenPiece(movingPiece);
         turnActionRepository.save(action);
     }
-
 
 
     private YutResult getRandomYutResult() { // 랜덤한 값 반환 함수.
