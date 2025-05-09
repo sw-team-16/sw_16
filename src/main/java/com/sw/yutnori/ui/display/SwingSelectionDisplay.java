@@ -184,7 +184,7 @@ public class SwingSelectionDisplay implements SelectionDisplay {
 
         // 결과 분류
         for (String yut : selectedYuts) {
-            if (yut.equals("윷") || yut.equals("모")) {
+            if (isSpecialResult(yut)) {
                 yutMoCount.put(yut, yutMoCount.getOrDefault(yut, 0) + 1);
             } else {
                 if (!otherResults.contains(yut)) {
@@ -228,6 +228,11 @@ public class SwingSelectionDisplay implements SelectionDisplay {
     @Override
     public List<String> getSelectedYuts() {
         return new ArrayList<>(selectedYuts);
+    }
+
+    @Override
+    public boolean isSpecialResult(String result) {
+        return result.equals("윷") || result.equals("모");
     }
 
     @Override

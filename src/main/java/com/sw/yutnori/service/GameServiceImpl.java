@@ -6,6 +6,7 @@
  */
 package com.sw.yutnori.service;
 
+import com.sw.yutnori.common.enums.BoardType;
 import com.sw.yutnori.common.enums.GameState;
 import com.sw.yutnori.common.enums.PieceState;
 import com.sw.yutnori.common.enums.YutResult;
@@ -42,7 +43,7 @@ public class GameServiceImpl implements GameService {
     private final PieceRepository pieceRepository;
     private final TurnActionRepository turnActionRepository;
     private final PathNodeRepository pathNodeRepository;
-
+    private final BoardRepository boardRepository;
     @Override
     public GameCreateResponse createGame(GameCreateRequest request) {
         Game game = new Game();
@@ -51,6 +52,10 @@ public class GameServiceImpl implements GameService {
         game.setNumPieces(request.getNumPieces());
         game.setState(GameState.SETUP);
         game = gameRepository.save(game);
+
+        Board board = new Board();
+        board.setGame(game);
+        boardRepository.save(board);
 
         List<GameCreateResponse.PlayerInfo> playerInfoList = new ArrayList<>();
 
@@ -70,6 +75,9 @@ public class GameServiceImpl implements GameService {
                 piece.setState(PieceState.READY);
                 piece.setFinished(false);
                 piece.setGrouped(false);
+                piece.setA(0);
+                piece.setB(1);
+
                 piece = pieceRepository.save(piece);
                 pieceIds.add(piece.getPieceId());
             }
@@ -84,6 +92,8 @@ public class GameServiceImpl implements GameService {
 
         return new GameCreateResponse(game.getGameId(), playerInfoList);
     }
+
+
 
 
 
@@ -113,28 +123,62 @@ public class GameServiceImpl implements GameService {
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
     }
-
-
-
-    @Override
     @Transactional
+    @Override
     public void movePiece(Long gameId, MovePieceRequest request) {
+       // System.out.println(">> movePiece");
+
+        // 1. 엔티티 조회
         Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
+        Player player = playerRepository.findById(request.getPlayerId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid player ID"));
+        Game game = player.getGame();
 
-        Player owner = movingPiece.getPlayer();
+        if (game.getBoards() == null || game.getBoards().isEmpty()) {
+            throw new IllegalStateException("게임에 연결된 보드가 없습니다.");
+        }
 
-        // 목표 논리 좌표(a, b)로 PathNode 조회
-        PathNode targetNode = pathNodeRepository.findByBoardAndAAndB(movingPiece.getPlayer().getGame().getBoards().get(0), request.getA(), request.getB())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
-        // 모든 로직은 (a, b) 기준으로 처리
-        // 목표 좌표에 있는 다른 말들 조회 (a, b 기준)
-        List<Piece> targetPieces = pieceRepository.findByPlayer_PlayerId(owner.getPlayerId()).stream()
-                .filter(p -> p.getA() == request.getA() && p.getB() == request.getB() && p.getState() == PieceState.ON_BOARD)
-                .toList();
-        for (Piece target : targetPieces) {
+        Board board = game.getBoards().get(0);
+
+
+        // 2. 목표 노드 조회
+        //PathNode targetNode = pathNodeRepository.findByBoardAndAAndB(board, request.getA(), request.getB())
+         //       .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
+
+        // 3. 잡기 및 업기 처리
+        handleCaptureOrStacking(movingPiece, request.getA(), request.getB());
+
+        // 4. 말 이동
+        movingPiece.setLogicalPosition(request.getA(), request.getB());
+        movingPiece.setState(PieceState.ON_BOARD);
+        pieceRepository.save(movingPiece);
+
+        // 5. 골인 처리
+        BoardType boardType = game.getBoardType();
+        if (isEndPoint(request.getA(), request.getB(), boardType)) {
+            player.setFinishedCount(player.getFinishedCount() + 1);
+            playerRepository.save(player);
+        }
+
+        // 6. 새로운 Turn 생성
+        Turn newTurn = new Turn();
+        newTurn.setGame(game);
+        newTurn.setPlayer(player);
+        turnRepository.save(newTurn);
+
+        // 7. TurnAction 저장
+        saveTurnAction(newTurn, request.getMoveOrder(), request.getResult(), movingPiece);
+    }
+
+
+
+    private void handleCaptureOrStacking(Piece movingPiece, int a, int b) {
+        List<Piece> piecesAtTarget = pieceRepository.findAllByAAndB(a, b);
+        for (Piece target : piecesAtTarget) {
             if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
-            if (target.getPlayer().getPlayerId().equals(owner.getPlayerId())) {
+
+            if (target.getPlayer().getPlayerId().equals(movingPiece.getPlayer().getPlayerId())) {
                 // 업기
                 target.setGrouped(true);
                 movingPiece.setGrouped(true);
@@ -143,37 +187,32 @@ public class GameServiceImpl implements GameService {
                 target.setFinished(true);
                 target.setGrouped(false);
                 target.setState(PieceState.READY);
-                // 논리좌표 (0,1) == 시작점으로 이동
-                target.setLogicalPosition(0, 1);
+                target.setLogicalPosition(0, 1); // 시작점 복귀
             }
             pieceRepository.save(target);
         }
-        // 말 이동
-        movingPiece.setLogicalPosition(request.getA(), request.getB());
-        movingPiece.setState(PieceState.ON_BOARD);
-        pieceRepository.save(movingPiece);
-        // 골인 여부 확인 (논리좌표 기준)
-        if (request.getA() == 0 && request.getB() == 1) {
-            owner.setFinishedCount(owner.getFinishedCount() + 1);
-            playerRepository.save(owner);
-        }
+    }
 
-        // TurnAction 저장
+    private boolean isEndPoint(int a, int b, BoardType type) {
+        // 모든 판 유형의 도착 지점은 (0,1)
+        return a == 0 && b == 1; // 사각형 기준
+    }
+    private void saveTurnAction(Turn turn, int moveOrder, YutResult result, Piece piece) {
+        if (result == null) throw new IllegalArgumentException("Yut result must not be null");
+
         TurnAction action = new TurnAction();
-        Turn turn = turnRepository.findById(request.getTurnId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
         action.setTurn(turn);
-        action.setMoveOrder(request.getMoveOrder());
-        if (request.getResult() != null) {
-            action.setResult(request.getResult());  // enum 그대로 할당
-        } else {
-            throw new IllegalArgumentException("Yut result must not be null");
-        }
-
+        action.setMoveOrder(moveOrder);
+        action.setResult(result);
         action.setUsed(true);
-        action.setChosenPiece(movingPiece);
+        action.setChosenPiece(piece);
         turnActionRepository.save(action);
     }
+
+
+
+
+
 
 
     private YutResult getRandomYutResult() { // 랜덤한 값 반환 함수.
@@ -313,7 +352,7 @@ public class GameServiceImpl implements GameService {
 
         game.setWinnerPlayer(winner);
         game.setState(GameState.FINISHED);
-        pieceRepository.deleteByPlayerGame(gameId);
+        pieceRepository.deleteByGameId(gameId);
 
         game.setCurrentTurnPlayer(null);
         gameRepository.save(game);

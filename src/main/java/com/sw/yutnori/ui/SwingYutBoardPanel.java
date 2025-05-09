@@ -12,8 +12,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -21,7 +19,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.sw.yutnori.board.BoardModel;
+import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.controller.InGameController;
+import com.sw.yutnori.domain.Piece;
 
 public class SwingYutBoardPanel extends JPanel {
     private final BoardModel boardModel;
@@ -29,6 +29,9 @@ public class SwingYutBoardPanel extends JPanel {
     private static final int BOARD_HEIGHT = 1000;
     private final Map<Long, JButton> pieceButtons = new HashMap<>();
     private InGameController controller;
+    private List<Piece> pieceList;
+
+
 
     public SwingYutBoardPanel(BoardModel boardModel) {
         this.boardModel = boardModel;
@@ -38,6 +41,10 @@ public class SwingYutBoardPanel extends JPanel {
     public void setInGameController(InGameController controller) {
         this.controller = controller;
     }
+    private Long selectedPieceId;
+    private LogicalPosition currentPosition;
+    private SwingYutControlPanel controlPanel; // 주입 필수
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -105,6 +112,53 @@ public class SwingYutBoardPanel extends JPanel {
             }
         }
     }
+    private Rectangle getPieceBounds(Piece piece) {
+        Node node = boardModel.findNode(piece.getA(), piece.getB());
+        if (node == null) return new Rectangle(); // or throw exception
+        int nodeX = (int) node.getX();
+        int nodeY = (int) node.getY();
+        int size = 30;
+        return new Rectangle(nodeX - size/2, nodeY - size/2, size, size);
+    }
+
+
+
+    public void renderPieceObjects(Long playerId, List<Piece> pieces) {
+        this.pieceList = pieces;
+        removeAll();
+        pieceButtons.clear();
+        int x = 50;
+        int y = 50;
+        for (Piece piece : pieces) {
+            JButton pieceBtn = new JButton("말 " + piece.getPieceId());
+            pieceBtn.setBounds(x, y, 80, 40);
+            pieceBtn.setBackground(Color.LIGHT_GRAY);
+            pieceBtn.addActionListener(e -> {
+                highlightSelectedPiece(piece.getPieceId());
+                controller.setSelectedPieceId(piece.getPieceId());
+            });
+            pieceButtons.put(piece.getPieceId(), pieceBtn);
+            add(pieceBtn);
+            y += 50;
+        }
+        revalidate();
+        repaint();
+    }
+
+
+
+    private LogicalPosition detectClickedPiece(int x, int y) {
+        for (Piece piece : pieceList) {
+            // piece의 (화면상 x, y 좌표)와 클릭 좌표 비교
+            Rectangle bounds = getPieceBounds(piece);
+            if (bounds.contains(x, y)) {
+                return new LogicalPosition(piece.getPieceId(), piece.getA(), piece.getB());
+            }
+        }
+        return null;
+    }
+
+
 
     private void drawNodeCircle(Graphics2D g2, int x, int y, int outerR, int innerR, GradientPaint outerPaint, Color outerStroke, int outerStrokeWidth, Color innerStroke, int innerStrokeWidth) {
         // 바깥 원 (그라데이션)
@@ -122,48 +176,52 @@ public class SwingYutBoardPanel extends JPanel {
         g2.setStroke(new BasicStroke(1));
     }
 
-    // 윷판에 플레이어의 말을 렌더링
     public void renderPiecesForPlayer(Long playerId, List<Long> pieceIds) {
-        removeAll(); // 모든 기존 컴포넌트 제거
-        pieceButtons.clear(); // 버튼 관리 맵 초기화
-
-        int x = 50; // 말의 시작 위치 (x 좌표)
-        int y = 50; // 말의 시작 위치 (y 좌표)
-        final int spacing = 50; // 각 버튼의 간격
-
-        // 말 ID마다 버튼을 생성하고 추가
+        removeAll();
+        pieceButtons.clear();
+        int x = 50;
+        int y = 50;
         for (Long pieceId : pieceIds) {
-            JButton pieceBtn = new JButton("말 " + pieceId); // 말 버튼 생성
-            pieceBtn.setBounds(x, y, 80, 40); // 버튼 위치와 크기 설정
-            pieceBtn.setBackground(Color.LIGHT_GRAY); // 기본 배경색 설정
-
-            // 클릭 시 이벤트 핸들러 추가
+            JButton pieceBtn = new JButton("말 " + pieceId);
+            pieceBtn.setBounds(x, y, 80, 40);
+            pieceBtn.setBackground(Color.LIGHT_GRAY);
             pieceBtn.addActionListener(e -> {
-                highlightSelectedPiece(pieceId); // 선택된 말 강조
-                controller.setSelectedPieceId(pieceId); // 선택한 말 ID를 컨트롤러로 전달
+                highlightSelectedPiece(pieceId);
+                controller.setSelectedPieceId(pieceId);
             });
-
-            // 버튼을 맵에 저장하고 패널에 추가
             pieceButtons.put(pieceId, pieceBtn);
             add(pieceBtn);
-
-            // 다음 말의 Y 좌표 계산
-            y += spacing;
+            y += 50;
         }
-
-        revalidate(); // UI 갱신을 위해 유효성 검사
-        repaint(); // UI 다시 그리기
+        revalidate();
+        repaint();
     }
+    // SwingYutBoardPanel.java
+    @Override
+    protected void processMouseEvent(MouseEvent e) {
+        if (e.getID() == MouseEvent.MOUSE_CLICKED) {
+            LogicalPosition clickedPos = detectClickedPiece(e.getX(), e.getY());
+            if (clickedPos != null) {
+                selectedPieceId = clickedPos.getPieceId();
+                currentPosition = new LogicalPosition(clickedPos.getA(), clickedPos.getB());
+                controlPanel.enableYutSelection(); // 윷 선택 UI 열기
 
-    // 선택된 말을 강조 표시
-    private void highlightSelectedPiece(Long selectedId) {
-        for (Map.Entry<Long, JButton> entry : pieceButtons.entrySet()) {
-            if (entry.getKey().equals(selectedId)) {
-                entry.getValue().setBackground(Color.ORANGE); // 선택된 말 강조 (주황색)
-            } else {
-                entry.getValue().setBackground(Color.LIGHT_GRAY); // 나머지는 기본 색상
+                // 논리 좌표 기반 말 위치 표시
+                PiecePositionDisplayManager markerManager = new PiecePositionDisplayManager(boardModel, this);
+                markerManager.showLogicalPosition(currentPosition, selectedPieceId);
             }
         }
     }
 
+
+    // 선택된 말 강조 표시
+    private void highlightSelectedPiece(Long selectedId) {
+        for (Map.Entry<Long, JButton> entry : pieceButtons.entrySet()) {
+            if (entry.getKey().equals(selectedId)) {
+                entry.getValue().setBackground(Color.ORANGE);
+            } else {
+                entry.getValue().setBackground(Color.LIGHT_GRAY);
+            }
+        }
+    }
 }

@@ -8,8 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MovePieceRequest {
-    @Schema(description = "현재 턴 ID", example = "12")
-    private Long turnId;
+    @Schema(description = "현재 플레이어 ID", example = "1")
+    private Long playerId;
 
     @Schema(description = "선택한 말 ID", example = "5")
     private Long chosenPieceId;

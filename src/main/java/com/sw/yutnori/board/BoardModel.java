@@ -21,6 +21,13 @@ public class BoardModel {
         this.height = height;
         this.nodes = BoardLayoutCalculator.createNodes(boardType, width, height);
     }
+    public Node findNode(int a, int b) {
+        return nodes.stream()
+                .filter(n -> n.getA() == a && n.getB() == b)
+                .findFirst()
+                .orElse(null);
+    }
+
 
     public String getBoardType() { return boardType; }
     public int getWidth() { return width; }

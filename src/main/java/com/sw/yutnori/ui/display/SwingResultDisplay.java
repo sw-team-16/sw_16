@@ -1,6 +1,5 @@
 package com.sw.yutnori.ui.display;
 
-import com.sw.yutnori.common.enums.YutResult;
 import javax.swing.*;
 
 public class SwingResultDisplay implements ResultDisplay {
@@ -16,7 +15,7 @@ public class SwingResultDisplay implements ResultDisplay {
     @Override
     public void displayYutResult(String result) {
         // 윷이나 모인 경우 특별 처리
-        if (result.equals("윷") || result.equals("모")) {
+        if (isSpecialResult(result)) {
             handleSpecialResult(result);
         } else {
             handleNormalResult(result);
@@ -26,6 +25,7 @@ public class SwingResultDisplay implements ResultDisplay {
         updateCurrentYut(convertYutTypeToEnglish(result));
     }
 
+    // 윷 혹은 모가 나온 경우 결과 처리
     private void handleSpecialResult(String result) {
         String currentText = resultLabels[currentResultIndex].getText();
 
@@ -43,6 +43,7 @@ public class SwingResultDisplay implements ResultDisplay {
         resultLabels[currentResultIndex].setText(result);
     }
 
+    // 윷 혹은 모 이외의 결과 처리
     private void handleNormalResult(String result) {
         if (resultLabels[currentResultIndex].getText().equals("-")) {
             resultLabels[currentResultIndex].setText(result);
@@ -77,6 +78,7 @@ public class SwingResultDisplay implements ResultDisplay {
         return result.equals("윷") || result.equals("모");
     }
 
+    // 윷이나 모가 나올 경우 나온 횟수를 HTML 태그 활용해 윗첨자로 표시
     private String formatYutResultWithSuperscript(String result, String currentText) {
         // HTML 태그가 있는지 확인
         if (currentText.startsWith("<html>")) {

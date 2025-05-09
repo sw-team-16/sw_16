@@ -10,6 +10,8 @@ public interface SelectionDisplay {
 
     void updateSelectedYutsPanel();
 
+    boolean isSpecialResult(String result);
+
     void setOnConfirmCallback(Consumer<List<String>> callback);
     void setOnCancelCallback(Runnable callback);
 
