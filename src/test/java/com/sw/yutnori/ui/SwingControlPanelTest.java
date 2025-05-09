@@ -20,7 +20,7 @@ class SwingControlPanelTest {
             TestYutnoriApiClient apiClient = new TestYutnoriApiClient();
 
             // 컨트롤 패널 생성 및 테스트
-            SwingControlPanel controlPanel = new SwingControlPanel(apiClient);
+            SwingYutControlPanel controlPanel = new SwingYutControlPanel(apiClient);
             controlPanel.setGameContext(1L, 1L);
 
             testFrame.add(controlPanel, BorderLayout.CENTER);

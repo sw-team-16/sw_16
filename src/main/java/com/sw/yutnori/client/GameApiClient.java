@@ -11,4 +11,6 @@ public interface GameApiClient {
     // S2-2 : 수동(지정) 윷 던지기
     void throwYutManual(Long gameId, Long turnId, Long playerId, Long pieceId, YutResult result);
 
+    void restartGame(Long gameId, Long winnerPlayerId);
+
 }
