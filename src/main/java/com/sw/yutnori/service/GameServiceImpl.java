@@ -137,11 +137,11 @@ public class GameServiceImpl implements GameService {
         // 이동할 노드 찾기
         Node targetNode = boardRepository.findNodeByCoordinates(request.getAcoord(), request.getBcoord());
 
-        // 분기점 처리: 연결된 노드가 여러 개인 경우 (분기점)
+        // 분기점 처리: 연결된 노드가 여러 개인 경우
         if (currentNode.getConnections().size() > 1) {
             targetNode = handleJunction(currentNode); // 분기점 처리 추가 로직
         }
-        // 중간점 처리: 연결된 노드가 하나인 경우 (중간점)
+        // 중간점 처리: 연결된 노드가 하나인 경우
         else if (currentNode.getConnections().size() == 1) {
             targetNode = currentNode.getConnections().get(0); // 다음 노드로 이동
         }
@@ -196,7 +196,7 @@ public class GameServiceImpl implements GameService {
 
         turnActionRepository.save(action);
     }
-    
+
 
 
     private YutResult getRandomYutResult() { // 랜덤한 값 반환 함수.
