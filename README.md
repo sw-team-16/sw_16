@@ -9,7 +9,7 @@
 
 **백앤드 실행의 경우**
 1. SQL DB를 임의의 이름으로 새로 만들어 주세요.
-2. SW_16\src\main\com.sw.yutnori\resources\application.yml 에서 *url*, *username*, *password*를 변경해주세요.
+2. *SW_16\src\main\com.sw.yutnori\resources\application.yml* 에서 *url*, *username*, *password*를 변경해주세요.
 3. 터미널에서 프로젝트 루트 디렉토리로 이동 후 명령어 ```./gradlew bootrun``` 을 실행해주세요.
 
 **프론트 실행의 경우**
