@@ -101,7 +101,7 @@ public class GameServiceImpl implements GameService {
         TurnAction action = new TurnAction();
         action.setTurn(turn);
         action.setMoveOrder(1); // 기본값 1회차
-        action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
+        action.setResult(request.getResult());
         action.setChosenPiece(piece);
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
@@ -157,10 +157,11 @@ public class GameServiceImpl implements GameService {
         action.setTurn(turn);
         action.setMoveOrder(request.getMoveOrder());
         if (request.getResult() != null) {
-            action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
+            action.setResult(request.getResult());  // ✅ enum 그대로 할당
         } else {
             throw new IllegalArgumentException("Yut result must not be null");
         }
+
         action.setUsed(true);
         action.setChosenPiece(movingPiece);
         turnActionRepository.save(action);

@@ -1,3 +1,7 @@
+/*
+* [버튼] → [ActionListener 등록] → [Controller 메서드 호출] → [API 호출 or 로컬 상태 변경] → [UI 업데이트]
+*
+ * */
 package com.sw.yutnori.ui.display;
 
 import javax.swing.*;
