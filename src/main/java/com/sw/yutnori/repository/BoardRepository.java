@@ -7,6 +7,4 @@ import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
     Optional<Board> findByGame_GameId(Long gameId);
-
-    Node findNodeByCoordinates(int a, int b);
 }
