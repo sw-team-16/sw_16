@@ -1,4 +1,9 @@
-
+/*
+ * GameServiceImpl.java
+ * 백엔드 서비스 로직 구현
+ * 
+ * 
+ */
 package com.sw.yutnori.service;
 
 import com.sw.yutnori.common.enums.GameState;
