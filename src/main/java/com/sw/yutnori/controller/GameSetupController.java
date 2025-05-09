@@ -12,7 +12,14 @@ import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.client.GameApiClient;
 import com.sw.yutnori.client.YutnoriApiClient;
 import com.sw.yutnori.controller.InGameController;
-
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Scanner;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -50,9 +57,10 @@ public class GameSetupController {
                 return;
             }
         }
+
         // 중복 이름, 중복 색상 체크
-        java.util.Set<String> names = new java.util.HashSet<>();
-        java.util.Set<String> colors = new java.util.HashSet<>();
+        Set<String> names = new HashSet<>();
+        Set<String> colors = new HashSet<>();
         for (GameSetupDisplay.PlayerInfo p : players) {
             if (!names.add(p.name())) {
                 if (resultCallback != null) resultCallback.accept(new Result(false, "플레이어 간 이름이 중복됩니다: '" + p.name() + "'"));
@@ -63,6 +71,7 @@ public class GameSetupController {
                 return;
             }
         }
+
         String boardTypeKor = data.boardType();
         String boardType = "SQUARE";
         if ("오각형".equals(boardTypeKor)) boardType = "PENTAGON";
@@ -79,9 +88,7 @@ public class GameSetupController {
         String json = String.format("{\"boardType\":\"%s\",\"players\":%s,\"numPieces\":%d}",
                 boardType, playersJson, data.pieceCount());
 
-        // API 요청
         try {
-            // `api/game/game/create` 요청
             URL url = new URI(API_URL + "/api/game/create").toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
@@ -90,38 +97,50 @@ public class GameSetupController {
             try (OutputStream os = conn.getOutputStream()) {
                 os.write(json.getBytes());
             }
-            // 응답 코드 확인
+
             int responseCode = conn.getResponseCode();
             if (responseCode == 200) {
-                // 응답 본문 읽기
-                java.io.InputStream is = conn.getInputStream();
-                java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+                InputStream is = conn.getInputStream();
+                Scanner s = new Scanner(is).useDelimiter("\\A");
                 String responseBody = s.hasNext() ? s.next() : "";
                 is.close();
 
-                // JSON 파싱 (org.json 사용)
-                org.json.JSONObject obj = new org.json.JSONObject(responseBody);
+                JSONObject obj = new JSONObject(responseBody);
                 long gameId = obj.getLong("gameId");
-                org.json.JSONArray playersArr = obj.getJSONArray("players");
-                java.util.List<Long> playerIds = new java.util.ArrayList<>();
+
+                JSONArray playersArr = obj.getJSONArray("players");
+                List<Long> playerIds = new ArrayList<>();
+                Map<Long, List<Long>> playerPieceMap = new HashMap<>();
+
                 for (int i = 0; i < playersArr.length(); i++) {
-                    org.json.JSONObject p = playersArr.getJSONObject(i);
-                    playerIds.add(p.getLong("playerId"));
+                    JSONObject p = playersArr.getJSONObject(i);
+                    long playerId = p.getLong("playerId");
+                    playerIds.add(playerId);
+
+                    List<Long> pieceList = new ArrayList<>();
+                    JSONArray pieceArray = p.getJSONArray("pieceIds");
+                    for (int j = 0; j < pieceArray.length(); j++) {
+                        pieceList.add(pieceArray.getLong(j));
+                    }
+                    playerPieceMap.put(playerId, pieceList);
                 }
 
-                // 게임 설정 데이터 저장
                 this.lastSetupData = data;
-                // InGameController 생성
                 this.inGameController = createInGameController(data);
-                // gameId, playerId(첫 번째 플레이어) 전달
+
                 if (!playerIds.isEmpty()) {
                     this.inGameController.setGameContext(gameId, playerIds.get(0));
+                    this.inGameController.setPlayerPieceMap(playerPieceMap);
+                    // 말 렌더링 (첫 번째 플레이어 기준)
+                    Long playerId = playerIds.get(0);
+                    List<Long> pieces = playerPieceMap.get(playerId);
+                    this.inGameController.getYutBoardPanel().renderPiecesForPlayer(playerId, pieces);
                 }
-                if (resultCallback != null) resultCallback.accept(new Result(true, "게임 설정이 서버에 전송되었습니다!"));
-                // 게임 시작 콜백 호출
-                if (onGameStartCallback != null) {
+
+                if (resultCallback != null)
+                    resultCallback.accept(new Result(true, "게임 설정이 서버에 전송되었습니다!"));
+                if (onGameStartCallback != null)
                     onGameStartCallback.accept(this.inGameController);
-                }
             } else {
                 if (resultCallback != null) resultCallback.accept(new Result(false, "서버 오류:\n" + responseCode));
             }
@@ -129,6 +148,7 @@ public class GameSetupController {
             if (resultCallback != null) resultCallback.accept(new Result(false, "API 요청 실패:\n" + ex.getMessage()));
         }
     }
+
 
     private InGameController createInGameController(GameSetupDisplay.SetupData data) {
         // 보드 타입에 따른 크기 설정
