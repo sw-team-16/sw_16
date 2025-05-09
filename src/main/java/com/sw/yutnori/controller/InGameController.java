@@ -140,10 +140,15 @@ public class InGameController {
             LogicalPosition prevPos = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
             piecePrevPositionMap.put(pieceId, prevPos);
 
-// 목적지 계산 시 prevPos 전달
+            int currentA = pieceInfo.getA();
+            int currentB = pieceInfo.getB();
+            int prevA = prevPos.getA();
+            int prevB = prevPos.getB();
+
             LogicalPosition dest = BoardPathManager.calculateDestination(
-                    pieceId, prevPos.getA(), prevPos.getB(), result, boardType
+                    pieceId, currentA, currentB, prevA, prevB, result, boardType
             );
+
 
 // 실제 이동 요청
             MovePieceRequest moveRequest = new MovePieceRequest();
