@@ -20,5 +20,6 @@ public class GameCreateResponse {
         private Long playerId;
         private String name;
         private String color;
+        private List<Long> pieceIds; // 각 플레이어의 말 ID 리스트 추가
     }
 }

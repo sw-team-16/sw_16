@@ -53,6 +53,7 @@ public class GameServiceImpl implements GameService {
         game = gameRepository.save(game);
 
         List<GameCreateResponse.PlayerInfo> playerInfoList = new ArrayList<>();
+
         for (PlayerInitRequest playerReq : request.getPlayers()) {
             Player player = new Player();
             player.setName(playerReq.getName());
@@ -62,16 +63,23 @@ public class GameServiceImpl implements GameService {
             player.setFinishedCount(0);
             player = playerRepository.save(player);
 
-            playerInfoList.add(new GameCreateResponse.PlayerInfo(player.getPlayerId(), player.getName(), player.getColor()));
-
+            List<Long> pieceIds = new ArrayList<>();
             for (int i = 0; i < request.getNumPieces(); i++) {
                 Piece piece = new Piece();
                 piece.setPlayer(player);
                 piece.setState(PieceState.READY);
                 piece.setFinished(false);
                 piece.setGrouped(false);
-                pieceRepository.save(piece);
+                piece = pieceRepository.save(piece);
+                pieceIds.add(piece.getPieceId());
             }
+
+            playerInfoList.add(new GameCreateResponse.PlayerInfo(
+                    player.getPlayerId(),
+                    player.getName(),
+                    player.getColor(),
+                    pieceIds
+            ));
         }
 
         return new GameCreateResponse(game.getGameId(), playerInfoList);
@@ -102,7 +110,7 @@ public class GameServiceImpl implements GameService {
         TurnAction action = new TurnAction();
         action.setTurn(turn);
         action.setMoveOrder(1); // 기본값 1회차
-        action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
+        action.setResult(request.getResult());
         action.setChosenPiece(piece);
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
@@ -159,10 +167,11 @@ public class GameServiceImpl implements GameService {
         action.setTurn(turn);
         action.setMoveOrder(request.getMoveOrder());
         if (request.getResult() != null) {
-            action.setResult(TurnAction.ResultType.valueOf(request.getResult().name()));
+            action.setResult(request.getResult());  // enum 그대로 할당
         } else {
             throw new IllegalArgumentException("Yut result must not be null");
         }
+
         action.setUsed(true);
         action.setChosenPiece(movingPiece);
         turnActionRepository.save(action);
