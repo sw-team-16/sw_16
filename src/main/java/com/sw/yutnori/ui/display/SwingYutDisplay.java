@@ -42,7 +42,7 @@ public class SwingYutDisplay implements YutDisplay {
             case "MO": // 모 (4개 모두 앞면)
                 // 초기화된 상태와 동일
                 break;
-            case "BACK_DO": // 빽도 (1개 뒤집힘, 특별 처리 필요시)
+            case "BACK_DO": // 빽도 (별도 관리)
                 displayBackDo(random);
                 break;
         }
@@ -55,6 +55,7 @@ public class SwingYutDisplay implements YutDisplay {
         }
     }
 
+    // 랜덤 적용해 윷이 매번 다르게 뒤집히도록 함
     private void flipRandomSticks(int count, Random random) {
         boolean[] flipped = new boolean[4];
         int flippedCount = 0;
