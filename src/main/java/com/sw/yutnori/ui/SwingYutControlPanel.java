@@ -97,6 +97,7 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
         add(buttonPanel);
         add(Box.createVerticalGlue());
     }
+
     // 선택 UI 또는 패널 활성화 로직
     public void enableYutSelection() {
         System.out.println("윷 선택 UI를 활성화합니다.");
@@ -115,7 +116,7 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
 
         Consumer<List<String>> onConfirm = selectedYuts -> {
             controller.promptPieceSelection(playerId); // 말 선택 창 띄움
-            controller.onConfirmButtonClicked(selectedYuts); // 선택된 윷 처리
+            controller.onConfirmButtonClicked(selectedYuts); // '완료' 버튼 클릭 시 발생하는 이벤트
 
         };
         Runnable onCancel = this::restoreOriginalPanel;
