@@ -17,7 +17,10 @@ import com.sw.yutnori.ui.SwingYutControlPanel;
 import com.sw.yutnori.ui.SwingStatusPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
+import javax.swing.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InGameController {
     private final BoardModel boardModel;
@@ -30,6 +33,9 @@ public class InGameController {
     private Long playerId;
     private Long currentTurnId = null;
     private Long selectedPieceId = null;
+    private Map<Long, List<Long>> playerPieceMap = new HashMap<>();
+
+
 
     public InGameController(BoardModel boardModel, GameApiClient apiClient, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
@@ -47,6 +53,10 @@ public class InGameController {
         this.playerId = playerId;
         this.controlPanel.setGameContext(gameId, playerId);
     }
+    public void setPlayerPieceMap(Map<Long, List<Long>> map) {
+        this.playerPieceMap = map;
+    }
+
     // 윷 랜덤 던지기 (SwingYutControlPanel에서 여기로 이동)
     public void onRandomYutButtonClicked() {
         try {
@@ -111,6 +121,27 @@ public class InGameController {
             handleError(ex);
         }
     }
+    public void promptPieceSelection(Long playerId) {
+        List<Long> pieces = playerPieceMap.get(playerId);
+        if (pieces == null || pieces.isEmpty()) {
+            controlPanel.showError("선택 가능한 말이 없습니다.");
+            return;
+        }
+
+        Object selected = JOptionPane.showInputDialog(
+                null,
+                "사용할 말을 선택하세요",
+                "말 선택",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                pieces.toArray(),
+                pieces.get(0)
+        );
+
+        if (selected != null) {
+            selectedPieceId = (Long) selected;
+        }
+    }
 
     // 게임 승자 표시 (SwingYutControlPanel에서 여기로 이동)
     public void onWinner(String winnerName) {
@@ -148,6 +179,13 @@ public class InGameController {
         this.selectedPieceId = null;
     }
 
+    public List<Long> getPieceIdsForPlayer(Long playerId) {
+        return playerPieceMap.getOrDefault(playerId, List.of());
+    }
+
+    public void setSelectedPieceId(Long pieceId) {
+        this.selectedPieceId = pieceId;
+    }
     // 윷 타입 문자열을 윷 결과 열거형으로 변환
     private com.sw.yutnori.common.enums.YutResult convertStringToYutResult(String yutType) {
         return switch (yutType) {
