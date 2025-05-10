@@ -25,7 +25,6 @@ import com.sw.yutnori.ui.SwingYutBoardPanel;
 import com.sw.yutnori.ui.SwingYutControlPanel;
 import com.sw.yutnori.ui.SwingStatusPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
-import com.sw.yutnori.controller.PieceMoveController;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -47,18 +46,14 @@ public class InGameController {
     private Long selectedPieceId = null;
     private Map<Long, List<Long>> playerPieceMap = new HashMap<>();
     private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
-    private final PieceMoveController pieceMoveController;
 
-
-
-    public InGameController(BoardModel boardModel, GameApiClient apiClient, GameSetupDisplay.SetupData setupData, PieceMoveController pieceMoveController) {
+    public InGameController(BoardModel boardModel, GameApiClient apiClient, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
         this.apiClient = apiClient;
         this.setupData = setupData;
         this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
         this.controlPanel = new SwingYutControlPanel(apiClient, this);
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
-        this.pieceMoveController = new PieceMoveController(this.boardModel);
         this.yutBoardPanel.setInGameController(this);
         this.displayManager = new PiecePositionDisplayManager(boardModel, yutBoardPanel);
     }
@@ -102,8 +97,6 @@ public class InGameController {
             handleError(ex);
         }
     }
-
-
 
     // 지정한 윳 선택 이후 '완료' 버튼 클릭 시 발생하는 이벤트
     public void onConfirmButtonClicked(List<String> selectedYuts) {

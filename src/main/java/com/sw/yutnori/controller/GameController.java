@@ -77,11 +77,11 @@ public class GameController {
     )
     @ApiResponse(responseCode = "200", description = "반환성공")
     @PostMapping("/{gameId}/move")
-    public ResponseEntity<Void> movePiece(@PathVariable Long gameId,
-                                          @RequestBody MovePieceRequest request) {
-        System.out.println("controller movePiece \n");
-        gameService.movePiece(gameId,request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<MovePieceResponse> movePiece(
+            @PathVariable Long gameId,
+            @RequestBody MovePieceRequest request) {
+        MovePieceResponse response = gameService.movePiece(gameId, request);
+        return ResponseEntity.ok(response);
     }
     @Operation(
             summary = "Y 4-1. 턴 정보 조회 ",

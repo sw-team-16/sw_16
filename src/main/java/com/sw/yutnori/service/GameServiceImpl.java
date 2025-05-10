@@ -127,11 +127,10 @@ public class GameServiceImpl implements GameService {
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
     }
+
     @Transactional
     @Override
-    public void movePiece(Long gameId, MovePieceRequest request) {
-       // System.out.println(">> movePiece");
-
+    public MovePieceResponse movePiece(Long gameId, MovePieceRequest request) {
         // 1. 엔티티 조회
         Piece movingPiece = pieceRepository.findById(request.getChosenPieceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid piece ID"));
@@ -145,13 +144,14 @@ public class GameServiceImpl implements GameService {
 
         Board board = game.getBoards().get(0);
 
-
-        // 2. 목표 노드 조회
-        //PathNode targetNode = pathNodeRepository.findByBoardAndAAndB(board, request.getA(), request.getB())
-         //       .orElseThrow(() -> new IllegalArgumentException("Invalid logical coordinates (a, b)"));
+        // 2. 잡기 발생 여부 사전 확인
+        List<Piece> piecesBefore = pieceRepository.findAllByAAndB(request.getA(), request.getB());
+        boolean captureOccurred = piecesBefore.stream()
+                .anyMatch(p -> !p.getPlayer().getPlayerId().equals(request.getPlayerId()));
 
         // 3. 잡기 및 업기 처리
         handleCaptureOrStacking(movingPiece, request.getA(), request.getB());
+        boolean groupingOccurred = movingPiece.isGrouped(); // 업기 여부 확인
 
         // 4. 말 이동
         movingPiece.setLogicalPosition(request.getA(), request.getB());
@@ -159,10 +159,12 @@ public class GameServiceImpl implements GameService {
         pieceRepository.save(movingPiece);
 
         // 5. 골인 처리
+        boolean reachedEndPoint = false;
         BoardType boardType = game.getBoardType();
         if (isEndPoint(request.getA(), request.getB(), boardType)) {
             player.setFinishedCount(player.getFinishedCount() + 1);
             playerRepository.save(player);
+            reachedEndPoint = true;
         }
 
         // 6. 새로운 Turn 생성
@@ -173,7 +175,16 @@ public class GameServiceImpl implements GameService {
 
         // 7. TurnAction 저장
         saveTurnAction(newTurn, request.getMoveOrder(), request.getResult(), movingPiece);
+
+        // 8. 추가 이동 판단: 윷, 모, 잡기 중 하나라도 해당되면 true
+        boolean requiresAnotherMove =
+                request.getResult() == YutResult.YUT ||
+                        request.getResult() == YutResult.MO ||
+                        captureOccurred;
+
+        return new MovePieceResponse(captureOccurred, groupingOccurred, reachedEndPoint, requiresAnotherMove);
     }
+
 
 
 
