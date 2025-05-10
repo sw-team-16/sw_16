@@ -7,6 +7,8 @@ import com.sw.yutnori.dto.game.request.RestartGameRequest;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.common.enums.YutResult;
 import org.springframework.web.client.RestTemplate;
+import com.sw.yutnori.dto.game.response.TurnInfoResponse;
+
 
 public class YutnoriApiClient implements GameApiClient {
 
@@ -48,6 +50,10 @@ public class YutnoriApiClient implements GameApiClient {
         restTemplate.postForObject(url, request, Void.class);
     }
 
-
+    @Override
+    public TurnInfoResponse getTurnInfo(Long gameId) {
+        String url = baseUrl + "/api/game/" + gameId + "/turn";
+        return restTemplate.getForObject(url, TurnInfoResponse.class);
+    }
     // 이하 나머지 API 클라이언트 구현 필요
 }

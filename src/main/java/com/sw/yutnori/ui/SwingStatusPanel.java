@@ -11,10 +11,14 @@ package com.sw.yutnori.ui;
 import javax.swing.*;
 import java.awt.*;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // 임시 제작
 public class SwingStatusPanel extends JPanel {
+    private final Map<String, JPanel> playerPanels = new HashMap<>();
     public SwingStatusPanel(List<GameSetupDisplay.PlayerInfo> players, int pieceCount) {
         setLayout(new GridLayout(1, players.size()));
         setBorder(BorderFactory.createTitledBorder("Status"));
@@ -35,6 +39,7 @@ public class SwingStatusPanel extends JPanel {
             piece.setBackground(color);
             panel.add(piece);
         }
+        playerPanels.put(player.name(), panel);
         return panel;
     }
 
@@ -50,5 +55,23 @@ public class SwingStatusPanel extends JPanel {
             case "WHITE": return new Color(245, 245, 245);
             default: return new Color(211, 211, 211);
         }
+    }
+    public void updateCurrentPlayer(String currentPlayerName) {
+        for (Map.Entry<String, JPanel> entry : playerPanels.entrySet()) {
+            String playerName = entry.getKey();
+            JPanel panel = entry.getValue();
+
+            if (playerName.equals(currentPlayerName)) {
+                panel.setBorder(BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(Color.RED, 2),
+                        "▶ " + playerName
+                ));
+            } else {
+                panel.setBorder(BorderFactory.createTitledBorder(playerName));
+            }
+        }
+
+        revalidate();
+        repaint();
     }
 }

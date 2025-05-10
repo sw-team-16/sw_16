@@ -19,6 +19,7 @@ import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.common.enums.BoardType;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.dto.game.request.MovePieceRequest;
+import com.sw.yutnori.dto.game.response.TurnInfoResponse;
 import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
 import com.sw.yutnori.ui.PiecePositionDisplayManager;
 import com.sw.yutnori.ui.SwingYutBoardPanel;
@@ -113,54 +114,51 @@ public class InGameController {
                 return;
             }
 
-            // 모든 선택된 결과들을 백엔드로 전송
-            for (String selectedYut : selectedYuts) {
-                // 한국어 윷 결과를 백엔드 전송용 영어로 변환
-                String yutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
-                var result = convertStringToYutResult(yutType);
-                // 백엔드 API 호출
-                apiClient.throwYutManual(gameId, turnId, playerId, pieceId, result);
-                controlPanel.updateYutResult(selectedYut, yutType);
+            LogicalPosition start;
+            if (piecePrevPositionMap.containsKey(pieceId)) {
+                start = piecePrevPositionMap.get(pieceId);
+            } else {
+                PieceInfoResponse pieceInfo = pieceApiClient.getPieceInfo(pieceId);
+                start = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
+                piecePrevPositionMap.put(pieceId, start);
             }
 
-            // 마지막 선택 윷을 현재 윷으로 표시
+            BoardType boardType = parseBoardType(setupData.boardType());
+            LogicalPosition current = start;
+
+            // 모든 윷 처리
+            for (String selectedYut : selectedYuts) {
+                String yutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
+                YutResult result = convertStringToYutResult(yutType);
+
+                apiClient.throwYutManual(gameId, turnId, playerId, pieceId, result);
+                controlPanel.updateYutResult(selectedYut, yutType);
+
+                current = BoardPathManager.calculateDestination(
+                        pieceId, current.getA(), current.getB(),
+                        start.getA(), start.getB(), result, boardType
+                );
+            }
+
+            // 마지막 윷만 표시
             String lastYutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(
                     selectedYuts.get(selectedYuts.size() - 1)
             );
             controlPanel.updateCurrentYut(lastYutType);
+            YutResult lastResult = convertStringToYutResult(lastYutType);
 
-            YutResult result = convertStringToYutResult(lastYutType);
-            BoardType boardType = parseBoardType(setupData.boardType());
-
-            // 이동 계산 전에 이전 위치 저장
-            PieceInfoResponse pieceInfo = pieceApiClient.getPieceInfo(pieceId);
-            LogicalPosition prevPos = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
-            piecePrevPositionMap.put(pieceId, prevPos);
-
-            int currentA = pieceInfo.getA();
-            int currentB = pieceInfo.getB();
-            int prevA = prevPos.getA();
-            int prevB = prevPos.getB();
-
-            LogicalPosition dest = BoardPathManager.calculateDestination(
-                    pieceId, currentA, currentB, prevA, prevB, result, boardType
-            );
-
-
-            // 실제 이동 요청
             MovePieceRequest moveRequest = new MovePieceRequest();
             moveRequest.setPlayerId(playerId);
             moveRequest.setChosenPieceId(pieceId);
             moveRequest.setMoveOrder(1);
-            moveRequest.setA(dest.getA());
-            moveRequest.setB(dest.getB());
-            moveRequest.setResult(result);
+            moveRequest.setA(current.getA());
+            moveRequest.setB(current.getB());
+            moveRequest.setResult(lastResult);
 
             pieceApiClient.movePiece(gameId, moveRequest);
             System.out.printf("[디버깅] 이동 준비: pieceId=%d, a=%d, b=%d, result=%s%n",
                     pieceId, dest.getA(), dest.getB(), result.name());
 
-            // UI 갱신
             try {
                 PieceInfoResponse updatedPieceInfo = pieceApiClient.getPieceInfo(pieceId);
                 LogicalPosition newPos = new LogicalPosition(pieceId, updatedPieceInfo.getA(), updatedPieceInfo.getB());
@@ -169,14 +167,25 @@ public class InGameController {
                 controlPanel.showError("말 위치 표시 중 오류 발생: " + e.getMessage());
             }
 
-            resetPieceSelection();
-            controlPanel.restorePanel();
-            controlPanel.enableRandomButton(false);
-            controlPanel.enableCustomButton(false);
+            TurnInfoResponse turnInfo = apiClient.getTurnInfo(gameId);
+            this.playerId = turnInfo.getPlayerId();
+            this.currentTurnId = turnInfo.getTurnId();
+
+            statusPanel.updateCurrentPlayer(turnInfo.getPlayerName());
+            controlPanel.setGameContext(gameId, playerId);
+            controlPanel.enableRandomButton(true);
+            controlPanel.enableCustomButton(true);
+
         } catch (Exception ex) {
             handleError(ex);
+        } finally {
+            // 항상 리셋
+            resetPieceSelection();
+            controlPanel.restorePanel();
         }
     }
+
+
 
     public void promptPieceSelection(Long playerId) {
         List<Long> pieces = playerPieceMap.get(playerId);
@@ -326,6 +335,25 @@ public class InGameController {
             default -> throw new IllegalArgumentException("알 수 없는 보드 타입: " + rawType);
         };
     }
+    public void refreshTurnInfo() {
+        try {
+            TurnInfoResponse turnInfo = apiClient.getTurnInfo(gameId);
+            Long currentTurnPlayerId = turnInfo.getPlayerId();
 
+            updateTurnId(turnInfo.getTurnId());
+
+            // 내 턴이면 버튼 활성화
+            boolean isMyTurn = currentTurnPlayerId.equals(playerId);
+            controlPanel.enableRandomButton(isMyTurn);
+            controlPanel.enableCustomButton(isMyTurn);
+
+            // UI 갱신
+            statusPanel.updateCurrentPlayer(turnInfo.getPlayerName()); // 선택적으로
+            controlPanel.startNewTurn(); // 결과 리셋
+
+        } catch (Exception ex) {
+            handleError(ex);
+        }
+    }
 
 } 
