@@ -124,38 +124,26 @@ public class SwingYutBoardPanel extends JPanel {
 
 
     public void renderPieceObjects(Long playerId, List<Piece> pieces) {
-        // 말 버튼을 모두 제거하고 다시 추가
-        boardPanel.removeAll(); // 기존 컴포넌트 모두 제거
+        this.pieceList = pieces;
+        removeAll();
+        pieceButtons.clear();
+        int x = 50;
+        int y = 50;
         for (Piece piece : pieces) {
-            JButton pieceButton = createPieceButton(piece); // 버튼 생성
-            boardPanel.add(pieceButton);
+            JButton pieceBtn = new JButton("말 " + piece.getPieceId());
+            pieceBtn.setBounds(x, y, 80, 40);
+            pieceBtn.setBackground(Color.LIGHT_GRAY);
+            pieceBtn.addActionListener(e -> {
+                highlightSelectedPiece(piece.getPieceId());
+                controller.setSelectedPieceId(piece.getPieceId());
+            });
+            pieceButtons.put(piece.getPieceId(), pieceBtn);
+            add(pieceBtn);
+            y += 50;
         }
-        boardPanel.revalidate(); // 새 레이아웃 적용
-        boardPanel.repaint(); // 새 컴포넌트 그리기
+        revalidate();
+        repaint();
     }
-
-
-//    public void renderPieceObjects(Long playerId, List<Piece> pieces) {
-//        this.pieceList = pieces;
-//        removeAll();
-//        pieceButtons.clear();
-//        int x = 50;
-//        int y = 50;
-//        for (Piece piece : pieces) {
-//            JButton pieceBtn = new JButton("말 " + piece.getPieceId());
-//            pieceBtn.setBounds(x, y, 80, 40);
-//            pieceBtn.setBackground(Color.LIGHT_GRAY);
-//            pieceBtn.addActionListener(e -> {
-//                highlightSelectedPiece(piece.getPieceId());
-//                controller.setSelectedPieceId(piece.getPieceId());
-//            });
-//            pieceButtons.put(piece.getPieceId(), pieceBtn);
-//            add(pieceBtn);
-//            y += 50;
-//        }
-//        revalidate();
-//        repaint();
-//    }
 
 
 
