@@ -1,5 +1,8 @@
 package com.sw.yutnori.common;
 
+import lombok.Getter;
+
+@Getter
 public class LogicalPosition {
     private Long pieceId;
     private int a;
@@ -15,7 +18,4 @@ public class LogicalPosition {
         this(null, a, b);
     }
 
-    public Long getPieceId() { return pieceId; }
-    public int getA() { return a; }
-    public int getB() { return b; }
 }

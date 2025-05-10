@@ -18,6 +18,7 @@ import com.sw.yutnori.dto.game.response.YutThrowResponse;
 import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.repository.*;
 
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.sw.yutnori.board.BoardModel;
+import com.sw.yutnori.board.Node;
+
 
 @Service
 @RequiredArgsConstructor

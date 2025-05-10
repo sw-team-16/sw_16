@@ -21,7 +21,7 @@ public class PiecePositionDisplayManager {
         if (node == null) return;
 
         JButton marker = new JButton("P" + pieceId);
-        marker.setBounds((int) node.getX() - 15, (int) node.getY() - 15, 30, 30);
+        marker.setBounds((int) node.getX() - 48, (int) node.getY() - 70, 30, 30);
         marker.setBackground(Color.YELLOW);
         boardPanel.add(marker);
         boardPanel.repaint();

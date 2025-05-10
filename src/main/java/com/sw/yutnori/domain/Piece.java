@@ -30,6 +30,7 @@ public class Piece {
     @Column(name = "b", nullable = false)
     private int b;
 
+
     @Column(nullable = false)
     private boolean isFinished = false;
 
