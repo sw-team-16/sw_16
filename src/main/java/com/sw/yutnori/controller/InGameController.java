@@ -157,6 +157,8 @@ public class InGameController {
             moveRequest.setResult(result);
 
             pieceApiClient.movePiece(gameId, moveRequest);
+            System.out.printf("[디버깅] 이동 준비: pieceId=%d, a=%d, b=%d, result=%s%n",
+                    pieceId, dest.getA(), dest.getB(), result.name());
 
             // UI 갱신
             try {

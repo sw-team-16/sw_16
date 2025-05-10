@@ -139,48 +139,73 @@ public class GameServiceImpl implements GameService {
         }
 
         Board board = game.getBoards().get(0);
+        int targetA = request.getA();
+        int targetB = request.getB();
 
-        // 2. 잡기 발생 여부 사전 확인
-        List<Piece> piecesBefore = pieceRepository.findAllByAAndB(request.getA(), request.getB());
-        boolean captureOccurred = piecesBefore.stream()
-                .anyMatch(p -> !p.getPlayer().getPlayerId().equals(request.getPlayerId()));
+        List<Piece> piecesAtTarget = pieceRepository.findAllByAAndB(targetA, targetB);
 
-        // 3. 잡기 및 업기 처리
-        handleCaptureOrStacking(movingPiece, request.getA(), request.getB());
-        boolean groupingOccurred = movingPiece.isGrouped(); // 업기 여부 확인
+        boolean captureOccurred = false;
+        boolean groupingOccurred = false;
+        List<Long> groupedPieceIds = new ArrayList<>();
 
-        // 4. 말 이동
-        movingPiece.setLogicalPosition(request.getA(), request.getB());
+        for (Piece target : piecesAtTarget) {
+            if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
+
+            if (target.getPlayer().getPlayerId().equals(player.getPlayerId())) {
+                // 업기 처리
+                target.setGrouped(true);
+                movingPiece.setGrouped(true);
+                pieceRepository.save(target);
+                groupedPieceIds.add(target.getPieceId());
+                groupingOccurred = true;
+            } else {
+                // 잡기 처리
+                target.setFinished(false);
+                target.setGrouped(false);
+                target.setState(PieceState.READY);
+                target.setLogicalPosition(0, 1);
+                pieceRepository.save(target);
+                captureOccurred = true;
+            }
+        }
+
+        // 2. 말 이동
+        movingPiece.setLogicalPosition(targetA, targetB);
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
 
-        // 5. 골인 처리
+        // 3. 골인 처리
         boolean reachedEndPoint = false;
         BoardType boardType = game.getBoardType();
-        if (isEndPoint(request.getA(), request.getB(), boardType)) {
+        if (isEndPoint(targetA, targetB, boardType)) {
             player.setFinishedCount(player.getFinishedCount() + 1);
             playerRepository.save(player);
             reachedEndPoint = true;
         }
 
-        // 6. 새로운 Turn 생성
+        // 4. 새로운 Turn 생성
         Turn newTurn = new Turn();
         newTurn.setGame(game);
         newTurn.setPlayer(player);
         turnRepository.save(newTurn);
 
-        // 7. TurnAction 저장
+        // 5. TurnAction 저장
         saveTurnAction(newTurn, request.getMoveOrder(), request.getResult(), movingPiece);
 
-        // 8. 추가 이동 판단: 윷, 모, 잡기 중 하나라도 해당되면 true
+        // 6. 추가 이동 판단
         boolean requiresAnotherMove =
                 request.getResult() == YutResult.YUT ||
                         request.getResult() == YutResult.MO ||
                         captureOccurred;
 
-        return new MovePieceResponse(captureOccurred, groupingOccurred, reachedEndPoint, requiresAnotherMove);
+        return new MovePieceResponse(
+                captureOccurred,
+                groupingOccurred,
+                reachedEndPoint,
+                requiresAnotherMove,
+                groupedPieceIds
+        );
     }
-
 
 
 
