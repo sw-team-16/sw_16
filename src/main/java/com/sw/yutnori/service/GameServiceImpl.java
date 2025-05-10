@@ -1,8 +1,8 @@
 /*
  * GameServiceImpl.java
  * 백엔드 서비스 로직 구현
- * 
- * 
+ *
+ *
  */
 package com.sw.yutnori.service;
 
@@ -160,18 +160,49 @@ public class GameServiceImpl implements GameService {
         }
 
         Board board = game.getBoards().get(0);
+        int targetA = request.getA();
+        int targetB = request.getB();
 
-        // 2. 잡기 발생 여부 사전 확인
-        List<Piece> piecesBefore = pieceRepository.findAllByAAndB(request.getA(), request.getB());
-        boolean captureOccurred = piecesBefore.stream()
-                .anyMatch(p -> !p.getPlayer().getPlayerId().equals(request.getPlayerId()));
+        // 같은 게임의 말만 대상으로 설정
+        List<Piece> piecesAtTarget = pieceRepository.findAllByAAndB(targetA, targetB).stream()
+                .filter(p -> p.getPlayer().getGame().getGameId().equals(gameId))
+                .collect(Collectors.toList());
 
-        // 3. 잡기 및 업기 처리
-        handleCaptureOrStacking(movingPiece, request.getA(), request.getB());
-        boolean groupingOccurred = movingPiece.isGrouped(); // 업기 여부 확인
+        boolean captureOccurred = false;
+        boolean groupingOccurred = false;
+        List<Long> groupedPieceIds = new ArrayList<>();
 
-        // 4. 말 이동
-        movingPiece.setLogicalPosition(request.getA(), request.getB());
+        for (Piece target : piecesAtTarget) {
+            if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
+
+            if (target.getPlayer().getPlayerId().equals(player.getPlayerId())) {
+                // 업기 처리
+                target.setGrouped(true);
+                movingPiece.setGrouped(true);
+                pieceRepository.save(target);
+                groupedPieceIds.add(target.getPieceId());
+                if (!groupingOccurred) {
+                    System.out.printf("[디버깅] 업기 발생: basePieceId=%d, groupedPieceId=%d, 위치=(%d,%d)%n",
+                            movingPiece.getPieceId(), target.getPieceId(), targetA, targetB);
+                }
+                groupingOccurred = true;
+            } else {
+                // 잡기 처리
+                target.setFinished(false);
+                target.setGrouped(false);
+                target.setState(PieceState.READY);
+                target.setLogicalPosition(0, 1);
+                pieceRepository.save(target);
+                if (!captureOccurred) {
+                    System.out.printf("[디버깅] 잡기 발생: attackerPieceId=%d, capturedPieceId=%d, 위치=(%d,%d)%n",
+                            movingPiece.getPieceId(), target.getPieceId(), targetA, targetB);
+                }
+                captureOccurred = true;
+            }
+        }
+
+        // 2. 말 이동
+        movingPiece.setLogicalPosition(targetA, targetB);
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
 
@@ -183,6 +214,16 @@ public class GameServiceImpl implements GameService {
             playerRepository.save(player);
             reachedEndPoint = true;
         }
+
+        // 6. 추가 이동 판단
+        // 4. 새로운 Turn 생성
+        Turn newTurn = new Turn();
+        newTurn.setGame(game);
+        newTurn.setPlayer(player);
+        turnRepository.save(newTurn);
+
+        // 5. TurnAction 저장
+        saveTurnAction(newTurn, request.getMoveOrder(), request.getResult(), movingPiece);
 
         // 6. 추가 이동 판단
         boolean requiresAnotherMove =
@@ -210,6 +251,13 @@ public class GameServiceImpl implements GameService {
 
         // 9. 결과 반환
         return new MovePieceResponse(captureOccurred, groupingOccurred, reachedEndPoint, requiresAnotherMove);
+        return new MovePieceResponse(
+                captureOccurred,
+                groupingOccurred,
+                reachedEndPoint,
+                requiresAnotherMove,
+                groupedPieceIds
+        );
     }
 
 

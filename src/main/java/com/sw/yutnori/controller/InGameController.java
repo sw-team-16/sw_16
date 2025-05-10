@@ -19,6 +19,7 @@ import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.common.enums.BoardType;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.dto.game.request.MovePieceRequest;
+import com.sw.yutnori.dto.game.response.MovePieceResponse;
 import com.sw.yutnori.dto.game.response.TurnInfoResponse;
 import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
 import com.sw.yutnori.ui.PiecePositionDisplayManager;
@@ -99,7 +100,6 @@ public class InGameController {
         }
     }
 
-    // 지정한 윳 선택 이후 '완료' 버튼 클릭 시 발생하는 이벤트
     public void onConfirmButtonClicked(List<String> selectedYuts) {
         try {
             if (selectedYuts.isEmpty()) {
@@ -152,7 +152,19 @@ public class InGameController {
             moveRequest.setB(current.getB());
             moveRequest.setResult(lastResult);
 
-            pieceApiClient.movePiece(gameId, moveRequest);
+            MovePieceResponse moveResponse = apiClient.movePiece(gameId, moveRequest);
+            System.out.printf("[디버깅] 이동 요청: pieceId=%d, a=%d, b=%d, result=%s, 업기=%s, 잡기=%s, 업힌ID=%s%n",
+                    pieceId, moveRequest.getA(), moveRequest.getB(), lastResult.name(),
+                    moveResponse.isGroupingOccurred(), moveResponse.isCaptureOccurred(),
+                    moveResponse.getTargetPieceIds());
+
+            if (moveResponse.isGroupingOccurred()) {
+                int count = moveResponse.getTargetPieceIds().size();
+                JOptionPane.showMessageDialog(null, count + "개의 말을 업었습니다.", "업기", JOptionPane.INFORMATION_MESSAGE);
+            }
+            if (moveResponse.isCaptureOccurred()) {
+                JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
+            }
 
             try {
                 PieceInfoResponse updatedPieceInfo = pieceApiClient.getPieceInfo(pieceId);
