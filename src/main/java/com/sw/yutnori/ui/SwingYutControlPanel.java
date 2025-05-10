@@ -110,12 +110,12 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
     }
 
     // '지정 윷 던지기' 클릭 시 창 변경
-    private void showCustomYutSelectionPanel() {
+    public void showCustomYutSelectionPanel() {
         removeAll();
 
         Consumer<List<String>> onConfirm = selectedYuts -> {
             controller.promptPieceSelection(playerId); // 말 선택 창 띄움
-            controller.onConfirmButtonClicked(selectedYuts); // 선택된 윷 처리
+            controller.onCustomYutButtonClicked(selectedYuts); // 선택된 윷 처리
         };
         Runnable onCancel = this::restoreOriginalPanel;
 

@@ -13,5 +13,4 @@ public class AutoThrowRequest {
 
     @Schema(description = "플레이어 ID", example = "1", required = true)
     private Long playerId;
-
 }
