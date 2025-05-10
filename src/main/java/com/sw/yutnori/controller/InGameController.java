@@ -19,7 +19,6 @@ import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.common.enums.BoardType;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.dto.game.request.MovePieceRequest;
-import com.sw.yutnori.dto.game.response.MovePieceResponse;
 import com.sw.yutnori.dto.game.response.TurnInfoResponse;
 import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
 import com.sw.yutnori.ui.PiecePositionDisplayManager;
@@ -29,6 +28,7 @@ import com.sw.yutnori.ui.SwingStatusPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +50,8 @@ public class InGameController {
     private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
     private YutResult pendingRandomYutResult = null;
     private Long pendingRandomTurnId = null;
+    // 윷 던지기 결과 저장용 리스트 (프론트에서만 관리, 한 턴에 던진 모든 윷 결과)
+    private final List<String> yutThrowResults = new ArrayList<>();
 
     public InGameController(BoardModel boardModel, GameApiClient apiClient, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
@@ -83,14 +85,15 @@ public class InGameController {
                 updateTurnId(response.getTurnId());
             }
 
-            // 추가: 이번 턴에 던진 모든 윷 결과 리스트 가져오기 및 UI 업데이트
-            List<String> allYutResults = apiClient.getYutResultsForTurn(getCurrentTurnId());
-
             // 랜덤 윷 던지기를 클릭했을 때는 다음 턴까지 지정 윷 던지기 버튼 비활성화
             controlPanel.enableCustomButton(false);
 
             var yutResult = response.getResult();
             String result = yutResult.name();
+
+            // 윷 던지기 결과 리스트에 추가
+            yutThrowResults.add(result);
+            System.out.println("[이번 턴 윷 던지기 리스트] " + yutThrowResults);
 
             String koreanResult = controlPanel.getResultDisplay().convertYutTypeToKorean(result);
             controlPanel.updateYutResult(koreanResult, result);
@@ -99,6 +102,7 @@ public class InGameController {
             if (yutResult != YutResult.YUT &&
                 yutResult != YutResult.MO) {
                 controlPanel.enableRandomButton(false);
+                
             }
 
             // 랜덤 윷 결과 저장 및 말 선택 유도
@@ -110,12 +114,18 @@ public class InGameController {
         }
     }
 
+    // 지정한 윳 선택 이후 '완료' 버튼 클릭 시 발생하는 이벤트
     public void onConfirmButtonClicked(List<String> selectedYuts) {
         try {
             if (selectedYuts.isEmpty()) {
                 controlPanel.showErrorAndRestore("선택된 윷 결과가 없습니다.");
                 return;
             }
+
+            // 지정 윷 던지기 시 리스트를 새로 저장
+            yutThrowResults.clear();
+            yutThrowResults.addAll(selectedYuts);
+            System.out.println("[이번 턴 윷 던지기 리스트] " + yutThrowResults);
 
             Long turnId = getCurrentTurnId();
             Long pieceId = getSelectedPieceId();
@@ -136,6 +146,7 @@ public class InGameController {
             BoardType boardType = parseBoardType(setupData.boardType());
             LogicalPosition current = start;
 
+            // 모든 윷 처리
             for (String selectedYut : selectedYuts) {
                 String yutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
                 YutResult result = convertStringToYutResult(yutType);
@@ -149,6 +160,7 @@ public class InGameController {
                 );
             }
 
+            // 마지막 윷만 표시
             String lastYutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(
                     selectedYuts.get(selectedYuts.size() - 1)
             );
@@ -163,19 +175,7 @@ public class InGameController {
             moveRequest.setB(current.getB());
             moveRequest.setResult(lastResult);
 
-            MovePieceResponse moveResponse = apiClient.movePiece(gameId, moveRequest);
-            System.out.printf("[디버깅] 이동 요청: pieceId=%d, a=%d, b=%d, result=%s, 업기=%s, 잡기=%s, 업힌ID=%s%n",
-                    pieceId, moveRequest.getA(), moveRequest.getB(), lastResult.name(),
-                    moveResponse.isGroupingOccurred(), moveResponse.isCaptureOccurred(),
-                    moveResponse.getTargetPieceIds());
-
-            if (moveResponse.isGroupingOccurred()) {
-                int count = moveResponse.getTargetPieceIds().size();
-                JOptionPane.showMessageDialog(null, count + "개의 말을 업었습니다.", "업기", JOptionPane.INFORMATION_MESSAGE);
-            }
-            if (moveResponse.isCaptureOccurred()) {
-                JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
-            }
+            pieceApiClient.movePiece(gameId, moveRequest);
 
             try {
                 PieceInfoResponse updatedPieceInfo = pieceApiClient.getPieceInfo(pieceId);
@@ -193,11 +193,11 @@ public class InGameController {
             controlPanel.setGameContext(gameId, playerId);
             controlPanel.enableRandomButton(false);
             controlPanel.enableCustomButton(true);
-            // 턴 정보 초기화화
-            refreshTurnInfo();
+
         } catch (Exception ex) {
             handleError(ex);
         } finally {
+            // 항상 리셋
             resetPieceSelection();
             controlPanel.restorePanel();
         }
@@ -433,6 +433,12 @@ public class InGameController {
             boolean isMyTurn = currentTurnPlayerId.equals(playerId);
             controlPanel.enableRandomButton(isMyTurn);
             controlPanel.enableCustomButton(isMyTurn);
+
+            // 내 턴이 시작될 때 리스트 초기화
+            if (isMyTurn) {
+                yutThrowResults.clear();
+                System.out.println("[윷 던지기 리스트 초기화] 내 턴 시작: " + yutThrowResults);
+            }
 
             // UI 갱신
             statusPanel.updateCurrentPlayer(turnInfo.getPlayerName()); // 선택적으로

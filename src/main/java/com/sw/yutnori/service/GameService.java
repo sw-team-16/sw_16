@@ -27,12 +27,11 @@ public interface GameService {
     TurnInfoResponse getTurnInfo(Long gameId);
 
 
-    AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request, Long turnId);
+    AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request);
 
     YutThrowResponse applyRandomYutResult(Long gameId, AutoThrowApplyRequest request);
     List<MovablePieceResponse> getMovablePiecesByPlayer(Long playerId);
 
-    List<com.sw.yutnori.common.enums.YutResult> getYutResultsForTurn(Long turnId);
 
 }
 

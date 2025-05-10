@@ -1,8 +1,8 @@
 /*
  * GameServiceImpl.java
  * 백엔드 서비스 로직 구현
- *
- *
+ * 
+ * 
  */
 package com.sw.yutnori.service;
 
@@ -123,7 +123,22 @@ public class GameServiceImpl implements GameService {
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
     }
+    private Player getNextPlayer(Game game) {
+        List<Player> players = playerRepository.findByGame_GameId(game.getGameId());
+        players.sort(Comparator.comparing(Player::getPlayerId));
 
+        Long currentId = game.getCurrentTurnPlayer() != null
+                ? game.getCurrentTurnPlayer().getPlayerId()
+                : null;
+
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getPlayerId().equals(currentId)) {
+                return players.get((i + 1) % players.size()); // 다음 순서
+            }
+        }
+
+        return players.get(0); // 게임 시작 시 첫 번째 플레이어
+    }
     @Transactional
     @Override
     public MovePieceResponse movePiece(Long gameId, MovePieceRequest request) {
@@ -139,83 +154,47 @@ public class GameServiceImpl implements GameService {
         }
 
         Board board = game.getBoards().get(0);
-        int targetA = request.getA();
-        int targetB = request.getB();
 
-        // 같은 게임의 말만 대상으로 설정
-        List<Piece> piecesAtTarget = pieceRepository.findAllByAAndB(targetA, targetB).stream()
-                .filter(p -> p.getPlayer().getGame().getGameId().equals(gameId))
-                .collect(Collectors.toList());
+        // 2. 잡기 발생 여부 사전 확인
+        List<Piece> piecesBefore = pieceRepository.findAllByAAndB(request.getA(), request.getB());
+        boolean captureOccurred = piecesBefore.stream()
+                .anyMatch(p -> !p.getPlayer().getPlayerId().equals(request.getPlayerId()));
 
-        boolean captureOccurred = false;
-        boolean groupingOccurred = false;
-        List<Long> groupedPieceIds = new ArrayList<>();
+        // 3. 잡기 및 업기 처리
+        handleCaptureOrStacking(movingPiece, request.getA(), request.getB());
+        boolean groupingOccurred = movingPiece.isGrouped(); // 업기 여부 확인
 
-        for (Piece target : piecesAtTarget) {
-            if (target.getPieceId().equals(movingPiece.getPieceId())) continue;
-
-            if (target.getPlayer().getPlayerId().equals(player.getPlayerId())) {
-                // 업기 처리
-                target.setGrouped(true);
-                movingPiece.setGrouped(true);
-                pieceRepository.save(target);
-                groupedPieceIds.add(target.getPieceId());
-                if (!groupingOccurred) {
-                    System.out.printf("[디버깅] 업기 발생: basePieceId=%d, groupedPieceId=%d, 위치=(%d,%d)%n",
-                            movingPiece.getPieceId(), target.getPieceId(), targetA, targetB);
-                }
-                groupingOccurred = true;
-            } else {
-                // 잡기 처리
-                target.setFinished(false);
-                target.setGrouped(false);
-                target.setState(PieceState.READY);
-                target.setLogicalPosition(0, 1);
-                pieceRepository.save(target);
-                if (!captureOccurred) {
-                    System.out.printf("[디버깅] 잡기 발생: attackerPieceId=%d, capturedPieceId=%d, 위치=(%d,%d)%n",
-                            movingPiece.getPieceId(), target.getPieceId(), targetA, targetB);
-                }
-                captureOccurred = true;
-            }
-        }
-
-        // 2. 말 이동
-        movingPiece.setLogicalPosition(targetA, targetB);
+        // 4. 말 이동
+        movingPiece.setLogicalPosition(request.getA(), request.getB());
         movingPiece.setState(PieceState.ON_BOARD);
         pieceRepository.save(movingPiece);
 
-        // 3. 골인 처리
+        // 5. 골인 처리
         boolean reachedEndPoint = false;
         BoardType boardType = game.getBoardType();
-        if (isEndPoint(targetA, targetB, boardType)) {
+        if (isEndPoint(request.getA(), request.getB(), boardType)) {
             player.setFinishedCount(player.getFinishedCount() + 1);
             playerRepository.save(player);
             reachedEndPoint = true;
         }
 
-        // 4. 새로운 Turn 생성
+        // 6. 새로운 Turn 생성
         Turn newTurn = new Turn();
         newTurn.setGame(game);
+        newTurn.setPlayer(getNextPlayer(game));
         newTurn.setPlayer(player);
         turnRepository.save(newTurn);
 
-        // 5. TurnAction 저장
+        // 7. TurnAction 저장
         saveTurnAction(newTurn, request.getMoveOrder(), request.getResult(), movingPiece);
 
-        // 6. 추가 이동 판단
+        // 8. 추가 이동 판단: 윷, 모, 잡기 중 하나라도 해당되면 true
         boolean requiresAnotherMove =
                 request.getResult() == YutResult.YUT ||
                         request.getResult() == YutResult.MO ||
                         captureOccurred;
 
-        return new MovePieceResponse(
-                captureOccurred,
-                groupingOccurred,
-                reachedEndPoint,
-                requiresAnotherMove,
-                groupedPieceIds
-        );
+        return new MovePieceResponse(captureOccurred, groupingOccurred, reachedEndPoint, requiresAnotherMove, new ArrayList<>());
     }
 
 
@@ -276,32 +255,20 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request, Long turnId) {
+    public AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request) {
         Player player = playerRepository.findById(request.getPlayerId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid playerId"));
 
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid gameId"));
 
-        Turn turn;
-        if (turnId != null) {
-            turn = turnRepository.findById(turnId)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
-        } else {
-            turn = new Turn();
-            turn.setPlayer(player);
-            turn.setGame(game);
-            turn = turnRepository.save(turn);
-        }
+        Turn turn = new Turn();
+        turn.setPlayer(player);
+        turn.setGame(game);
+        turn = turnRepository.save(turn);
 
         YutResult result = getRandomYutResult();
-        // TurnAction 저장
-        TurnAction action = new TurnAction();
-        action.setTurn(turn);
-        action.setMoveOrder(turn.getActions() != null ? turn.getActions().size() + 1 : 1);
-        action.setResult(result);
-        action.setUsed(false);
-        turnActionRepository.save(action);
+        System.out.println("[GameServiceImpl] 랜덤 윷 처리: gameId=" + gameId + ", playerId=" + request.getPlayerId() + ", result=" + result);
         return new AutoThrowResponse(result, turn.getTurnId());
     }
 
@@ -448,14 +415,5 @@ public class GameServiceImpl implements GameService {
                 latestAction.getChosenPiece() != null ? latestAction.getChosenPiece().getPieceId() : null,
                 latestAction.isUsed()
         );
-    }
-
-    public List<YutResult> getYutResultsForTurn(Long turnId) {
-        List<TurnAction> actions = turnActionRepository.findByTurn_TurnId(turnId);
-        List<YutResult> results = new ArrayList<>();
-        for (TurnAction action : actions) {
-            results.add(action.getResult());
-        }
-        return results;
     }
 }
