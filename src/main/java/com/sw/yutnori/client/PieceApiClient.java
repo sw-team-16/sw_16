@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
 import org.springframework.web.client.RestTemplate;
+import com.sw.yutnori.dto.game.response.MovePieceResponse;
 
 public class PieceApiClient {
 
@@ -26,12 +27,14 @@ public class PieceApiClient {
         return restTemplate.getForObject(url, PieceInfoResponse.class);
     }
 
-    public void movePiece(Long gameId, MovePieceRequest request) {
+
+    public MovePieceResponse movePiece(Long gameId, MovePieceRequest request) {
         String url = baseUrl + "/api/game/" + gameId + "/move";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<MovePieceRequest> entity = new HttpEntity<>(request, headers);
 
-        restTemplate.postForEntity(url, entity, Void.class);
+        return restTemplate.postForObject(url, entity, MovePieceResponse.class);
     }
+
 }

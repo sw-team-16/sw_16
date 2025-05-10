@@ -18,6 +18,7 @@ import com.sw.yutnori.controller.InGameController;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.List;
 import java.awt.image.BufferedImage;
@@ -51,6 +52,7 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
     private final InGameController controller;
     private final YutDisplay yutDisplay;
     private final ResultDisplay resultDisplay;
+    private SwingYutSelectionPanel currentSelectionPanel = null;
 
     public SwingYutControlPanel(GameApiClient apiClient, InGameController controller) {
         this.apiClient = apiClient;
@@ -111,21 +113,30 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
     }
 
     // '지정 윷 던지기' 클릭 시 창 변경
+
     private void showCustomYutSelectionPanel() {
-        removeAll();
+        if (currentSelectionPanel != null) {
+            remove(currentSelectionPanel);
+        }
+
+        removeAll(); // 기존 UI 제거
 
         Consumer<List<String>> onConfirm = selectedYuts -> {
-            controller.promptPieceSelection(playerId); // 말 선택 창 띄움
-            controller.onConfirmButtonClicked(selectedYuts); // '완료' 버튼 클릭 시 발생하는 이벤트
-
+            controller.onConfirmButtonClicked(selectedYuts);
+            currentSelectionPanel = null; // 콜백 끝나면 해제
         };
-        Runnable onCancel = this::restoreOriginalPanel;
 
-        SwingYutSelectionPanel selectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
-        add(selectionPanel);
+        Runnable onCancel = () -> {
+            restoreOriginalPanel();
+            currentSelectionPanel = null;
+        };
+
+        currentSelectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
+        add(currentSelectionPanel);
         revalidate();
         repaint();
     }
+
 
     // '지정 윷 던지기'에서 취소 후 원래 패널로 복원
     private void restoreOriginalPanel() {

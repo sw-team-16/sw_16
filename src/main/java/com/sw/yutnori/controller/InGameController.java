@@ -98,7 +98,7 @@ public class InGameController {
         }
     }
 
-    // 지정한 윳 선택 이후 '완료' 버튼 클릭 시 발생하는 이벤트
+
     public void onConfirmButtonClicked(List<String> selectedYuts) {
         try {
             if (selectedYuts.isEmpty()) {
@@ -107,74 +107,114 @@ public class InGameController {
             }
 
             Long turnId = getCurrentTurnId();
-            Long pieceId = getSelectedPieceId();
-            if (pieceId == null) {
-                controlPanel.showError("말이 선택되지 않았습니다.");
-                return;
-            }
-
-            // 모든 선택된 결과들을 백엔드로 전송
-            for (String selectedYut : selectedYuts) {
-                // 한국어 윷 결과를 백엔드 전송용 영어로 변환
-                String yutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
-                var result = convertStringToYutResult(yutType);
-                // 백엔드 API 호출
-                apiClient.throwYutManual(gameId, turnId, playerId, pieceId, result);
-                controlPanel.updateYutResult(selectedYut, yutType);
-            }
-
-            // 마지막 선택 윷을 현재 윷으로 표시
-            String lastYutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(
-                    selectedYuts.get(selectedYuts.size() - 1)
-            );
-            controlPanel.updateCurrentYut(lastYutType);
-
-            YutResult result = convertStringToYutResult(lastYutType);
+            ObjectMapper mapper = new ObjectMapper();
             BoardType boardType = parseBoardType(setupData.boardType());
+            int moveOrder = 1;
+            boolean captureOccurred = false;
 
-            // 이동 계산 전에 이전 위치 저장
-            PieceInfoResponse pieceInfo = pieceApiClient.getPieceInfo(pieceId);
-            LogicalPosition prevPos = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
-            piecePrevPositionMap.put(pieceId, prevPos);
+            for (String yutString : selectedYuts) {
+                String yutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(yutString);
+                YutResult result = convertStringToYutResult(yutType);
 
-            int currentA = pieceInfo.getA();
-            int currentB = pieceInfo.getB();
-            int prevA = prevPos.getA();
-            int prevB = prevPos.getB();
+                Long pieceId = promptPieceSelectionAndGetId();
+                if (pieceId == null) {
+                    controlPanel.showError("말을 선택하지 않아 이동을 중단합니다.");
+                    return;
+                }
 
-            LogicalPosition dest = BoardPathManager.calculateDestination(
-                    pieceId, currentA, currentB, prevA, prevB, result, boardType
-            );
+                PieceInfoResponse pieceInfo = pieceApiClient.getPieceInfo(pieceId);
+                LogicalPosition prev = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
 
+                LogicalPosition dest = BoardPathManager.calculateDestination(
+                        pieceId, pieceInfo.getA(), pieceInfo.getB(), prev.getA(), prev.getB(), result, boardType
+                );
 
-            // 실제 이동 요청
-            MovePieceRequest moveRequest = new MovePieceRequest();
-            moveRequest.setPlayerId(playerId);
-            moveRequest.setChosenPieceId(pieceId);
-            moveRequest.setMoveOrder(1);
-            moveRequest.setA(dest.getA());
-            moveRequest.setB(dest.getB());
-            moveRequest.setResult(result);
+                MovePieceRequest moveRequest = new MovePieceRequest();
+                moveRequest.setPlayerId(playerId);
+                moveRequest.setChosenPieceId(pieceId);
+                moveRequest.setMoveOrder(moveOrder++);
+                moveRequest.setA(dest.getA());
+                moveRequest.setB(dest.getB());
+                moveRequest.setResult(result);
 
-            pieceApiClient.movePiece(gameId, moveRequest);
+                System.out.println("[디버깅] movePiece 요청:\n" +
+                        mapper.writerWithDefaultPrettyPrinter().writeValueAsString(moveRequest));
 
-            // UI 갱신
-            try {
-                PieceInfoResponse updatedPieceInfo = pieceApiClient.getPieceInfo(pieceId);
-                LogicalPosition newPos = new LogicalPosition(pieceId, updatedPieceInfo.getA(), updatedPieceInfo.getB());
+                var moveResponse = pieceApiClient.movePiece(gameId, moveRequest);
+                if (moveResponse.isCaptureOccurred()) {
+                    captureOccurred = true;
+                }
+
+                // 윷/모 또는 잡기 → 추가 이동 1번만 허용
+                boolean oneMoreAllowed = moveResponse.isRequiresAnotherMove();
+                int extraMoveCount = 0;
+
+                while (oneMoreAllowed && extraMoveCount < 1) {
+                    extraMoveCount++;
+
+                    pieceInfo = pieceApiClient.getPieceInfo(pieceId);
+                    LogicalPosition nextDest = BoardPathManager.calculateDestination(
+                            pieceId,
+                            pieceInfo.getA(), pieceInfo.getB(),
+                            pieceInfo.getA(), pieceInfo.getB(),
+                            result,
+                            boardType
+                    );
+
+                    if (pieceInfo.getA() == nextDest.getA() && pieceInfo.getB() == nextDest.getB()) {
+                        System.out.println("[루프 차단] 현재 위치와 목적지가 동일합니다.");
+                        break;
+                    }
+
+                    MovePieceRequest nextMove = new MovePieceRequest();
+                    nextMove.setPlayerId(playerId);
+                    nextMove.setChosenPieceId(pieceId);
+                    nextMove.setMoveOrder(moveOrder++);
+                    nextMove.setA(nextDest.getA());
+                    nextMove.setB(nextDest.getB());
+                    nextMove.setResult(result);
+
+                    System.out.println("[디버깅] 추가 이동 요청:\n" +
+                            mapper.writerWithDefaultPrettyPrinter().writeValueAsString(nextMove));
+
+                    var repeatResponse = pieceApiClient.movePiece(gameId, nextMove);
+                    oneMoreAllowed = repeatResponse.isRequiresAnotherMove(); // 보너스 여부 갱신
+                }
+
+                // UI 갱신
+                PieceInfoResponse updatedPiece = pieceApiClient.getPieceInfo(pieceId);
+                LogicalPosition newPos = new LogicalPosition(pieceId, updatedPiece.getA(), updatedPiece.getB());
                 displayManager.showLogicalPosition(newPos, pieceId);
-            } catch (Exception e) {
-                controlPanel.showError("말 위치 표시 중 오류 발생: " + e.getMessage());
+            }
+
+            // ✅ 잡기 발생 시 보너스 윷 던지기 유도
+            if (captureOccurred) {
+                int response = JOptionPane.showConfirmDialog(
+                        null,
+                        "상대 말을 잡았습니다! 보너스 윷을 던지시겠습니까?",
+                        "보너스 이동", JOptionPane.YES_NO_OPTION
+                );
+
+                if (response == JOptionPane.YES_OPTION) {
+                    controlPanel.restorePanel(); // 랜덤/수동 버튼 재활성화
+                    JOptionPane.showMessageDialog(null, "보너스 윷을 던지고 다시 완료 버튼을 눌러주세요.");
+                    return;
+                }
             }
 
             resetPieceSelection();
             controlPanel.restorePanel();
             controlPanel.enableRandomButton(false);
             controlPanel.enableCustomButton(false);
+
         } catch (Exception ex) {
             handleError(ex);
         }
     }
+
+
+
+
 
     public void promptPieceSelection(Long playerId) {
         List<Long> pieces = playerPieceMap.get(playerId);
@@ -197,6 +237,28 @@ public class InGameController {
             selectedPieceId = (Long) selected;
         }
     }
+
+    private Long promptPieceSelectionAndGetId() {
+        List<Long> pieces = getPieceIdsForPlayer(playerId);
+        if (pieces == null || pieces.isEmpty()) {
+            controlPanel.showError("선택 가능한 말이 없습니다.");
+            return null;
+        }
+
+        Object selected = JOptionPane.showInputDialog(
+                null,
+                "이 윷 결과를 적용할 말을 선택하세요",
+                "말 선택",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                pieces.toArray(),
+                pieces.get(0)
+        );
+
+        return (selected != null) ? (Long) selected : null;
+    }
+
+
 
     // 게임 승자 표시 (SwingYutControlPanel에서 여기로 이동)
     public void onWinner(String winnerName) {

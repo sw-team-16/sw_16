@@ -154,12 +154,17 @@ public class SwingSelectionDisplay implements SelectionDisplay {
                 onCancelCallback.run();
             }
         });
-
         confirmBtn.addActionListener(e -> {
             if (!selectedYuts.isEmpty() && onConfirmCallback != null) {
-                onConfirmCallback.accept(selectedYuts);
+                List<String> copied = new ArrayList<>(selectedYuts); // 복사본 생성
+                System.out.println("[디버깅] 선택된 윷 리스트: " + copied);
+                onConfirmCallback.accept(copied); // 복사본 전달
+                selectedYuts.clear();             // 원본 리스트 초기화
+                updateSelectedYutsPanel();        // UI 초기화
             }
         });
+
+
 
         controlPanel.add(cancelBtn);
         controlPanel.add(confirmBtn);
