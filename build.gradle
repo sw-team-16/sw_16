@@ -65,7 +65,7 @@ dependencies {
     testImplementation 'org.junit.platform:junit-platform-commons:1.9.2'
     testImplementation 'org.junit.platform:junit-platform-engine:1.9.2'
     testImplementation 'org.assertj:assertj-swing:3.17.1'  // Swing UI 테스트용
-    implementation 'mysql:mysql-connector-java:8.0.33'
+
 }
 
 tasks.named('test') {

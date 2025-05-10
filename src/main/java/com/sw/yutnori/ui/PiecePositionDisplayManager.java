@@ -20,9 +20,17 @@ public class PiecePositionDisplayManager {
         Node node = boardModel.findNode(position.getA(), position.getB());
         if (node == null) return;
 
+        int markerSize = 30;
+        int markerX = (int) node.getX() - markerSize / 2;
+        int markerY = (int) node.getY() - markerSize / 2;
+
         JButton marker = new JButton("P" + pieceId);
-        marker.setBounds((int) node.getX() - 15, (int) node.getY() - 15, 30, 30);
+        marker.setBounds(markerX, markerY, markerSize, markerSize);
         marker.setBackground(Color.YELLOW);
+        marker.setFocusPainted(false);
+        marker.setBorderPainted(false);
+
+        boardPanel.setComponentZOrder(marker, 0);
         boardPanel.add(marker);
         boardPanel.repaint();
     }
