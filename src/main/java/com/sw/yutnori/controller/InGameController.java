@@ -47,6 +47,8 @@ public class InGameController {
     private Long selectedPieceId = null;
     private Map<Long, List<Long>> playerPieceMap = new HashMap<>();
     private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
+    private YutResult pendingRandomYutResult = null;
+    private Long pendingRandomTurnId = null;
 
     public InGameController(BoardModel boardModel, GameApiClient apiClient, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
@@ -94,6 +96,11 @@ public class InGameController {
                 yutResult != YutResult.MO) {
                 controlPanel.enableRandomButton(false);
             }
+
+            // 랜덤 윷 결과 저장 및 말 선택 유도
+            this.pendingRandomYutResult = yutResult;
+            this.pendingRandomTurnId = getCurrentTurnId();
+            promptPieceSelection(playerId); // 말 선택 창 띄우기
         } catch (Exception ex) {
             handleError(ex);
         }
@@ -171,7 +178,7 @@ public class InGameController {
 
             statusPanel.updateCurrentPlayer(turnInfo.getPlayerName());
             controlPanel.setGameContext(gameId, playerId);
-            controlPanel.enableRandomButton(true);
+            controlPanel.enableRandomButton(false);
             controlPanel.enableCustomButton(true);
 
         } catch (Exception ex) {
@@ -204,6 +211,75 @@ public class InGameController {
 
         if (selected != null) {
             selectedPieceId = (Long) selected;
+            // --- 랜덤 윷 결과가 있을 경우, 해당 결과로 이동 처리 ---
+            if (pendingRandomYutResult != null) {
+                movePieceWithRandomYutResult();
+            }
+        }
+    }
+
+    // 랜덤 윷 결과로 말 이동 처리
+    private void movePieceWithRandomYutResult() {
+        try {
+            Long pieceId = getSelectedPieceId();
+            if (pieceId == null) {
+                controlPanel.showError("말이 선택되지 않았습니다.");
+                return;
+            }
+            LogicalPosition start;
+            if (piecePrevPositionMap.containsKey(pieceId)) {
+                start = piecePrevPositionMap.get(pieceId);
+            } else {
+                PieceInfoResponse pieceInfo = pieceApiClient.getPieceInfo(pieceId);
+                start = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
+                piecePrevPositionMap.put(pieceId, start);
+            }
+            BoardType boardType = parseBoardType(setupData.boardType());
+            LogicalPosition current = BoardPathManager.calculateDestination(
+                pieceId, start.getA(), start.getB(),
+                start.getA(), start.getB(), pendingRandomYutResult, boardType
+            );
+
+            MovePieceRequest moveRequest = new MovePieceRequest();
+            moveRequest.setPlayerId(playerId);
+            moveRequest.setChosenPieceId(pieceId);
+            moveRequest.setMoveOrder(1);
+            moveRequest.setA(current.getA());
+            moveRequest.setB(current.getB());
+            moveRequest.setResult(pendingRandomYutResult);
+
+            pieceApiClient.movePiece(gameId, moveRequest);
+
+            try {
+                PieceInfoResponse updatedPieceInfo = pieceApiClient.getPieceInfo(pieceId);
+                LogicalPosition newPos = new LogicalPosition(pieceId, updatedPieceInfo.getA(), updatedPieceInfo.getB());
+                displayManager.showLogicalPosition(newPos, pieceId);
+            } catch (Exception e) {
+                controlPanel.showError("말 위치 표시 중 오류 발생: " + e.getMessage());
+            }
+
+            TurnInfoResponse turnInfo = apiClient.getTurnInfo(gameId);
+            this.playerId = turnInfo.getPlayerId();
+            this.currentTurnId = turnInfo.getTurnId();
+
+            statusPanel.updateCurrentPlayer(turnInfo.getPlayerName());
+            controlPanel.setGameContext(gameId, playerId);
+
+            if (pendingRandomYutResult == YutResult.YUT || pendingRandomYutResult == YutResult.MO) {
+                controlPanel.enableRandomButton(true);
+            } else {
+                controlPanel.enableRandomButton(false);
+            }
+            controlPanel.enableCustomButton(false); // 랜덤 윷 후 지정 윷 비활성화
+        } catch (Exception ex) {
+            handleError(ex);
+        } finally {
+            // 항상 리셋
+            resetPieceSelection();
+            controlPanel.restorePanel();
+            // 랜덤 윷 결과 초기화
+            pendingRandomYutResult = null;
+            pendingRandomTurnId = null;
         }
     }
 
