@@ -68,7 +68,7 @@ class GameControllerTest {
     void getRandomYutResult_shouldReturnResult() throws Exception {
         AutoThrowRequest request = new AutoThrowRequest();
         request.setPlayerId(1L);
-        AutoThrowResponse response = new AutoThrowResponse(1L, YutResult.GAE);
+        AutoThrowResponse response = new AutoThrowResponse(YutResult.GAE,1L);
         Mockito.when(gameService.getRandomYutResultForPlayer(any(), any())).thenReturn(response);
 
         mockMvc.perform(post("/api/game/1/turn/random/throw")
@@ -85,7 +85,7 @@ class GameControllerTest {
         request.setPieceId(1L);
         request.setResult(YutResult.YUT);
 
-        YutThrowResponse response = new YutThrowResponse("YUT 적용 완료");
+        YutThrowResponse response = new YutThrowResponse();
         Mockito.when(gameService.applyRandomYutResult(any(), any())).thenReturn(response);
 
         mockMvc.perform(post("/api/game/1/turn/random/apply")
@@ -110,7 +110,7 @@ class GameControllerTest {
     @Test
     void getMovablePieces_shouldReturnList() throws Exception {
         Mockito.when(gameService.getMovablePiecesByPlayer(any()))
-                .thenReturn(List.of(new MovablePieceResponse(1L, "P1", "(0,0)")));
+                .thenReturn(List.of(new MovablePieceResponse(1L, "READY")));
 
         mockMvc.perform(get("/api/game/player/1/movable-pieces"))
                 .andExpect(status().isOk());
@@ -134,8 +134,10 @@ class GameControllerTest {
 
     @Test
     void getTurnInfo_shouldReturnInfo() throws Exception {
+        TurnInfoResponse dummy = new TurnInfoResponse(1L, 3L, "Bob", "YUT", 10L, true);
+
         Mockito.when(gameService.getTurnInfo(any()))
-                .thenReturn(new TurnInfoResponse(1L, "Alice", true));
+                .thenReturn(dummy);
 
         mockMvc.perform(get("/api/game/1/turn"))
                 .andExpect(status().isOk());

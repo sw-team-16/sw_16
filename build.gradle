@@ -57,14 +57,20 @@ dependencies {
     // JSON 파싱용 (gameId, playerId 파싱)
     implementation 'org.json:json:20230227'
     // 테스트
+//    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//    testImplementation 'io.projectreactor:reactor-test'
+//    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+//    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+//    testImplementation 'org.junit.platform:junit-platform-commons:1.9.2'
+//    testImplementation 'org.junit.platform:junit-platform-engine:1.9.2'
+//    testImplementation 'org.assertj:assertj-swing:3.17.1'  // Swing UI 테스트용
+    // 스프링 부트 테스트 (이미 JUnit 포함)
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
-    testImplementation 'org.junit.platform:junit-platform-commons:1.9.2'
-    testImplementation 'org.junit.platform:junit-platform-engine:1.9.2'
-    testImplementation 'org.assertj:assertj-swing:3.17.1'  // Swing UI 테스트용
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.junit.platform:junit-platform-launcher:1.9.2'
+    testImplementation 'org.assertj:assertj-swing:3.17.1'
 
 }
 
