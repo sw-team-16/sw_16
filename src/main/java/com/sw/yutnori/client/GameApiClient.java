@@ -3,6 +3,7 @@ package com.sw.yutnori.client;
 import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.dto.game.request.MovePieceRequest;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
+import com.sw.yutnori.dto.game.response.GameStatusResponse;
 import com.sw.yutnori.dto.game.response.TurnInfoResponse;
 
 public interface GameApiClient {
@@ -16,5 +17,7 @@ public interface GameApiClient {
     void restartGame(Long gameId, Long winnerPlayerId);
     void movePiece(Long gameId, MovePieceRequest request);
     TurnInfoResponse getTurnInfo(Long gameId);
+    GameStatusResponse getGameStatus(Long gameId);
+
 
 }

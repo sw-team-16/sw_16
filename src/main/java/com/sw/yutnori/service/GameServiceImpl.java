@@ -51,7 +51,7 @@ public class GameServiceImpl implements GameService {
         game.setNumPlayers(request.getPlayers().size());
         game.setNumPieces(request.getNumPieces());
         game.setState(GameState.SETUP);
-        game = gameRepository.save(game);
+        game = gameRepository.save(game); // 초기 저장
 
         Board board = new Board();
         board.setGame(game);
@@ -90,8 +90,14 @@ public class GameServiceImpl implements GameService {
             ));
         }
 
+        List<Player> allPlayers = playerRepository.findByGame_GameId(game.getGameId());
+        allPlayers.sort(Comparator.comparing(Player::getPlayerId));
+        game.setCurrentTurnPlayer(allPlayers.get(0)); // 첫 번째 player
+        gameRepository.save(game); // currentTurnPlayer 반영 저장
+
         return new GameCreateResponse(game.getGameId(), playerInfoList);
     }
+
 
 
 
@@ -178,22 +184,31 @@ public class GameServiceImpl implements GameService {
             reachedEndPoint = true;
         }
 
-        // 6. 새로운 Turn 생성
-        Turn newTurn = new Turn();
-        newTurn.setGame(game);
-        newTurn.setPlayer(getNextPlayer(game));
-        newTurn.setPlayer(player);
-        turnRepository.save(newTurn);
-
-        // 7. TurnAction 저장
-        saveTurnAction(newTurn, request.getMoveOrder(), request.getResult(), movingPiece);
-
-        // 8. 추가 이동 판단: 윷, 모, 잡기 중 하나라도 해당되면 true
+        // 6. 추가 이동 판단
         boolean requiresAnotherMove =
                 request.getResult() == YutResult.YUT ||
                         request.getResult() == YutResult.MO ||
                         captureOccurred;
 
+        // 7. Turn 생성 및 저장
+        Turn turn = new Turn();
+        turn.setGame(game);
+
+        if (requiresAnotherMove) {
+            turn.setPlayer(player);
+        } else {
+            Player nextPlayer = getNextPlayer(game);
+            turn.setPlayer(nextPlayer);
+            game.setCurrentTurnPlayer(nextPlayer);
+            gameRepository.save(game);
+        }
+
+        turnRepository.save(turn);
+
+        // 8. TurnAction 저장
+        saveTurnAction(turn, request.getMoveOrder(), request.getResult(), movingPiece);
+
+        // 9. 결과 반환
         return new MovePieceResponse(captureOccurred, groupingOccurred, reachedEndPoint, requiresAnotherMove);
     }
 
