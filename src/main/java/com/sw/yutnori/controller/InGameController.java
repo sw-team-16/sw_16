@@ -126,11 +126,9 @@ public class InGameController {
             BoardType boardType = parseBoardType(setupData.boardType());
             LogicalPosition current = start;
 
-            // 모든 윷 처리
             for (String selectedYut : selectedYuts) {
                 String yutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
                 YutResult result = convertStringToYutResult(yutType);
-
                 apiClient.throwYutManual(gameId, turnId, playerId, pieceId, result);
                 controlPanel.updateYutResult(selectedYut, yutType);
 
@@ -140,7 +138,6 @@ public class InGameController {
                 );
             }
 
-            // 마지막 윷만 표시
             String lastYutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(
                     selectedYuts.get(selectedYuts.size() - 1)
             );
@@ -165,23 +162,16 @@ public class InGameController {
                 controlPanel.showError("말 위치 표시 중 오류 발생: " + e.getMessage());
             }
 
-            TurnInfoResponse turnInfo = apiClient.getTurnInfo(gameId);
-            this.playerId = turnInfo.getPlayerId();
-            this.currentTurnId = turnInfo.getTurnId();
-
-            statusPanel.updateCurrentPlayer(turnInfo.getPlayerName());
-            controlPanel.setGameContext(gameId, playerId);
-            controlPanel.enableRandomButton(true);
-            controlPanel.enableCustomButton(true);
+            refreshTurnInfo();
 
         } catch (Exception ex) {
             handleError(ex);
         } finally {
-            // 항상 리셋
             resetPieceSelection();
             controlPanel.restorePanel();
         }
     }
+
 
 
 
