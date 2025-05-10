@@ -250,7 +250,6 @@ public class GameServiceImpl implements GameService {
         saveTurnAction(turn, request.getMoveOrder(), request.getResult(), movingPiece);
 
         // 9. 결과 반환
-        return new MovePieceResponse(captureOccurred, groupingOccurred, reachedEndPoint, requiresAnotherMove);
         return new MovePieceResponse(
                 captureOccurred,
                 groupingOccurred,

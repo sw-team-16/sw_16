@@ -106,6 +106,8 @@ public class SwingGameSetupDisplay implements GameSetupDisplay {
             JPanel p = new JPanel();
             p.add(new JLabel("플레이어 " + (i + 1) + " 이름:"));
             JTextField nameField = new JTextField(7);
+            if (i == 0) nameField.setText("Player1");
+            else if (i == 1) nameField.setText("Player2");
             playerNameFields.add(nameField);
             p.add(nameField);
             p.add(new JLabel("색상:"));
