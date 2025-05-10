@@ -3,6 +3,9 @@ package com.sw.yutnori.service;
 import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.*;
 import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
+import com.sw.yutnori.board.BoardModel;
+import com.sw.yutnori.board.Node;
+
 
 import java.util.List;
 

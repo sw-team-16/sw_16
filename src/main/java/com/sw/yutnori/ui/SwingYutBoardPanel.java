@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -22,6 +23,12 @@ import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.controller.InGameController;
 import com.sw.yutnori.domain.Piece;
+import com.sw.yutnori.board.Node;
+import com.sw.yutnori.common.LogicalPosition;
+import com.sw.yutnori.controller.PieceMoveController;
+import com.sw.yutnori.common.enums.YutResult;
+
+
 
 public class SwingYutBoardPanel extends JPanel {
     private final BoardModel boardModel;
@@ -212,6 +219,51 @@ public class SwingYutBoardPanel extends JPanel {
             }
         }
     }
+}
+
+public void moveSelectedPiece(Long pieceId, YutResult yutResult) {
+    // 현재 선택된 말의 논리 좌표 가져오기
+    LogicalPosition currentPosition = piecePositions.get(pieceId);
+    if (currentPosition == null) return;
+
+    // PieceMoveController를 이용해 이동 후의 노드 계산
+    Node startNode = boardModel.findNode(currentPosition.getA(), currentPosition.getB());
+    Node nextNode = pieceMoveController.calculateNextNode(startNode, yutResult);
+
+    if (nextNode != null) {
+        // 피스를 그리기 전에 기존 위치를 지우기
+        clearPieceFromBoard(pieceId);
+
+        // 새 좌표로 이동 및 렌더링
+        LogicalPosition newPosition = new LogicalPosition(nextNode.getA(), nextNode.getB());
+        setPiecePosition(pieceId, newPosition);
+        drawPiece(pieceId, newPosition);
+
+        System.out.println("Piece moved to: " + newPosition);
+    } else {
+        System.out.println("Invalid move. No valid next node.");
+    }
+}
+
+
+public void moveSelectedPiece(Long pieceId, YutResult yutResult) {
+        // 현재 선택된 말의 논리 좌표 가져오기
+        LogicalPosition currentPosition = piecePositions.get(pieceId);
+        if (currentPosition == null) return;
+
+        // PieceMoveController를 이용해 이동 후의 노드 계산
+        Node startNode = boardModel.findNode(currentPosition.getA(), currentPosition.getB());
+        Node nextNode = pieceMoveController.calculateNextNode(startNode, yutResult);
+
+        if (nextNode != null) {
+            // 피스를 그리기 전에 기존 위치를 지우기
+            clearPieceFromBoard(pieceId);
+
+            // 새 좌표로 이동 및 렌더링
+            LogicalPosition newPosition = new LogicalPosition(nextNode.getA(), nextNode.getB());
+            setPiecePosition(pieceId, newPosition);
+            drawPiece(pieceId, newPosition);
+    }
 
 
     // 선택된 말 강조 표시
@@ -225,3 +277,29 @@ public class SwingYutBoardPanel extends JPanel {
         }
     }
 }
+
+// SwingYutBoardPanel.java (moveSelectedPiece 추가, 기존 processMouseEvent 등에 통합)
+
+    public void moveSelectedPiece(Long pieceId, YutResult yutResult) {
+        // 현재 선택된 말의 논리 좌표 가져오기
+        LogicalPosition currentPosition = piecePositions.get(pieceId);
+        if (currentPosition == null) return;
+
+        // PieceMoveController를 이용해 이동 후의 노드 계산
+        Node startNode = boardModel.findNode(currentPosition.getA(), currentPosition.getB());
+        Node nextNode = pieceMoveController.calculateNextNode(startNode, yutResult);
+
+        if (nextNode != null) {
+            // 피스를 그리기 전에 기존 위치를 지우기
+            clearPieceFromBoard(pieceId);
+
+            // 새 좌표로 이동 및 렌더링
+            LogicalPosition newPosition = new LogicalPosition(nextNode.getA(), nextNode.getB());
+            setPiecePosition(pieceId, newPosition);
+            drawPiece(pieceId, newPosition);
+
+            System.out.println("Piece moved to: " + newPosition);
+        } else {
+            System.out.println("Invalid move. No valid next node.");
+        }
+    }
