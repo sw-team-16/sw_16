@@ -267,7 +267,7 @@ public class InGameController {
             case "GEOL" -> YutResult.GEOL;
             case "YUT" -> YutResult.YUT;
             case "MO" -> YutResult.MO;
-            case "BACK_DO" -> YutResult.BACK_DO;
+            case "BACKDO" -> YutResult.BACK_DO;
             default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
         };
     }
