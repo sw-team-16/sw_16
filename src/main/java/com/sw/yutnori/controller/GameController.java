@@ -4,12 +4,14 @@ import com.sw.yutnori.dto.game.request.*;
 import com.sw.yutnori.dto.game.response.*;
 import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
 import com.sw.yutnori.service.GameService;
+import com.sw.yutnori.common.enums.YutResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 @RestController
 @RequestMapping("/api/game")
@@ -33,10 +35,11 @@ public class GameController {
             description = "프론트에서 선택한 윷 결과를 저장"
     )
     @ApiResponse(responseCode = "200", description = "결과 저장성공")
-    @PostMapping("/{gameId}/turn/random/throw") // S 2-1 : 윷 랜덤 던지지
+    @PostMapping("/{gameId}/turn/random/throw")
     public ResponseEntity<AutoThrowResponse> getRandomYutResult(@PathVariable Long gameId,
-                                                                @RequestBody AutoThrowRequest request) {
-        return ResponseEntity.ok(gameService.getRandomYutResultForPlayer(gameId, request));
+                                                                @RequestBody AutoThrowRequest request,
+                                                                @RequestParam(value = "turnId", required = false) Long turnId) {
+        return ResponseEntity.ok(gameService.getRandomYutResultForPlayer(gameId, request, turnId));
     }
     @Operation(
             summary = "S2-3. 자동 윷 결과 값 저장",
@@ -132,5 +135,15 @@ public class GameController {
     public ResponseEntity<Void> restartGame(@PathVariable Long gameId, @RequestBody RestartGameRequest request) {
         gameService.restartGame(gameId, request.getWinnerPlayerId());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/turn/{turnId}/yut-results")
+    public ResponseEntity<List<String>> getYutResultsForTurn(@PathVariable Long turnId) {
+        List<YutResult> results = gameService.getYutResultsForTurn(turnId);
+        List<String> resultNames = new ArrayList<>();
+        for (YutResult result : results) {
+            resultNames.add(result.name());
+        }
+        return ResponseEntity.ok(resultNames);
     }
 }

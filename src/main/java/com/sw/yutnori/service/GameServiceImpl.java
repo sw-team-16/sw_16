@@ -255,19 +255,32 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request) {
+    public AutoThrowResponse getRandomYutResultForPlayer(Long gameId, AutoThrowRequest request, Long turnId) {
         Player player = playerRepository.findById(request.getPlayerId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid playerId"));
 
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid gameId"));
 
-        Turn turn = new Turn();
-        turn.setPlayer(player);
-        turn.setGame(game);
-        turn = turnRepository.save(turn);
+        Turn turn;
+        if (turnId != null) {
+            turn = turnRepository.findById(turnId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid turnId"));
+        } else {
+            turn = new Turn();
+            turn.setPlayer(player);
+            turn.setGame(game);
+            turn = turnRepository.save(turn);
+        }
 
         YutResult result = getRandomYutResult();
+        // TurnAction 저장
+        TurnAction action = new TurnAction();
+        action.setTurn(turn);
+        action.setMoveOrder(turn.getActions() != null ? turn.getActions().size() + 1 : 1);
+        action.setResult(result);
+        action.setUsed(false);
+        turnActionRepository.save(action);
         return new AutoThrowResponse(result, turn.getTurnId());
     }
 
@@ -414,5 +427,14 @@ public class GameServiceImpl implements GameService {
                 latestAction.getChosenPiece() != null ? latestAction.getChosenPiece().getPieceId() : null,
                 latestAction.isUsed()
         );
+    }
+
+    public List<YutResult> getYutResultsForTurn(Long turnId) {
+        List<TurnAction> actions = turnActionRepository.findByTurn_TurnId(turnId);
+        List<YutResult> results = new ArrayList<>();
+        for (TurnAction action : actions) {
+            results.add(action.getResult());
+        }
+        return results;
     }
 }

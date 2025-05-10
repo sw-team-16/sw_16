@@ -8,6 +8,7 @@ import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.common.enums.YutResult;
 import org.springframework.web.client.RestTemplate;
 import com.sw.yutnori.dto.game.response.TurnInfoResponse;
+import java.util.List;
 
 
 public class YutnoriApiClient implements GameApiClient {
@@ -23,8 +24,10 @@ public class YutnoriApiClient implements GameApiClient {
     @Override
     public AutoThrowResponse getRandomYutResult(Long gameId, Long turnId, Long playerId) {
         AutoThrowRequest request = new AutoThrowRequest(playerId);
-
         String url = baseUrl + "/api/game/" + gameId + "/turn/random/throw";
+        if (turnId != null) {
+            url += "?turnId=" + turnId;
+        }
         return restTemplate.postForObject(url, request, AutoThrowResponse.class);
     }
 
@@ -54,6 +57,12 @@ public class YutnoriApiClient implements GameApiClient {
     public TurnInfoResponse getTurnInfo(Long gameId) {
         String url = baseUrl + "/api/game/" + gameId + "/turn";
         return restTemplate.getForObject(url, TurnInfoResponse.class);
+    }
+
+    @Override
+    public List<String> getYutResultsForTurn(Long turnId) {
+        String url = baseUrl + "/api/game/turn/" + turnId + "/yut-results";
+        return restTemplate.getForObject(url, List.class);
     }
     // 이하 나머지 API 클라이언트 구현 필요
 }

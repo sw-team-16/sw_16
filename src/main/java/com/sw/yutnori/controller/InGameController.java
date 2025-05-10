@@ -82,6 +82,9 @@ public class InGameController {
                 updateTurnId(response.getTurnId());
             }
 
+            // 추가: 이번 턴에 던진 모든 윷 결과 리스트 가져오기 및 UI 업데이트
+            List<String> allYutResults = apiClient.getYutResultsForTurn(getCurrentTurnId());
+
             // 랜덤 윷 던지기를 클릭했을 때는 다음 턴까지 지정 윷 던지기 버튼 비활성화
             controlPanel.enableCustomButton(false);
 
@@ -180,7 +183,8 @@ public class InGameController {
             controlPanel.setGameContext(gameId, playerId);
             controlPanel.enableRandomButton(false);
             controlPanel.enableCustomButton(true);
-
+            // 턴 정보 초기화화
+            refreshTurnInfo();
         } catch (Exception ex) {
             handleError(ex);
         } finally {
