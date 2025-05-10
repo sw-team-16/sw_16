@@ -205,9 +205,14 @@ public class SwingYutBoardPanel extends JPanel {
                 selectedPieceId = clickedPos.getPieceId();
                 currentPosition = new LogicalPosition(clickedPos.getA(), clickedPos.getB());
                 controlPanel.enableYutSelection(); // 윷 선택 UI 열기
+
+                // 논리 좌표 기반 말 위치 표시
+                PiecePositionDisplayManager markerManager = new PiecePositionDisplayManager(boardModel, this);
+                markerManager.showLogicalPosition(currentPosition, selectedPieceId);
             }
         }
     }
+
 
     // 선택된 말 강조 표시
     private void highlightSelectedPiece(Long selectedId) {

@@ -10,8 +10,17 @@
  */
 package com.sw.yutnori.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sw.yutnori.board.BoardModel;
+import com.sw.yutnori.board.BoardPathManager;
 import com.sw.yutnori.client.GameApiClient;
+import com.sw.yutnori.client.PieceApiClient;
+import com.sw.yutnori.common.LogicalPosition;
+import com.sw.yutnori.common.enums.BoardType;
+import com.sw.yutnori.common.enums.YutResult;
+import com.sw.yutnori.dto.game.request.MovePieceRequest;
+import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
+import com.sw.yutnori.ui.PiecePositionDisplayManager;
 import com.sw.yutnori.ui.SwingYutBoardPanel;
 import com.sw.yutnori.ui.SwingYutControlPanel;
 import com.sw.yutnori.ui.SwingStatusPanel;
@@ -29,11 +38,14 @@ public class InGameController {
     private final SwingYutControlPanel controlPanel;
     private final SwingStatusPanel statusPanel;
     private final GameSetupDisplay.SetupData setupData;
+    private final PieceApiClient pieceApiClient = new PieceApiClient();
+    private final PiecePositionDisplayManager displayManager;
     private Long gameId;
     private Long playerId;
     private Long currentTurnId = null;
     private Long selectedPieceId = null;
     private Map<Long, List<Long>> playerPieceMap = new HashMap<>();
+    private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
 
 
 
@@ -45,20 +57,21 @@ public class InGameController {
         this.controlPanel = new SwingYutControlPanel(apiClient, this);
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
         this.yutBoardPanel.setInGameController(this);
-
-        // 게임 설정 정보 전달
+        this.displayManager = new PiecePositionDisplayManager(boardModel, yutBoardPanel);
     }
+
 
     public void setGameContext(Long gameId, Long playerId) {
         this.gameId = gameId;
         this.playerId = playerId;
         this.controlPanel.setGameContext(gameId, playerId);
     }
+
     public void setPlayerPieceMap(Map<Long, List<Long>> map) {
         this.playerPieceMap = map;
     }
 
-    // 윷 랜덤 던지기 (SwingYutControlPanel에서 여기로 이동)
+    // '랜덤 윷 던지기'를 클릭했을 때 발생하는 이벤트
     public void onRandomYutButtonClicked() {
         try {
             Long turnId = getCurrentTurnId();
@@ -68,6 +81,9 @@ public class InGameController {
                 updateTurnId(response.getTurnId());
             }
 
+            // 랜덤 윷 던지기를 클릭했을 때는 다음 턴까지 지정 윷 던지기 버튼 비활성화
+            controlPanel.enableCustomButton(false);
+
             var yutResult = response.getResult();
             String result = yutResult.name();
 
@@ -75,8 +91,8 @@ public class InGameController {
             controlPanel.updateYutResult(koreanResult, result);
 
             // 윷이나 모가 나왔을 경우에는 버튼을 활성화 상태로 유지
-            if (yutResult != com.sw.yutnori.common.enums.YutResult.YUT && 
-                yutResult != com.sw.yutnori.common.enums.YutResult.MO) {
+            if (yutResult != YutResult.YUT &&
+                yutResult != YutResult.MO) {
                 controlPanel.enableRandomButton(false);
             }
         } catch (Exception ex) {
@@ -84,8 +100,8 @@ public class InGameController {
         }
     }
 
-    // 윷 수동 던지기 (SwingYutControlPanel에서 여기로 이동)
-    public void onCustomYutButtonClicked(List<String> selectedYuts) {
+    // 지정한 윳 선택 이후 '완료' 버튼 클릭 시 발생하는 이벤트
+    public void onConfirmButtonClicked(List<String> selectedYuts) {
         try {
             if (selectedYuts.isEmpty()) {
                 controlPanel.showErrorAndRestore("선택된 윷 결과가 없습니다.");
@@ -111,17 +127,57 @@ public class InGameController {
 
             // 마지막 선택 윷을 현재 윷으로 표시
             String lastYutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(
-                selectedYuts.get(selectedYuts.size() - 1)
+                    selectedYuts.get(selectedYuts.size() - 1)
             );
             controlPanel.updateCurrentYut(lastYutType);
 
+            YutResult result = convertStringToYutResult(lastYutType);
+            BoardType boardType = parseBoardType(setupData.boardType());
+
+            // 이동 계산 전에 이전 위치 저장
+            PieceInfoResponse pieceInfo = pieceApiClient.getPieceInfo(pieceId);
+            LogicalPosition prevPos = new LogicalPosition(pieceId, pieceInfo.getA(), pieceInfo.getB());
+            piecePrevPositionMap.put(pieceId, prevPos);
+
+            int currentA = pieceInfo.getA();
+            int currentB = pieceInfo.getB();
+            int prevA = prevPos.getA();
+            int prevB = prevPos.getB();
+
+            LogicalPosition dest = BoardPathManager.calculateDestination(
+                    pieceId, currentA, currentB, prevA, prevB, result, boardType
+            );
+
+
+            // 실제 이동 요청
+            MovePieceRequest moveRequest = new MovePieceRequest();
+            moveRequest.setPlayerId(playerId);
+            moveRequest.setChosenPieceId(pieceId);
+            moveRequest.setMoveOrder(1);
+            moveRequest.setA(dest.getA());
+            moveRequest.setB(dest.getB());
+            moveRequest.setResult(result);
+
+            pieceApiClient.movePiece(gameId, moveRequest);
+
+            // UI 갱신
+            try {
+                PieceInfoResponse updatedPieceInfo = pieceApiClient.getPieceInfo(pieceId);
+                LogicalPosition newPos = new LogicalPosition(pieceId, updatedPieceInfo.getA(), updatedPieceInfo.getB());
+                displayManager.showLogicalPosition(newPos, pieceId);
+            } catch (Exception e) {
+                controlPanel.showError("말 위치 표시 중 오류 발생: " + e.getMessage());
+            }
+
             resetPieceSelection();
-            controlPanel.enableRandomButton(false);
             controlPanel.restorePanel();
+            controlPanel.enableRandomButton(false);
+            controlPanel.enableCustomButton(false);
         } catch (Exception ex) {
             handleError(ex);
         }
     }
+
     public void promptPieceSelection(Long playerId) {
         List<Long> pieces = playerPieceMap.get(playerId);
         if (pieces == null || pieces.isEmpty()) {
@@ -206,14 +262,14 @@ public class InGameController {
     }
 
     // 윷 타입 문자열을 윷 결과 열거형으로 변환
-    private com.sw.yutnori.common.enums.YutResult convertStringToYutResult(String yutType) {
+    private YutResult convertStringToYutResult(String yutType) {
         return switch (yutType) {
-            case "DO" -> com.sw.yutnori.common.enums.YutResult.DO;
-            case "GAE" -> com.sw.yutnori.common.enums.YutResult.GAE;
-            case "GEOL" -> com.sw.yutnori.common.enums.YutResult.GEOL;
-            case "YUT" -> com.sw.yutnori.common.enums.YutResult.YUT;
-            case "MO" -> com.sw.yutnori.common.enums.YutResult.MO;
-            case "BACK_DO" -> com.sw.yutnori.common.enums.YutResult.BACK_DO;
+            case "DO" -> YutResult.DO;
+            case "GAE" -> YutResult.GAE;
+            case "GEOL" -> YutResult.GEOL;
+            case "YUT" -> YutResult.YUT;
+            case "MO" -> YutResult.MO;
+            case "BACK_DO" -> YutResult.BACK_DO;
             default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
         };
     }
@@ -262,4 +318,14 @@ public class InGameController {
         controlPanel.enableRandomButton(true);
         updateAllViews();
     }
+    private BoardType parseBoardType(String rawType) {
+        return switch (rawType) {
+            case "사각형" -> BoardType.SQUARE;
+            case "오각형" -> BoardType.PENTAGON;
+            case "육각형" -> BoardType.HEXAGON;
+            default -> throw new IllegalArgumentException("알 수 없는 보드 타입: " + rawType);
+        };
+    }
+
+
 } 

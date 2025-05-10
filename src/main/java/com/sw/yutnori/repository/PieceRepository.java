@@ -17,6 +17,8 @@ public interface PieceRepository extends JpaRepository<Piece, Long> {
 
     List<Piece> findAllByAAndB(int a, int b);
 
+    Piece findByPieceId(Long pieceId);
+
     // 명확한 경로 지정: Piece → Player → Game → gameId
     @Modifying
     @Transactional

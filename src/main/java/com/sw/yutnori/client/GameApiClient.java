@@ -1,6 +1,7 @@
 package com.sw.yutnori.client;
 
 import com.sw.yutnori.common.enums.YutResult;
+import com.sw.yutnori.dto.game.request.MovePieceRequest;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 
 public interface GameApiClient {
@@ -12,5 +13,7 @@ public interface GameApiClient {
     void throwYutManual(Long gameId, Long turnId, Long playerId, Long pieceId, YutResult result);
 
     void restartGame(Long gameId, Long winnerPlayerId);
+    void movePiece(Long gameId, MovePieceRequest request);
+
 
 }
