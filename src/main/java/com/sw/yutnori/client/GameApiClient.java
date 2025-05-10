@@ -23,7 +23,4 @@ public interface GameApiClient {
     TurnInfoResponse getTurnInfo(Long gameId);
     GameStatusResponse getGameStatus(Long gameId);
 
-
-    List<String> getYutResultsForTurn(Long turnId);
-
 }

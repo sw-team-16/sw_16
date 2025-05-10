@@ -145,22 +145,6 @@ public class GameServiceImpl implements GameService {
 
         return players.get(0); // 게임 시작 시 첫 번째 플레이어
     }
-    private Player getNextPlayer(Game game) {
-        List<Player> players = playerRepository.findByGame_GameId(game.getGameId());
-        players.sort(Comparator.comparing(Player::getPlayerId));
-
-        Long currentId = game.getCurrentTurnPlayer() != null
-                ? game.getCurrentTurnPlayer().getPlayerId()
-                : null;
-
-        for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).getPlayerId().equals(currentId)) {
-                return players.get((i + 1) % players.size()); // 다음 순서
-            }
-        }
-
-        return players.get(0); // 게임 시작 시 첫 번째 플레이어
-    }
     @Transactional
     @Override
     public MovePieceResponse movePiece(Long gameId, MovePieceRequest request) {
