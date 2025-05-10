@@ -1,17 +1,12 @@
-# Compiled class file
+# Compiled class files
 *.class
 
-# Log file
+# Log files
 *.log
 
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# Package Files
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
@@ -19,8 +14,39 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Gradle
+.gradle/
+build/
+out/
+
+# Generated files
+bin/
+gen/
+tmp/
+
+# Virtual machine crash logs
 hs_err_pid*
 replay_pid*
 
-.env
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Environment and sensitive configuration files
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+echo -e "\n.gradle/\nbuild/tmp/"
+
+# Application configuration - uncomment if these contain sensitive information
+# src/main/resources/application.yml
+# src/main/resources/application-*.yml
