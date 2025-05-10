@@ -47,8 +47,6 @@ public class InGameController {
     private Map<Long, List<Long>> playerPieceMap = new HashMap<>();
     private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
 
-
-
     public InGameController(BoardModel boardModel, GameApiClient apiClient, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
         this.apiClient = apiClient;
