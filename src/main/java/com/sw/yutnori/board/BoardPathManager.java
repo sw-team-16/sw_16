@@ -94,36 +94,47 @@ public class BoardPathManager {
             int prevA,
             int prevB,
             YutResult result) {
-        int step = result.getStepCount();  // 각 윷 결과에 따른 이동 수
 
+        int step = result.getStepCount(); // 윷 결과별 이동 수
         List<LogicalPosition> path;
 
         if (a == 5 && b == 1) {
+            // (5,1) 지름길 루트 시작
             path = List.of(
-                    new LogicalPosition(pieceId, 1, 10),
-                    new LogicalPosition(pieceId, 2, 10),
+                    new LogicalPosition(pieceId, 5, 1),
+                    new LogicalPosition(pieceId, 1, 10),//도
+                    new LogicalPosition(pieceId, 2, 10),//개
+                    new LogicalPosition(pieceId, 3, 10),//걸
+                    new LogicalPosition(pieceId, 2, 30), //윷
+                    new LogicalPosition(pieceId, 1, 30),//모
+                    new LogicalPosition(pieceId, 5, 3),
+                    new LogicalPosition(pieceId, 1, 4),
+                    new LogicalPosition(pieceId, 2, 4),
+                    new LogicalPosition(pieceId, 3, 4),
+                    new LogicalPosition(pieceId, 4, 4),
+                    new LogicalPosition(pieceId, 0, 1)
+            );
+        } else if (a == 3 && b == 10 && prevA == 5 && prevB == 1) {
+            // (5,1) → (3,10) 도착 후 추가 이동
+            path = List.of(
                     new LogicalPosition(pieceId, 3, 10),
-                    new LogicalPosition(pieceId, 2, 30),
-                    new LogicalPosition(pieceId, 1, 30),
-                    new LogicalPosition(pieceId, 5, 3)
+                    new LogicalPosition(pieceId, 2, 40),
+                    new LogicalPosition(pieceId, 1, 40),
+                    new LogicalPosition(pieceId, 0, 1)
             );
         } else if (a == 5 && b == 2) {
+            // (5,2) 지름길 루트 시작
             path = List.of(
+                    new LogicalPosition(pieceId, 5, 2),
                     new LogicalPosition(pieceId, 1, 20),
                     new LogicalPosition(pieceId, 2, 20),
                     new LogicalPosition(pieceId, 3, 10),
                     new LogicalPosition(pieceId, 2, 40),
                     new LogicalPosition(pieceId, 1, 40),
-                    new LogicalPosition(pieceId, 3, 30),
-                    new LogicalPosition(pieceId, 0, 1)
-            );
-        } else if (a == 3 && b == 10 && prevA == 5 && prevB == 1) {
-            path = List.of(
-                    new LogicalPosition(pieceId, 2, 40),
-                    new LogicalPosition(pieceId, 1, 40),
                     new LogicalPosition(pieceId, 0, 1)
             );
         } else {
+            // 일반 경로
             path = List.of(
                     new LogicalPosition(pieceId, 0, 1),
                     new LogicalPosition(pieceId, 1, 1),
@@ -149,6 +160,7 @@ public class BoardPathManager {
             );
         }
 
+        // 현재 위치 인덱스 탐색
         int currentIdx = -1;
         for (int i = 0; i < path.size(); i++) {
             if (path.get(i).getA() == a && path.get(i).getB() == b) {
@@ -157,9 +169,13 @@ public class BoardPathManager {
             }
         }
 
+        // 못 찾은 경우 현재 위치 반환
+        if (currentIdx == -1) return new LogicalPosition(pieceId, a, b);
+
         int nextIdx = Math.min(currentIdx + step, path.size() - 1);
         return path.get(nextIdx);
     }
+
 
 
     private static LogicalPosition calculatePENTAGON(
@@ -174,11 +190,11 @@ public class BoardPathManager {
         // === 지름길 경로 정의 ===
         Map<String, LogicalPosition[]> shortcutRoutes = new HashMap<>();
         shortcutRoutes.put("5,1", new LogicalPosition[]{
-                new LogicalPosition(pieceId, 1, 10),
-                new LogicalPosition(pieceId, 2, 10),
-                new LogicalPosition(pieceId, 3, 10),
-                new LogicalPosition(pieceId, 1, 40),
-                new LogicalPosition(pieceId, 2, 40),
+                new LogicalPosition(pieceId, 1, 10), //도
+                new LogicalPosition(pieceId, 2, 10), // 개
+                new LogicalPosition(pieceId, 3, 10), // 걸
+                new LogicalPosition(pieceId, 1, 40), // 윷
+                new LogicalPosition(pieceId, 2, 40), // 모
                 new LogicalPosition(pieceId, 5, 4),
                 new LogicalPosition(pieceId, 1, 5),
                 new LogicalPosition(pieceId, 2, 5),
@@ -293,8 +309,8 @@ public class BoardPathManager {
         Map<String, LogicalPosition[]> shortcuts = new HashMap<>();
         shortcuts.put("5,1", new LogicalPosition[]{
                 new LogicalPosition(pieceId, 1, 10), new LogicalPosition(pieceId, 2, 10),
-                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 60),
-                new LogicalPosition(pieceId, 1, 60), new LogicalPosition(pieceId, 5, 4),
+                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 40),
+                new LogicalPosition(pieceId, 1, 40), new LogicalPosition(pieceId, 5, 4),
                 new LogicalPosition(pieceId, 1, 5), new LogicalPosition(pieceId, 2, 5),
                 new LogicalPosition(pieceId, 3, 5), new LogicalPosition(pieceId, 4, 5),
                 new LogicalPosition(pieceId, 5, 5), new LogicalPosition(pieceId, 1, 6),
@@ -321,47 +337,33 @@ public class BoardPathManager {
         shortcuts.put("5,4", new LogicalPosition[]{
                 new LogicalPosition(pieceId, 1, 40), new LogicalPosition(pieceId, 2, 40),
                 new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 60),
-                new LogicalPosition(pieceId, 1, 50), new LogicalPosition(pieceId, 0, 1)
+                new LogicalPosition(pieceId, 1, 60), new LogicalPosition(pieceId, 0, 1)
         });
 
+        // (3,10)에 도착한 경우: 이전 위치에 따라 별도 분기
+        if (a == 3 && b == 10) {
+            if ((prevA == 5 && prevB == 1) || (prevA == 5 && prevB == 2) || (prevA == 5 && prevB == 4)) {
+                LogicalPosition[] tail = {
+                        new LogicalPosition(pieceId, 2, 60), new LogicalPosition(pieceId, 1, 60),
+                        new LogicalPosition(pieceId, 0, 1)
+                };
+                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
+            } else if (prevA == 5 && prevB == 3) {
+                // 5,3 루트는 그대로 유지
+                String key = prevA + "," + prevB;
+                LogicalPosition[] route = shortcuts.getOrDefault(key, new LogicalPosition[0]);
+                return step - 1 < route.length ? route[step - 1] : route[route.length - 1];
+            }
+        }
+
+        // 지름길 분기점 처리
         String key = a + "," + b;
         if (shortcuts.containsKey(key)) {
             LogicalPosition[] route = shortcuts.get(key);
             return step - 1 < route.length ? route[step - 1] : route[route.length - 1];
         }
 
-        if (a == 3 && b == 10) {
-            if (prevA == 5 && prevB == 1) {
-                LogicalPosition[] tail = {
-                        new LogicalPosition(pieceId, 2, 60), new LogicalPosition(pieceId, 1, 60),
-                        new LogicalPosition(pieceId, 0, 1)
-                };
-                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
-            } else if (prevA == 5 && prevB == 2) {
-                LogicalPosition[] tail = {
-                        new LogicalPosition(pieceId, 2, 50), new LogicalPosition(pieceId, 1, 50),
-                        new LogicalPosition(pieceId, 5, 5), new LogicalPosition(pieceId, 1, 6),
-                        new LogicalPosition(pieceId, 2, 6), new LogicalPosition(pieceId, 3, 6),
-                        new LogicalPosition(pieceId, 4, 6), new LogicalPosition(pieceId, 5, 6),
-                        new LogicalPosition(pieceId, 0, 1)
-                };
-                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
-            } else if (prevA == 5 && prevB == 3) {
-                LogicalPosition[] tail = {
-                        new LogicalPosition(pieceId, 2, 60), new LogicalPosition(pieceId, 1, 60),
-                        new LogicalPosition(pieceId, 0, 1)
-                };
-                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
-            } else if (prevA == 5 && prevB == 4) {
-                LogicalPosition[] tail = {
-                        new LogicalPosition(pieceId, 2, 60), new LogicalPosition(pieceId, 1, 50),
-                        new LogicalPosition(pieceId, 0, 1)
-                };
-                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
-            }
-        }
-
-        // 일반 루트
+        // 기본 경로
         LogicalPosition[] normalRoute = {
                 new LogicalPosition(pieceId, 0, 1), new LogicalPosition(pieceId, 1, 1),
                 new LogicalPosition(pieceId, 2, 1), new LogicalPosition(pieceId, 3, 1),
@@ -388,8 +390,10 @@ public class BoardPathManager {
             }
         }
 
+        // 위치를 찾을 수 없을 경우 현재 위치 반환
         return new LogicalPosition(pieceId, a, b);
     }
+
 
 
 
