@@ -6,6 +6,7 @@ import com.sw.yutnori.dto.game.request.MovePieceRequest;
 import com.sw.yutnori.dto.game.request.RestartGameRequest;
 import com.sw.yutnori.dto.game.response.AutoThrowResponse;
 import com.sw.yutnori.common.enums.YutResult;
+import com.sw.yutnori.dto.game.response.MovePieceResponse;
 import org.springframework.web.client.RestTemplate;
 import com.sw.yutnori.dto.game.response.TurnInfoResponse;
 import java.util.List;
@@ -48,10 +49,11 @@ public class YutnoriApiClient implements GameApiClient {
         restTemplate.postForObject(url, request, Void.class);
     }
     @Override
-    public void movePiece(Long gameId, MovePieceRequest request) {
+    public MovePieceResponse movePiece(Long gameId, MovePieceRequest request) {
         String url = baseUrl + "/api/game/" + gameId + "/move";
-        restTemplate.postForObject(url, request, Void.class);
+        return restTemplate.postForObject(url, request, MovePieceResponse.class);
     }
+
 
     @Override
     public TurnInfoResponse getTurnInfo(Long gameId) {

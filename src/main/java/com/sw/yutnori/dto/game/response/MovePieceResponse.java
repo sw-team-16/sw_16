@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @AllArgsConstructor
 public class MovePieceResponse {
@@ -19,5 +21,8 @@ public class MovePieceResponse {
 
     @Schema(description = "추가 이동이 필요한지 여부", example = "true")
     private boolean requiresAnotherMove;
+
+    @Schema(description = "업힌 대상 말들의 ID 리스트", example = "[12, 13]")
+    private List<Long> targetPieceIds;
 
 }
