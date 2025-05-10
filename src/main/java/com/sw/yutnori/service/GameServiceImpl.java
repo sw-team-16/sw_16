@@ -142,7 +142,10 @@ public class GameServiceImpl implements GameService {
         int targetA = request.getA();
         int targetB = request.getB();
 
-        List<Piece> piecesAtTarget = pieceRepository.findAllByAAndB(targetA, targetB);
+        // 같은 게임의 말만 대상으로 설정
+        List<Piece> piecesAtTarget = pieceRepository.findAllByAAndB(targetA, targetB).stream()
+                .filter(p -> p.getPlayer().getGame().getGameId().equals(gameId))
+                .collect(Collectors.toList());
 
         boolean captureOccurred = false;
         boolean groupingOccurred = false;
@@ -157,6 +160,10 @@ public class GameServiceImpl implements GameService {
                 movingPiece.setGrouped(true);
                 pieceRepository.save(target);
                 groupedPieceIds.add(target.getPieceId());
+                if (!groupingOccurred) {
+                    System.out.printf("[디버깅] 업기 발생: basePieceId=%d, groupedPieceId=%d, 위치=(%d,%d)%n",
+                            movingPiece.getPieceId(), target.getPieceId(), targetA, targetB);
+                }
                 groupingOccurred = true;
             } else {
                 // 잡기 처리
@@ -165,6 +172,10 @@ public class GameServiceImpl implements GameService {
                 target.setState(PieceState.READY);
                 target.setLogicalPosition(0, 1);
                 pieceRepository.save(target);
+                if (!captureOccurred) {
+                    System.out.printf("[디버깅] 잡기 발생: attackerPieceId=%d, capturedPieceId=%d, 위치=(%d,%d)%n",
+                            movingPiece.getPieceId(), target.getPieceId(), targetA, targetB);
+                }
                 captureOccurred = true;
             }
         }
@@ -206,6 +217,7 @@ public class GameServiceImpl implements GameService {
                 groupedPieceIds
         );
     }
+
 
 
 
