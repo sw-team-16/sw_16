@@ -14,7 +14,7 @@ public interface GameService {
     void throwYutManual(Long gameId, ManualThrowRequest request);
 
 
-    void movePiece(Long gameId,MovePieceRequest request);
+    MovePieceResponse movePiece(Long gameId, MovePieceRequest request);
 
     GameStatusResponse getGameStatus(Long gameId);
 

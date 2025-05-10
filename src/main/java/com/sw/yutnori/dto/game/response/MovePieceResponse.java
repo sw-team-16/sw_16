@@ -16,4 +16,8 @@ public class MovePieceResponse {
 
     @Schema(description = "말이 골인했는지 여부", example = "true")
     private boolean reachedEndPoint;
+
+    @Schema(description = "추가 이동이 필요한지 여부", example = "true")
+    private boolean requiresAnotherMove;
+
 }

@@ -286,8 +286,111 @@ public class BoardPathManager {
             int prevA,
             int prevB,
             YutResult result) {
-        return new LogicalPosition(pieceId, 5, 8);
+
+        int step = yutResultToStep(result);
+
+        // 지름길 정의
+        Map<String, LogicalPosition[]> shortcuts = new HashMap<>();
+        shortcuts.put("5,1", new LogicalPosition[]{
+                new LogicalPosition(pieceId, 1, 10), new LogicalPosition(pieceId, 2, 10),
+                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 60),
+                new LogicalPosition(pieceId, 1, 60), new LogicalPosition(pieceId, 5, 4),
+                new LogicalPosition(pieceId, 1, 5), new LogicalPosition(pieceId, 2, 5),
+                new LogicalPosition(pieceId, 3, 5), new LogicalPosition(pieceId, 4, 5),
+                new LogicalPosition(pieceId, 5, 5), new LogicalPosition(pieceId, 1, 6),
+                new LogicalPosition(pieceId, 2, 6), new LogicalPosition(pieceId, 3, 6),
+                new LogicalPosition(pieceId, 4, 6), new LogicalPosition(pieceId, 5, 6),
+                new LogicalPosition(pieceId, 0, 1)
+        });
+
+        shortcuts.put("5,2", new LogicalPosition[]{
+                new LogicalPosition(pieceId, 1, 20), new LogicalPosition(pieceId, 2, 20),
+                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 50),
+                new LogicalPosition(pieceId, 1, 50), new LogicalPosition(pieceId, 5, 5),
+                new LogicalPosition(pieceId, 1, 6), new LogicalPosition(pieceId, 2, 6),
+                new LogicalPosition(pieceId, 3, 6), new LogicalPosition(pieceId, 4, 6),
+                new LogicalPosition(pieceId, 5, 6), new LogicalPosition(pieceId, 0, 1)
+        });
+
+        shortcuts.put("5,3", new LogicalPosition[]{
+                new LogicalPosition(pieceId, 1, 30), new LogicalPosition(pieceId, 2, 30),
+                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 60),
+                new LogicalPosition(pieceId, 1, 60), new LogicalPosition(pieceId, 0, 1)
+        });
+
+        shortcuts.put("5,4", new LogicalPosition[]{
+                new LogicalPosition(pieceId, 1, 40), new LogicalPosition(pieceId, 2, 40),
+                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 60),
+                new LogicalPosition(pieceId, 1, 50), new LogicalPosition(pieceId, 0, 1)
+        });
+
+        String key = a + "," + b;
+        if (shortcuts.containsKey(key)) {
+            LogicalPosition[] route = shortcuts.get(key);
+            return step - 1 < route.length ? route[step - 1] : route[route.length - 1];
+        }
+
+        if (a == 3 && b == 10) {
+            if (prevA == 5 && prevB == 1) {
+                LogicalPosition[] tail = {
+                        new LogicalPosition(pieceId, 2, 60), new LogicalPosition(pieceId, 1, 60),
+                        new LogicalPosition(pieceId, 0, 1)
+                };
+                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
+            } else if (prevA == 5 && prevB == 2) {
+                LogicalPosition[] tail = {
+                        new LogicalPosition(pieceId, 2, 50), new LogicalPosition(pieceId, 1, 50),
+                        new LogicalPosition(pieceId, 5, 5), new LogicalPosition(pieceId, 1, 6),
+                        new LogicalPosition(pieceId, 2, 6), new LogicalPosition(pieceId, 3, 6),
+                        new LogicalPosition(pieceId, 4, 6), new LogicalPosition(pieceId, 5, 6),
+                        new LogicalPosition(pieceId, 0, 1)
+                };
+                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
+            } else if (prevA == 5 && prevB == 3) {
+                LogicalPosition[] tail = {
+                        new LogicalPosition(pieceId, 2, 60), new LogicalPosition(pieceId, 1, 60),
+                        new LogicalPosition(pieceId, 0, 1)
+                };
+                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
+            } else if (prevA == 5 && prevB == 4) {
+                LogicalPosition[] tail = {
+                        new LogicalPosition(pieceId, 2, 60), new LogicalPosition(pieceId, 1, 50),
+                        new LogicalPosition(pieceId, 0, 1)
+                };
+                return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
+            }
+        }
+
+        // 일반 루트
+        LogicalPosition[] normalRoute = {
+                new LogicalPosition(pieceId, 0, 1), new LogicalPosition(pieceId, 1, 1),
+                new LogicalPosition(pieceId, 2, 1), new LogicalPosition(pieceId, 3, 1),
+                new LogicalPosition(pieceId, 4, 1), new LogicalPosition(pieceId, 5, 1),
+                new LogicalPosition(pieceId, 1, 2), new LogicalPosition(pieceId, 2, 2),
+                new LogicalPosition(pieceId, 3, 2), new LogicalPosition(pieceId, 4, 2),
+                new LogicalPosition(pieceId, 5, 2), new LogicalPosition(pieceId, 1, 3),
+                new LogicalPosition(pieceId, 2, 3), new LogicalPosition(pieceId, 3, 3),
+                new LogicalPosition(pieceId, 4, 3), new LogicalPosition(pieceId, 5, 3),
+                new LogicalPosition(pieceId, 1, 4), new LogicalPosition(pieceId, 2, 4),
+                new LogicalPosition(pieceId, 3, 4), new LogicalPosition(pieceId, 4, 4),
+                new LogicalPosition(pieceId, 5, 4), new LogicalPosition(pieceId, 1, 5),
+                new LogicalPosition(pieceId, 2, 5), new LogicalPosition(pieceId, 3, 5),
+                new LogicalPosition(pieceId, 4, 5), new LogicalPosition(pieceId, 5, 5),
+                new LogicalPosition(pieceId, 1, 6), new LogicalPosition(pieceId, 2, 6),
+                new LogicalPosition(pieceId, 3, 6), new LogicalPosition(pieceId, 4, 6),
+                new LogicalPosition(pieceId, 5, 6), new LogicalPosition(pieceId, 0, 1)
+        };
+
+        for (int i = 0; i < normalRoute.length; i++) {
+            if (normalRoute[i].getA() == a && normalRoute[i].getB() == b) {
+                int dest = Math.min(i + step, normalRoute.length - 1);
+                return normalRoute[dest];
+            }
+        }
+
+        return new LogicalPosition(pieceId, a, b);
     }
+
 
 
 }
