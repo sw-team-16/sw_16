@@ -1,8 +1,8 @@
 /*
  * GameServiceImpl.java
  * 백엔드 서비스 로직 구현
- * 
- * 
+ *
+ *
  */
 package com.sw.yutnori.service;
 
@@ -123,22 +123,7 @@ public class GameServiceImpl implements GameService {
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
     }
-    private Player getNextPlayer(Game game) {
-        List<Player> players = playerRepository.findByGame_GameId(game.getGameId());
-        players.sort(Comparator.comparing(Player::getPlayerId));
 
-        Long currentId = game.getCurrentTurnPlayer() != null
-                ? game.getCurrentTurnPlayer().getPlayerId()
-                : null;
-
-        for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).getPlayerId().equals(currentId)) {
-                return players.get((i + 1) % players.size()); // 다음 순서
-            }
-        }
-
-        return players.get(0); // 게임 시작 시 첫 번째 플레이어
-    }
     @Transactional
     @Override
     public MovePieceResponse movePiece(Long gameId, MovePieceRequest request) {
@@ -201,7 +186,6 @@ public class GameServiceImpl implements GameService {
         // 4. 새로운 Turn 생성
         Turn newTurn = new Turn();
         newTurn.setGame(game);
-        newTurn.setPlayer(getNextPlayer(game));
         newTurn.setPlayer(player);
         turnRepository.save(newTurn);
 
