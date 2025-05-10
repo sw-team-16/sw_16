@@ -150,7 +150,6 @@ public class InGameController {
             for (String selectedYut : selectedYuts) {
                 String yutType = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
                 YutResult result = convertStringToYutResult(yutType);
-
                 apiClient.throwYutManual(gameId, turnId, playerId, pieceId, result);
                 controlPanel.updateYutResult(selectedYut, yutType);
 
@@ -202,6 +201,7 @@ public class InGameController {
             controlPanel.restorePanel();
         }
     }
+
 
 
 

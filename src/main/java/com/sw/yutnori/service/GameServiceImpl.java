@@ -51,7 +51,7 @@ public class GameServiceImpl implements GameService {
         game.setNumPlayers(request.getPlayers().size());
         game.setNumPieces(request.getNumPieces());
         game.setState(GameState.SETUP);
-        game = gameRepository.save(game);
+        game = gameRepository.save(game); // 초기 저장
 
         Board board = new Board();
         board.setGame(game);
@@ -90,8 +90,14 @@ public class GameServiceImpl implements GameService {
             ));
         }
 
+        List<Player> allPlayers = playerRepository.findByGame_GameId(game.getGameId());
+        allPlayers.sort(Comparator.comparing(Player::getPlayerId));
+        game.setCurrentTurnPlayer(allPlayers.get(0)); // 첫 번째 player
+        gameRepository.save(game); // currentTurnPlayer 반영 저장
+
         return new GameCreateResponse(game.getGameId(), playerInfoList);
     }
+
 
 
 
@@ -122,6 +128,22 @@ public class GameServiceImpl implements GameService {
         action.setChosenPiece(piece);
         action.setUsed(false); // 사용 여부는 false로 초기화
         turnActionRepository.save(action);
+    }
+    private Player getNextPlayer(Game game) {
+        List<Player> players = playerRepository.findByGame_GameId(game.getGameId());
+        players.sort(Comparator.comparing(Player::getPlayerId));
+
+        Long currentId = game.getCurrentTurnPlayer() != null
+                ? game.getCurrentTurnPlayer().getPlayerId()
+                : null;
+
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getPlayerId().equals(currentId)) {
+                return players.get((i + 1) % players.size()); // 다음 순서
+            }
+        }
+
+        return players.get(0); // 게임 시작 시 첫 번째 플레이어
     }
     private Player getNextPlayer(Game game) {
         List<Player> players = playerRepository.findByGame_GameId(game.getGameId());
