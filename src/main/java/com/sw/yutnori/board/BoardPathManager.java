@@ -1,15 +1,13 @@
 package com.sw.yutnori.board;
 
 import com.sw.yutnori.common.LogicalPosition;
-import com.sw.yutnori.common.enums.BoardType;
-import com.sw.yutnori.common.enums.YutResult;
+import com.sw.yutnori.model.enums.BoardType;
+import com.sw.yutnori.model.enums.YutResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.apache.coyote.http11.Constants.a;
 
 public class BoardPathManager {
 

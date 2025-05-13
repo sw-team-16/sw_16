@@ -1,12 +1,13 @@
 package com.sw.yutnori.service;
 
-import com.sw.yutnori.domain.Piece;
-import com.sw.yutnori.domain.Player;
-import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
-import com.sw.yutnori.repository.PieceRepository;
+import com.sw.yutnori.backend.service.PieceServiceImpl;
+import com.sw.yutnori.model.Piece;
+import com.sw.yutnori.model.Player;
+import com.sw.yutnori.backend.dto.piece.response.PieceInfoResponse;
+import com.sw.yutnori.model.enums.PieceState;
+import com.sw.yutnori.backend.repository.PieceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.Optional;
 
@@ -34,7 +35,7 @@ class PieceServiceImplTest {
         dummyPiece.setFinished(false);
         dummyPiece.setGrouped(false);
         dummyPiece.setPlayer(new Player()); // 최소한 Player가 null이 아니도록 설정
-        dummyPiece.setState(com.sw.yutnori.common.enums.PieceState.READY);
+        dummyPiece.setState(PieceState.READY);
 
         when(pieceRepository.findById(1L)).thenReturn(Optional.of(dummyPiece));
 

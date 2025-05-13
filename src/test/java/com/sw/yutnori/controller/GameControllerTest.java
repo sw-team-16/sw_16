@@ -1,13 +1,13 @@
 package com.sw.yutnori.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sw.yutnori.common.enums.YutResult;
-import com.sw.yutnori.common.enums.BoardType;
-import com.sw.yutnori.common.LogicalPosition;
-import com.sw.yutnori.dto.game.request.*;
-import com.sw.yutnori.dto.game.response.*;
-import com.sw.yutnori.dto.piece.response.MovablePieceResponse;
-import com.sw.yutnori.service.GameService;
+import com.sw.yutnori.backend.controller.GameController;
+import com.sw.yutnori.backend.dto.game.request.*;
+import com.sw.yutnori.backend.dto.game.response.*;
+import com.sw.yutnori.model.enums.YutResult;
+import com.sw.yutnori.model.enums.BoardType;
+import com.sw.yutnori.backend.dto.piece.response.MovablePieceResponse;
+import com.sw.yutnori.backend.service.GameService;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

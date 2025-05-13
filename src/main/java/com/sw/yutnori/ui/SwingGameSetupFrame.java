@@ -47,9 +47,7 @@ public class SwingGameSetupFrame extends JFrame {
     }
 
     private void startGame(InGameController inGameController) {
-        // 현재 프레임 숨기기
         this.setVisible(false);
-        
         // 게임 화면 생성 및 표시
         SwingInGameFrame gameFrame = new SwingInGameFrame(inGameController);
         gameFrame.setVisible(true);

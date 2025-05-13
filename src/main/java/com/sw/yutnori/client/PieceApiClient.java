@@ -1,10 +1,10 @@
 package com.sw.yutnori.client;
 
-import com.sw.yutnori.dto.game.request.MovePieceRequest;
+import com.sw.yutnori.backend.dto.game.request.MovePieceRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
+import com.sw.yutnori.backend.dto.piece.response.PieceInfoResponse;
 import org.springframework.web.client.RestTemplate;
 
 public class PieceApiClient {

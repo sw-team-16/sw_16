@@ -1,11 +1,11 @@
 package com.sw.yutnori.client;
 
-import com.sw.yutnori.common.enums.YutResult;
-import com.sw.yutnori.dto.game.request.MovePieceRequest;
-import com.sw.yutnori.dto.game.response.AutoThrowResponse;
-import com.sw.yutnori.dto.game.response.MovePieceResponse;
-import com.sw.yutnori.dto.game.response.GameStatusResponse;
-import com.sw.yutnori.dto.game.response.TurnInfoResponse;
+import com.sw.yutnori.model.enums.YutResult;
+import com.sw.yutnori.backend.dto.game.request.MovePieceRequest;
+import com.sw.yutnori.backend.dto.game.response.AutoThrowResponse;
+import com.sw.yutnori.backend.dto.game.response.MovePieceResponse;
+import com.sw.yutnori.backend.dto.game.response.GameStatusResponse;
+import com.sw.yutnori.backend.dto.game.response.TurnInfoResponse;
 
 public interface GameApiClient {
 

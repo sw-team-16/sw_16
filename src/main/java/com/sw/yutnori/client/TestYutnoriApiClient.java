@@ -1,7 +1,7 @@
 package com.sw.yutnori.client;
 
-import com.sw.yutnori.common.enums.YutResult;
-import com.sw.yutnori.dto.game.response.AutoThrowResponse;
+import com.sw.yutnori.model.enums.YutResult;
+import com.sw.yutnori.backend.dto.game.response.AutoThrowResponse;
 
 import java.util.Random;
 

@@ -12,16 +12,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.controller.InGameController;
-import com.sw.yutnori.domain.Piece;
+import com.sw.yutnori.logic.GameManager;
+import com.sw.yutnori.model.Piece;
 
 public class SwingYutBoardPanel extends JPanel {
     private final BoardModel boardModel;
@@ -30,8 +29,7 @@ public class SwingYutBoardPanel extends JPanel {
     private final Map<Long, JButton> pieceButtons = new HashMap<>();
     private InGameController controller;
     private List<Piece> pieceList;
-
-
+    private GameManager gameManager;
 
     public SwingYutBoardPanel(BoardModel boardModel) {
         this.boardModel = boardModel;
@@ -205,10 +203,10 @@ public class SwingYutBoardPanel extends JPanel {
                 selectedPieceId = clickedPos.getPieceId();
                 currentPosition = new LogicalPosition(clickedPos.getA(), clickedPos.getB());
                 controlPanel.enableYutSelection(); // 윷 선택 UI 열기
-
                 // 논리 좌표 기반 말 위치 표시
-                PiecePositionDisplayManager markerManager = new PiecePositionDisplayManager(boardModel, this);
+                PiecePositionDisplayManager markerManager = new PiecePositionDisplayManager(boardModel, this, gameManager);
                 markerManager.showLogicalPosition(currentPosition, selectedPieceId);
+
             }
         }
     }

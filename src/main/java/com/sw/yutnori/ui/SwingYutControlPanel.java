@@ -9,7 +9,6 @@
 package com.sw.yutnori.ui;
 
 import com.sw.yutnori.client.GameApiClient;
-import com.sw.yutnori.common.enums.YutResult;
 import com.sw.yutnori.ui.display.ResultDisplay;
 import com.sw.yutnori.ui.display.SwingResultDisplay;
 import com.sw.yutnori.ui.display.SwingYutDisplay;

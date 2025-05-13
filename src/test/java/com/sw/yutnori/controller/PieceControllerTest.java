@@ -1,9 +1,10 @@
 package com.sw.yutnori.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sw.yutnori.common.enums.PieceState;
-import com.sw.yutnori.dto.piece.response.PieceInfoResponse;
-import com.sw.yutnori.service.PieceService;
+import com.sw.yutnori.backend.controller.PieceController;
+import com.sw.yutnori.model.enums.PieceState;
+import com.sw.yutnori.backend.dto.piece.response.PieceInfoResponse;
+import com.sw.yutnori.backend.service.PieceService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;

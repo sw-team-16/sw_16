@@ -1,7 +1,5 @@
 package com.sw.yutnori.ui;
 
-import com.sw.yutnori.common.enums.GameState;
-
 public interface GameUI {
     void initialize();
     void displayYutResult(String result);
