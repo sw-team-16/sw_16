@@ -5,7 +5,6 @@ import com.sw.yutnori.board.Node;
 import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Piece;
-import com.sw.yutnori.model.Player;
 import com.sw.yutnori.util.ColorUtils;
 
 import javax.swing.*;
