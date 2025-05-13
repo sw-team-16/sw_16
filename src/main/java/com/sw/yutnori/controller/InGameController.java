@@ -2,7 +2,7 @@
 package com.sw.yutnori.controller;
 
 import com.sw.yutnori.board.BoardModel;
-import com.sw.yutnori.board.BoardPathManager;
+import com.sw.yutnori.logic.BoardPathManager;
 import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Piece;
@@ -42,7 +42,7 @@ public class InGameController {
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
         this.yutBoardPanel.setInGameController(this);
         this.displayManager = new PiecePositionDisplayManager(boardModel, yutBoardPanel, gameManager);
-        
+
     }
 
     public void setGameContext(Long playerId) {
@@ -126,8 +126,9 @@ public class InGameController {
             if (moveResult.groupingOccurred()) {
                 JOptionPane.showMessageDialog(null, moveResult.targetPieceIds().size() + "개의 말을 업었습니다.", "업기", JOptionPane.INFORMATION_MESSAGE);
             }
-            if (moveResult.captureOccurred()) {
+            if (moveResult.captureOccurred()) { //말을 잡을 경우 랜더링을 다시 해줘야 상대방의 말이 판에서 사라짐
                 JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
+                yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers()); //랜더링 다시 하기
             }
 
             if (!moveResult.requiresAnotherMove()) {

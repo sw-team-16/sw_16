@@ -1,7 +1,6 @@
 // logic/GameManager.java
 package com.sw.yutnori.logic;
 
-import com.sw.yutnori.board.BoardPathManager;
 import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.model.*;
 import com.sw.yutnori.model.enums.*;

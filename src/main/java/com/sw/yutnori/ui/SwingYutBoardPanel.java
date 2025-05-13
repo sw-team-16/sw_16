@@ -21,6 +21,8 @@ import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.controller.InGameController;
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Piece;
+import com.sw.yutnori.model.Player;
+import com.sw.yutnori.util.ColorUtils;
 
 public class SwingYutBoardPanel extends JPanel {
     private final BoardModel boardModel;
@@ -210,8 +212,28 @@ public class SwingYutBoardPanel extends JPanel {
             }
         }
     }
+    public void refreshAllPieceMarkers(List<Player> players) {
+        removeAll(); // 모든 컴포넌트 제거
+        pieceButtons.clear();
 
+        for (Player player : players) {
+            Color color = ColorUtils.parseColor(player.getColor());
+            for (Piece piece : player.getPieces()) {
+                Node node = boardModel.findNode(piece.getA(), piece.getB());
+                if (node == null) continue;
 
+                JButton btn = new JButton(String.valueOf(piece.getPieceId()));
+                btn.setBounds((int) node.getX() - 15, (int) node.getY() - 15, 30, 30);
+                btn.setBackground(color);
+                btn.setOpaque(true);
+                btn.setBorderPainted(false);
+                pieceButtons.put(piece.getPieceId(), btn);
+                add(btn);
+            }
+        }
+        revalidate();
+        repaint();
+    }
     // 선택된 말 강조 표시
     private void highlightSelectedPiece(Long selectedId) {
         for (Map.Entry<Long, JButton> entry : pieceButtons.entrySet()) {

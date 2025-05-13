@@ -1,4 +1,4 @@
-package com.sw.yutnori.board;
+package com.sw.yutnori.logic;
 
 import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.model.enums.BoardType;
