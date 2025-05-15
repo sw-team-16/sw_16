@@ -233,7 +233,9 @@ public class SwingYutBoardPanel extends JPanel {
                     // 노드 중심과 버튼 중앙이 일치하도록 배치
                     int x = (int) node.getX() + offsetX - (pieceSize / 2);
                     int y = (int) node.getY() + offsetY - (pieceSize / 2);
-                    JButton btn = new JButton(String.valueOf(piece.getPieceId()));
+                    // 말 번호는 양측 모두 1부터 n(2<=n<=5) 순서대로 표시
+                    int displayNum = player.getPieces().indexOf(piece) + 1;
+                    JButton btn = new JButton(String.valueOf(displayNum));
                     btn.setBounds(x, y, pieceSize, pieceSize);
                     btn.setBackground(color);
                     btn.setOpaque(true);
