@@ -112,23 +112,14 @@ public class InGameController {
 
             var moveResult = gameManager.movePiece(selectedPieceId, finalResult);
 
-            System.out.printf("[디버깅] movePiece 이후 실제 위치: (%d, %d)%n",
-                    gameManager.getPiece(selectedPieceId).getA(),
-                    gameManager.getPiece(selectedPieceId).getB());
-
-            displayManager.showLogicalPosition(
-                    new LogicalPosition(selectedPieceId,
-                            gameManager.getPiece(selectedPieceId).getA(),
-                            gameManager.getPiece(selectedPieceId).getB()),
-                    selectedPieceId
-            );
+            // 항상 윷판 전체 새로고침
+            yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
 
             if (moveResult.groupingOccurred()) {
                 JOptionPane.showMessageDialog(null, moveResult.targetPieceIds().size() + "개의 말을 업었습니다.", "업기", JOptionPane.INFORMATION_MESSAGE);
             }
             if (moveResult.captureOccurred()) { //말을 잡을 경우 랜더링을 다시 해줘야 상대방의 말이 판에서 사라짐
                 JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
-                yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers()); //랜더링 다시 하기
             }
 
             if (!moveResult.requiresAnotherMove()) {

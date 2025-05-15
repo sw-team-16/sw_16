@@ -23,6 +23,7 @@ import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.util.ColorUtils;
+import com.sw.yutnori.model.enums.PieceState;
 
 public class SwingYutBoardPanel extends JPanel {
     private final BoardModel boardModel;
@@ -216,19 +217,30 @@ public class SwingYutBoardPanel extends JPanel {
         removeAll(); // 모든 컴포넌트 제거
         pieceButtons.clear();
 
+        // paintComponent와 동일하게 offsetX, offsetY 계산
+        int panelW = getWidth();
+        int panelH = getHeight();
+        int offsetX = (panelW - BOARD_WIDTH) / 2;
+        int offsetY = (panelH - BOARD_HEIGHT) / 2;
+        int pieceSize = 30;
+
         for (Player player : players) {
             Color color = ColorUtils.parseColor(player.getColor());
             for (Piece piece : player.getPieces()) {
-                Node node = boardModel.findNode(piece.getA(), piece.getB());
-                if (node == null) continue;
-
-                JButton btn = new JButton(String.valueOf(piece.getPieceId()));
-                btn.setBounds((int) node.getX() - 15, (int) node.getY() - 15, 30, 30);
-                btn.setBackground(color);
-                btn.setOpaque(true);
-                btn.setBorderPainted(false);
-                pieceButtons.put(piece.getPieceId(), btn);
-                add(btn);
+                if (piece.getState() == PieceState.ON_BOARD && !piece.isFinished()) {
+                    Node node = boardModel.findNode(piece.getA(), piece.getB());
+                    if (node == null) continue;
+                    // 노드 중심과 버튼 중앙이 일치하도록 배치
+                    int x = (int) node.getX() + offsetX - (pieceSize / 2);
+                    int y = (int) node.getY() + offsetY - (pieceSize / 2);
+                    JButton btn = new JButton(String.valueOf(piece.getPieceId()));
+                    btn.setBounds(x, y, pieceSize, pieceSize);
+                    btn.setBackground(color);
+                    btn.setOpaque(true);
+                    btn.setBorderPainted(false);
+                    pieceButtons.put(piece.getPieceId(), btn);
+                    add(btn);
+                }
             }
         }
         revalidate();
