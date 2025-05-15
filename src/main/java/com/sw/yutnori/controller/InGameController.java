@@ -151,21 +151,32 @@ public class InGameController {
             return;
         }
 
+        // index+1로 표시(말 번호는 양측 모두 1부터 n(2<=n<=5) 순서대로 표시), PieceId로 매핑
+        String[] displayOptions = new String[pieces.size()];
+        Long[] pieceIds = new Long[pieces.size()];
+        for (int i = 0; i < pieces.size(); i++) {
+            displayOptions[i] = (i + 1) + "번";
+            pieceIds[i] = pieces.get(i).getPieceId();
+        }
+
         Object selected = JOptionPane.showInputDialog(
                 null,
                 "사용할 말을 선택하세요",
                 "말 선택",
                 JOptionPane.PLAIN_MESSAGE,
                 null,
-                pieces.stream().map(Piece::getPieceId).toArray(),
-                pieces.get(0).getPieceId()
+                displayOptions,
+                displayOptions[0]
         );
 
         if (selected != null) {
-            selectedPieceId = (Long) selected;
-            if (pendingRandomYutResult != null) {
-                onConfirmButtonClicked(List.of(pendingRandomYutResult.name()));
-                pendingRandomYutResult = null;
+            int selectedIdx = java.util.Arrays.asList(displayOptions).indexOf(selected.toString());
+            if (selectedIdx >= 0) {
+                selectedPieceId = pieceIds[selectedIdx];
+                if (pendingRandomYutResult != null) {
+                    onConfirmButtonClicked(List.of(pendingRandomYutResult.name()));
+                    pendingRandomYutResult = null;
+                }
             }
         }
     }
