@@ -238,6 +238,7 @@ public class SwingYutBoardPanel extends JPanel {
                     btn.setBackground(color);
                     btn.setOpaque(true);
                     btn.setBorderPainted(false);
+                    btn.setMargin(new Insets(0, 0, 0, 0));
                     pieceButtons.put(piece.getPieceId(), btn);
                     add(btn);
                 }
