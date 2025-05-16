@@ -5,7 +5,9 @@
  * 
  * 
  */
-package com.sw.yutnori.ui.display;
+package com.sw.yutnori.ui.swing.display;
+
+import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 import javax.swing.*;
 import java.awt.*;

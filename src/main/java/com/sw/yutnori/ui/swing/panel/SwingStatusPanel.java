@@ -6,7 +6,7 @@
  * 
  * 
  */
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing.panel;
 
 import javax.swing.*;
 import java.awt.*;

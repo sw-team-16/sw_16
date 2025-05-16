@@ -1,10 +1,13 @@
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing;
 
 import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.controller.InGameController;
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.ui.swing.panel.SwingStatusPanel;
+import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
+import com.sw.yutnori.ui.swing.panel.SwingYutControlPanel;
 
 import javax.swing.*;
 import java.awt.*;

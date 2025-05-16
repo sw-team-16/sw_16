@@ -5,11 +5,11 @@ import com.sw.yutnori.board.Node;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.model.enums.PieceState;
+import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 

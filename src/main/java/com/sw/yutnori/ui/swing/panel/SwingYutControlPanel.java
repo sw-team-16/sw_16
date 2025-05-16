@@ -6,10 +6,12 @@
  * 
  * 
  */
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing.panel;
 
+import com.sw.yutnori.ui.swing.SwingGameSetupFrame;
 import com.sw.yutnori.ui.display.*;
 import com.sw.yutnori.controller.InGameController;
+import com.sw.yutnori.ui.swing.display.SwingControlDisplay;
 
 import javax.swing.*;
 import java.awt.*;

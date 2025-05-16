@@ -8,10 +8,10 @@ import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.YutResult;
-import com.sw.yutnori.ui.PiecePositionDisplayManager;
-import com.sw.yutnori.ui.SwingYutBoardPanel;
-import com.sw.yutnori.ui.SwingYutControlPanel;
-import com.sw.yutnori.ui.SwingStatusPanel;
+import com.sw.yutnori.ui.swing.PiecePositionDisplayManager;
+import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
+import com.sw.yutnori.ui.swing.panel.SwingYutControlPanel;
+import com.sw.yutnori.ui.swing.panel.SwingStatusPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 import javax.swing.*;
@@ -23,7 +23,7 @@ public class InGameController {
     private final BoardModel boardModel;
     private final GameManager gameManager;
     private final SwingYutBoardPanel yutBoardPanel;
-    private final SwingYutControlPanel controlPanel;
+    private final SwingYutControlPanel yutControlPanel;
     private final SwingStatusPanel statusPanel;
     private final GameSetupDisplay.SetupData setupData;
     private final PiecePositionDisplayManager displayManager;
@@ -38,16 +38,15 @@ public class InGameController {
         this.gameManager = gameManager;
         this.setupData = setupData;
         this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
-        this.controlPanel = new SwingYutControlPanel(null, this);
+        this.yutControlPanel = new SwingYutControlPanel(this);
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
         this.yutBoardPanel.setInGameController(this);
         this.displayManager = new PiecePositionDisplayManager(boardModel, yutBoardPanel, gameManager);
-
     }
 
     public void setGameContext(Long playerId) {
         this.playerId = playerId;
-        this.controlPanel.setGameContext(null, playerId);
+        this.yutControlPanel.setGameContext(playerId);
         this.statusPanel.updateCurrentPlayer(gameManager.getPlayer(playerId).getName());
     }
 
@@ -56,13 +55,13 @@ public class InGameController {
             YutResult result = gameManager.generateRandomYut();
             pendingRandomYutResult = result;
 
-            String korean = controlPanel.getResultDisplay().convertYutTypeToKorean(result.name());
-            controlPanel.updateYutResult(korean, result.name());
+            String korean = yutControlPanel.getResultDisplay().convertYutTypeToKorean(result.name());
+            yutControlPanel.updateYutResult(korean, result.name());
 
             if (result != YutResult.YUT && result != YutResult.MO) {
-                controlPanel.enableRandomButton(false);
+                yutControlPanel.enableRandomButton(false);
             }
-            controlPanel.enableCustomButton(false);
+            yutControlPanel.enableCustomButton(false);
 
             promptPieceSelection(playerId);
 
@@ -74,7 +73,7 @@ public class InGameController {
     public void onConfirmButtonClicked(List<String> selectedYuts) {
         try {
             if (selectedYuts.isEmpty() || selectedPieceId == null) {
-                controlPanel.showErrorAndRestore("선택된 윷 결과 또는 말이 없습니다.");
+                yutControlPanel.showErrorAndRestore("선택된 윷 결과 또는 말이 없습니다.");
                 return;
             }
 
@@ -89,9 +88,9 @@ public class InGameController {
             BoardType boardType = gameManager.getCurrentGame().getBoardType();
 
             for (String selectedYut : selectedYuts) {
-                String eng = controlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
+                String eng = yutControlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
                 YutResult result = convertStringToYutResult(eng);
-                controlPanel.updateYutResult(selectedYut, eng);
+                yutControlPanel.updateYutResult(selectedYut, eng);
 
                 current = BoardPathManager.calculateDestination(
                         selectedPieceId,
@@ -105,7 +104,7 @@ public class InGameController {
             }
 
             YutResult finalResult = convertStringToYutResult(
-                    controlPanel.getResultDisplay().convertYutTypeToEnglish(
+                    yutControlPanel.getResultDisplay().convertYutTypeToEnglish(
                             selectedYuts.get(selectedYuts.size() - 1)
                     )
             );
@@ -126,28 +125,28 @@ public class InGameController {
                 gameManager.nextTurn(playerId);
                 Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
                 setGameContext(nextPlayerId);
-                controlPanel.startNewTurn();
+                yutControlPanel.startNewTurn();
             } else {
-                controlPanel.enableRandomButton(true);
+                yutControlPanel.enableRandomButton(true);
             }
 
         } catch (Exception ex) {
             handleError(ex);
         } finally {
             resetPieceSelection();
-            controlPanel.restorePanel();
+            yutControlPanel.restorePanel();
         }
     }
 
     public void promptPieceSelection(Long playerId) {
         var player = gameManager.getPlayer(playerId);
         if (player == null) {
-            controlPanel.showError("플레이어 정보를 찾을 수 없습니다.");
+            yutControlPanel.showError("플레이어 정보를 찾을 수 없습니다.");
             return;
         }
         List<Piece> pieces = player.getPieces();
         if (pieces.isEmpty()) {
-            controlPanel.showError("선택 가능한 말이 없습니다.");
+            yutControlPanel.showError("선택 가능한 말이 없습니다.");
             return;
         }
 
@@ -202,7 +201,7 @@ public class InGameController {
     }
 
     private void handleError(Exception ex) {
-        controlPanel.showErrorAndRestore("게임 진행 중 오류 발생: " + ex.getMessage());
+        yutControlPanel.showErrorAndRestore("게임 진행 중 오류 발생: " + ex.getMessage());
     }
 
     public SwingYutBoardPanel getYutBoardPanel() {
@@ -210,7 +209,7 @@ public class InGameController {
     }
 
     public SwingYutControlPanel getControlPanel() {
-        return controlPanel;
+        return yutControlPanel;
     }
 
     public SwingStatusPanel getStatusPanel() {

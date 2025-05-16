@@ -1,4 +1,8 @@
-package com.sw.yutnori.ui.display;
+package com.sw.yutnori.ui.swing.display;
+
+import com.sw.yutnori.ui.display.ControlDisplay;
+import com.sw.yutnori.ui.display.ResultDisplay;
+import com.sw.yutnori.ui.display.YutDisplay;
 
 import javax.swing.*;
 import java.awt.*;

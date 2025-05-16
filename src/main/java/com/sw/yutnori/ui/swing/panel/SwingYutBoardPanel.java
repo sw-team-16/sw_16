@@ -5,7 +5,7 @@
  * 
  * 
  */
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing.panel;
 
 import com.sw.yutnori.board.*;
 import javax.swing.*;
@@ -22,6 +22,7 @@ import com.sw.yutnori.controller.InGameController;
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
+import com.sw.yutnori.ui.swing.PiecePositionDisplayManager;
 import com.sw.yutnori.util.ColorUtils;
 import com.sw.yutnori.model.enums.PieceState;
 

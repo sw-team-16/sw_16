@@ -1,4 +1,4 @@
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing;
 
 import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.board.Node;

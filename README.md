@@ -13,5 +13,5 @@
 3. 터미널에서 프로젝트 루트 디렉토리로 이동 후 명령어 ```./gradlew bootrun``` 을 실행해주세요.
 
 **프론트 실행의 경우**
-1. IDE에서 *com.sw.yutnori.ui.SwingGameSetupFrame* 을 실행해주세요.
+1. IDE에서 *com.sw.yutnori.ui.swing.SwingGameSetupFrame* 을 실행해주세요.
 2. 시각적으로 표현된 파라미터들을 조절하여 입력한 후, 실행 해 성공 메세지가 뜨면 구동에 성공한 것입니다.
