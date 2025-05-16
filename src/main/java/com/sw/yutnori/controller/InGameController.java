@@ -250,4 +250,8 @@ public class InGameController {
     public SwingStatusPanel getStatusPanel() {
         return statusPanel;
     }
+
+    public Board getBoardModel() {
+        return boardModel;
+    }
 }
