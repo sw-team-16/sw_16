@@ -9,7 +9,6 @@
 package com.sw.yutnori.ui.swing;
 
 import com.sw.yutnori.controller.InGameController;
-import com.sw.yutnori.logic.client.GameApiClient;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,13 +43,11 @@ public class SwingYutControlPanel extends JPanel implements GameUI {
     private ImageIcon downIcon;
     private ImageIcon backDoDownIcon;
 
-    private final GameApiClient apiClient;
     private final InGameController controller;
     private final YutDisplay yutDisplay;
     private final ResultDisplay resultDisplay;
 
-    public SwingYutControlPanel(GameApiClient apiClient, InGameController controller) {
-        this.apiClient = apiClient;
+    public SwingYutControlPanel(InGameController controller) {
         this.controller = controller;
         initialize();
         this.yutDisplay = new SwingYutDisplay(yutSticks, upIcon, downIcon, backDoDownIcon);
