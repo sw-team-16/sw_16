@@ -38,7 +38,7 @@ public class InGameController {
         this.gameManager = gameManager;
         this.setupData = setupData;
         this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
-        this.controlPanel = new SwingYutControlPanel(null, this);
+        this.controlPanel = new SwingYutControlPanel(this);
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount(), gameManager);
         this.yutBoardPanel.setInGameController(this);
         this.displayManager = new PiecePositionDisplayManager(boardModel, yutBoardPanel, gameManager);
