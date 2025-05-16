@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class SwingSelectionDisplay implements SelectionDisplay {
+
     private JButton doBtn, gaeBtn, geolBtn, yutBtn, moBtn, backDoBtn;
     private JButton cancelBtn, confirmBtn;
     private final List<String> selectedYuts = new ArrayList<>();

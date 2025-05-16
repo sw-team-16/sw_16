@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class SwingYutSelectionPanel extends JPanel {
+
     private final SelectionDisplay selectionDisplay;
 
     public SwingYutSelectionPanel(Consumer<List<String>> onConfirmCallback, Runnable onCancelCallback) {
