@@ -62,7 +62,7 @@ public class SwingYutControlPanel extends JPanel {
             controller.onConfirmButtonClicked(selectedYuts); // '완료' 버튼 클릭 시 발생하는 이벤트
 
         };
-        Runnable onCancel = controlDisplay::restorePanel;
+        Runnable onCancel = this::restorePanel;
 
         SwingYutSelectionPanel selectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
         add(selectionPanel);
@@ -71,7 +71,11 @@ public class SwingYutControlPanel extends JPanel {
     }
 
     public void restorePanel() {
+        removeAll();
+        add(controlDisplay.getPanel(), BorderLayout.CENTER);
         controlDisplay.restorePanel();
+        revalidate();
+        repaint();
     }
 
     public void startNewTurn() {

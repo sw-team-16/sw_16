@@ -29,7 +29,7 @@ public class SwingSelectionDisplay implements SelectionDisplay {
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 70));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 

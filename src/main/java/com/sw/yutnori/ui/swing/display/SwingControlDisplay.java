@@ -46,7 +46,7 @@ public class SwingControlDisplay implements ControlDisplay {
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setPreferredSize(new Dimension(350, 700));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 70));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     }
 
     private void createComponents() {
