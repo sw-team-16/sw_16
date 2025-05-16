@@ -109,6 +109,11 @@ public class GameManager {
         Piece piece = pieceMap.get(pieceId);
         if (piece == null) throw new IllegalArgumentException("Invalid piece ID: " + pieceId);
 
+        // READY 상태에서 처음 보드로 이동하는 경우, 시작점에서 출발
+        if (piece.getState() == PieceState.READY) {
+            piece.setLogicalPosition(0, 1);
+        }
+
         int a = piece.getA();
         int b = piece.getB();
 
@@ -125,37 +130,51 @@ public class GameManager {
         // 잡기 또는 업기 판단
         boolean capture = false;
         boolean group = false;
-        List<Long> groupedIds = new ArrayList<>();
+        List<Piece> capturedPieces = new ArrayList<>();
+        List<Long> groupedAllyPieceIds = new ArrayList<>();
         for (Piece other : pieceMap.values()) {
             if (!other.getPlayer().equals(piece.getPlayer()) &&
                     other.getA() == dest.getA() && other.getB() == dest.getB()) {
-                other.setLogicalPosition(0, 1);
+                // 잡힌 말 처리: 상태를 READY로, 위치를 (0,0)으로, isGrouped를 false로
+                other.setLogicalPosition(0, 0); // 대기 위치로 이동
                 other.setState(PieceState.READY);
+                other.setGrouped(false);
                 capture = true;
+                capturedPieces.add(other);
             } else if (other.getPlayer().equals(piece.getPlayer()) &&
                     other.getA() == dest.getA() && other.getB() == dest.getB() &&
                     !other.getPieceId().equals(pieceId)) {
                 other.setGrouped(true);
                 piece.setGrouped(true);
                 group = true;
-                groupedIds.add(other.getPieceId());
+                groupedAllyPieceIds.add(other.getPieceId());
             }
-
         }
 
         // 말 이동 처리
         piece.setLogicalPosition(dest.getA(), dest.getB());
-        piece.setState(PieceState.ON_BOARD);
 
+        // 골인 지점 도달 시 처리
         boolean finish = dest.getA() == 0 && dest.getB() == 1;
         if (finish) {
+            piece.setState(PieceState.FINISHED);
+            piece.setFinished(true);
             Player owner = piece.getPlayer();
             owner.setFinishedCount(owner.getFinishedCount() + 1);
+        } else {
+            piece.setState(PieceState.ON_BOARD);
         }
 
         boolean moreTurn = result == YutResult.YUT || result == YutResult.MO || capture;
 
-        return new MovePieceResult(capture, group, finish, moreTurn, groupedIds);
+        return new MovePieceResult(
+            capture,
+            capturedPieces,
+            group,
+            groupedAllyPieceIds,
+            finish,
+            moreTurn
+        );
     }
 
     public Turn getCurrentTurn() {
@@ -189,9 +208,10 @@ public class GameManager {
 
     public record MovePieceResult(
             boolean captureOccurred,
+            List<Piece> capturedPieces,
             boolean groupingOccurred,
+            List<Long> groupedAllyPieceIds,
             boolean reachedEndPoint,
-            boolean requiresAnotherMove,
-            List<Long> targetPieceIds
+            boolean requiresAnotherMove
     ) {}
 }
