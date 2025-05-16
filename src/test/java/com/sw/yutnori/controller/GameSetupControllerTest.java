@@ -9,7 +9,7 @@
  */
 package com.sw.yutnori.controller;
 
-import com.sw.yutnori.ui.swing.GameSetupDisplay;
+import com.sw.yutnori.ui.display.GameSetupDisplay;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

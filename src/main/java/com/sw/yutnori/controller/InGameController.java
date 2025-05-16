@@ -9,9 +9,9 @@ import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.YutResult;
 import com.sw.yutnori.ui.swing.PiecePositionDisplayManager;
+import com.sw.yutnori.ui.swing.panel.SwingStatusPanel;
 import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
 import com.sw.yutnori.ui.swing.panel.SwingYutControlPanel;
-import com.sw.yutnori.ui.swing.panel.SwingStatusPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 import javax.swing.*;
@@ -145,9 +145,9 @@ public class InGameController {
             gameManager.nextTurn(playerId);
             Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
             setGameContext(nextPlayerId);
-            controlPanel.startNewTurn();
+            yutControlPanel.startNewTurn();
         } else {
-            controlPanel.enableRandomButton(true);
+            yutControlPanel.enableRandomButton(true);
         }
         // 모든 플레이어의 Status UI 갱신 (필요시)
         for (com.sw.yutnori.model.Player player : gameManager.getCurrentGame().getPlayers()) {

@@ -10,6 +10,11 @@ package com.sw.yutnori.ui.swing.panel;
 
 import javax.swing.*;
 import java.awt.*;
+
+import com.sw.yutnori.logic.GameManager;
+import com.sw.yutnori.model.Piece;
+import com.sw.yutnori.model.Player;
+import com.sw.yutnori.model.enums.PieceState;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 import java.util.HashMap;
@@ -19,7 +24,10 @@ import java.util.Map;
 // 임시 제작
 public class SwingStatusPanel extends JPanel {
     private final Map<String, JPanel> playerPanels = new HashMap<>();
-    public SwingStatusPanel(List<GameSetupDisplay.PlayerInfo> players, int pieceCount) {
+    private final GameManager gameManager;
+
+    public SwingStatusPanel(List<GameSetupDisplay.PlayerInfo> players, int pieceCount, GameManager gameManager) {
+        this.gameManager = gameManager;
         setLayout(new GridLayout(1, players.size()));
         setBorder(BorderFactory.createTitledBorder("Status"));
         for (GameSetupDisplay.PlayerInfo player : players) {
@@ -73,5 +81,26 @@ public class SwingStatusPanel extends JPanel {
 
         revalidate();
         repaint();
+    }
+
+    // 플레이어 상태 (Status) 업데이트
+    public void updatePlayerStatus(Player player) {
+        JPanel panel = playerPanels.get(player.getName());
+        if (panel == null) return;
+        panel.removeAll();
+        Color color = parseColor(player.getColor());
+        // READY && !isFinished 말만 필터링
+        List<Piece> readyPieces = player.getPieces().stream()
+                .filter(p -> p.getState() == PieceState.READY && !p.isFinished())
+                .toList();
+        for (int i = 0; i < readyPieces.size(); i++) {
+            JLabel piece = new JLabel();
+            piece.setPreferredSize(new Dimension(20, 20));
+            piece.setOpaque(true);
+            piece.setBackground(color);
+            panel.add(piece);
+        }
+        panel.revalidate();
+        panel.repaint();
     }
 }

@@ -5,7 +5,6 @@ import com.sw.yutnori.model.Node;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.model.enums.PieceState;
-import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import com.sw.yutnori.ui.swing.SwingYutBoardPanel;
+import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
 
 class SwingYutBoardPanelTest {
     private Board board;

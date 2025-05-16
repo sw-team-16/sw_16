@@ -1,4 +1,4 @@
-package com.sw.yutnori.ui.swing;
+package com.sw.yutnori.ui.display;
 
 public interface ResultDisplay {
 
