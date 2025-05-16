@@ -1,4 +1,4 @@
-package com.sw.yutnori.ui.display;
+package com.sw.yutnori.ui.swing;
 
 public interface YutDisplay {
 

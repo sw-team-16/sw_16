@@ -5,10 +5,8 @@
  * 
  * 
  */
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing;
 
-import com.sw.yutnori.ui.display.GameSetupDisplay;
-import com.sw.yutnori.ui.display.SwingGameSetupDisplay;
 import com.sw.yutnori.controller.GameSetupController;
 import com.sw.yutnori.controller.InGameController;
 

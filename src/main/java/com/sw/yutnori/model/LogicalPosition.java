@@ -1,4 +1,4 @@
-package com.sw.yutnori.common;
+package com.sw.yutnori.model;
 
 public class LogicalPosition {
     private Long pieceId;

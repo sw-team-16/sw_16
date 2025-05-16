@@ -4,7 +4,7 @@
  * 
  * 
  */
-package com.sw.yutnori.board;
+package com.sw.yutnori.model;
 
 import java.util.ArrayList;
 import java.util.List;

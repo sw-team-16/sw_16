@@ -4,9 +4,11 @@
  * 
  * 
  */
-package com.sw.yutnori.board;
+package com.sw.yutnori.logic;
 
 import java.util.*;
+
+import com.sw.yutnori.model.Node;
 
 public class BoardLayoutCalculator {
     public static List<Node> createNodes(String boardType, int width, int height) {

@@ -1,4 +1,4 @@
-package com.sw.yutnori.client;
+package com.sw.yutnori.logic.client;
 
 import com.sw.yutnori.model.enums.YutResult;
 import com.sw.yutnori.backend.dto.game.request.MovePieceRequest;

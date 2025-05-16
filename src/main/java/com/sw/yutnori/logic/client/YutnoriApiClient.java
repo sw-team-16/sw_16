@@ -5,7 +5,7 @@ RestTemplate 기반 API 호출 제거
 
 GameManager 로컬 클래스에서 직접 로직 수행하도록 변경
 * */
-package com.sw.yutnori.client;
+package com.sw.yutnori.logic.client;
 
 import com.sw.yutnori.backend.dto.game.request.AutoThrowRequest;
 import com.sw.yutnori.backend.dto.game.request.ManualThrowRequest;
