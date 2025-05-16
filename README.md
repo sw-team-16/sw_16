@@ -1,4 +1,4 @@
-# SE 2분반 15조 Term Project 실행 방법
+# SE 2분반 16조 Term Project 실행 방법
 
 **실행하는 법**
 

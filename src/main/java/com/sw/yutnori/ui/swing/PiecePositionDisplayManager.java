@@ -11,6 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class PiecePositionDisplayManager {
+
     private final Board board;
     private final JPanel boardPanel;
     private final GameManager gameManager;
