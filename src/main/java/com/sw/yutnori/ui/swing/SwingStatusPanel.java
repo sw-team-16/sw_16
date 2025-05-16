@@ -6,11 +6,11 @@
  * 
  * 
  */
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing;
 
 import javax.swing.*;
 import java.awt.*;
-import com.sw.yutnori.ui.display.GameSetupDisplay;
+
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;

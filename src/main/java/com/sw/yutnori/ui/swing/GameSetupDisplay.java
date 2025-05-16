@@ -5,7 +5,7 @@
  * 
  * 
  */
-package com.sw.yutnori.ui.display;
+package com.sw.yutnori.ui.swing;
 import javax.swing.*;
 
 public interface GameSetupDisplay {

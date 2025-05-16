@@ -1,29 +1,29 @@
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing;
 
-import com.sw.yutnori.board.BoardModel;
-import com.sw.yutnori.board.Node;
-import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.logic.GameManager;
+import com.sw.yutnori.logic.util.ColorUtils;
+import com.sw.yutnori.model.Board;
+import com.sw.yutnori.model.LogicalPosition;
+import com.sw.yutnori.model.Node;
 import com.sw.yutnori.model.Piece;
-import com.sw.yutnori.util.ColorUtils;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class PiecePositionDisplayManager {
-    private final BoardModel boardModel;
+    private final Board board;
     private final JPanel boardPanel;
     private final GameManager gameManager;
 
-    public PiecePositionDisplayManager(BoardModel boardModel, JPanel boardPanel, GameManager gameManager) {
-        this.boardModel = boardModel;
+    public PiecePositionDisplayManager(Board board, JPanel boardPanel, GameManager gameManager) {
+        this.board = board;
         this.boardPanel = boardPanel;
         this.gameManager = gameManager;
     }
 
 
     public void showLogicalPosition(LogicalPosition position, Long pieceId) {
-        Node node = boardModel.findNode(position.getA(), position.getB());
+        Node node = board.findNode(position.getA(), position.getB());
         if (node == null) return;
 
         Piece piece = gameManager.getPiece(pieceId);

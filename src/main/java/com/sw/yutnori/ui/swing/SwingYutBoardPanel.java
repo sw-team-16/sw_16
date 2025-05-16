@@ -5,9 +5,8 @@
  * 
  * 
  */
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing;
 
-import com.sw.yutnori.board.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -16,17 +15,18 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sw.yutnori.board.BoardModel;
-import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.controller.InGameController;
 import com.sw.yutnori.logic.GameManager;
+import com.sw.yutnori.logic.util.ColorUtils;
+import com.sw.yutnori.model.Board;
+import com.sw.yutnori.model.LogicalPosition;
+import com.sw.yutnori.model.Node;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
-import com.sw.yutnori.util.ColorUtils;
 import com.sw.yutnori.model.enums.PieceState;
 
 public class SwingYutBoardPanel extends JPanel {
-    private final BoardModel boardModel;
+    private final Board board;
     private static final int BOARD_WIDTH = 1200;
     private static final int BOARD_HEIGHT = 1000;
     private final Map<Long, JComponent> pieceButtons = new HashMap<>();
@@ -34,10 +34,10 @@ public class SwingYutBoardPanel extends JPanel {
     private List<Piece> pieceList;
     private GameManager gameManager;
 
-    public SwingYutBoardPanel(BoardModel boardModel) {
-        this.boardModel = boardModel;
+    public SwingYutBoardPanel(Board board) {
+        this.board = board;
         setLayout(null);
-        setPreferredSize(new Dimension(boardModel.getWidth(), boardModel.getHeight()));
+        setPreferredSize(new Dimension(board.getWidth(), board.getHeight()));
     }
     public void setInGameController(InGameController controller) {
         this.controller = controller;
@@ -55,7 +55,7 @@ public class SwingYutBoardPanel extends JPanel {
         int offsetX = (panelW - BOARD_WIDTH) / 2;
         int offsetY = (panelH - BOARD_HEIGHT) / 2;
 
-        List<Node> boardNodes = boardModel.getNodes();
+        List<Node> boardNodes = board.getNodes();
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -114,7 +114,7 @@ public class SwingYutBoardPanel extends JPanel {
         }
     }
     private Rectangle getPieceBounds(Piece piece) {
-        Node node = boardModel.findNode(piece.getA(), piece.getB());
+        Node node = board.findNode(piece.getA(), piece.getB());
         if (node == null) return new Rectangle(); // or throw exception
         int nodeX = (int) node.getX();
         int nodeY = (int) node.getY();
@@ -207,7 +207,7 @@ public class SwingYutBoardPanel extends JPanel {
                 currentPosition = new LogicalPosition(clickedPos.getA(), clickedPos.getB());
                 controlPanel.enableYutSelection(); // 윷 선택 UI 열기
                 // 논리 좌표 기반 말 위치 표시
-                PiecePositionDisplayManager markerManager = new PiecePositionDisplayManager(boardModel, this, gameManager);
+                PiecePositionDisplayManager markerManager = new PiecePositionDisplayManager(board, this, gameManager);
                 markerManager.showLogicalPosition(currentPosition, selectedPieceId);
 
             }
@@ -228,7 +228,7 @@ public class SwingYutBoardPanel extends JPanel {
             Color color = ColorUtils.parseColor(player.getColor());
             for (Piece piece : player.getPieces()) {
                 if (piece.getState() == PieceState.ON_BOARD && !piece.isFinished()) {
-                    Node node = boardModel.findNode(piece.getA(), piece.getB());
+                    Node node = board.findNode(piece.getA(), piece.getB());
                     if (node == null) continue;
                     int x = (int) node.getX() + offsetX - (pieceSize / 2);
                     int y = (int) node.getY() + offsetY - (pieceSize / 2);

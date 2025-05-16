@@ -6,14 +6,10 @@
  * 
  * 
  */
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing;
 
-import com.sw.yutnori.client.GameApiClient;
-import com.sw.yutnori.ui.display.ResultDisplay;
-import com.sw.yutnori.ui.display.SwingResultDisplay;
-import com.sw.yutnori.ui.display.SwingYutDisplay;
-import com.sw.yutnori.ui.display.YutDisplay;
 import com.sw.yutnori.controller.InGameController;
+import com.sw.yutnori.logic.client.GameApiClient;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,6 +18,8 @@ import java.util.List;
 import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
 import java.awt.Image;
+import com.sw.yutnori.ui.swing.GameUI;
+import com.sw.yutnori.ui.swing.ResultDisplay;
 
 public class SwingYutControlPanel extends JPanel implements GameUI {
 

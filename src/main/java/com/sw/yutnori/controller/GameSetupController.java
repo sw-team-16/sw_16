@@ -1,10 +1,10 @@
 // GameSetupController.java - GameManager 기반으로 수정된 버전
 package com.sw.yutnori.controller;
 
-import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.logic.GameManager;
+import com.sw.yutnori.model.Board;
 import com.sw.yutnori.model.Player;
-import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.ui.swing.GameSetupDisplay;
 import com.sw.yutnori.controller.InGameController;
 
 import java.util.*;
@@ -72,7 +72,7 @@ public class GameSetupController {
             default -> "square";
         };
 
-        BoardModel model = new BoardModel(boardType, boardPanelWidth, boardPanelHeight);
+        Board model = new Board(boardType, boardPanelWidth, boardPanelHeight);
         GameManager gameManager = new GameManager();
 
         // 게임 초기화

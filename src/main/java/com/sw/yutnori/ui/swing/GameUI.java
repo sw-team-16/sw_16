@@ -1,4 +1,4 @@
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing;
 
 public interface GameUI {
     void initialize();

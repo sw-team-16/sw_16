@@ -1,18 +1,18 @@
 // InGameController.java - GameManager 기반으로 수정된 버전
 package com.sw.yutnori.controller;
 
-import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.logic.BoardPathManager;
-import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.logic.GameManager;
+import com.sw.yutnori.model.Board;
+import com.sw.yutnori.model.LogicalPosition;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.YutResult;
-import com.sw.yutnori.ui.PiecePositionDisplayManager;
-import com.sw.yutnori.ui.SwingYutBoardPanel;
-import com.sw.yutnori.ui.SwingYutControlPanel;
-import com.sw.yutnori.ui.SwingStatusPanel;
-import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.ui.swing.PiecePositionDisplayManager;
+import com.sw.yutnori.ui.swing.SwingYutBoardPanel;
+import com.sw.yutnori.ui.swing.SwingYutControlPanel;
+import com.sw.yutnori.ui.swing.GameSetupDisplay;
+import com.sw.yutnori.ui.swing.SwingStatusPanel;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InGameController {
-    private final BoardModel boardModel;
+    private final Board boardModel;
     private final GameManager gameManager;
     private final SwingYutBoardPanel yutBoardPanel;
     private final SwingYutControlPanel controlPanel;
@@ -33,7 +33,7 @@ public class InGameController {
     private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
     private YutResult pendingRandomYutResult = null;
 
-    public InGameController(BoardModel boardModel, GameManager gameManager, GameSetupDisplay.SetupData setupData) {
+    public InGameController(Board boardModel, GameManager gameManager, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
         this.gameManager = gameManager;
         this.setupData = setupData;

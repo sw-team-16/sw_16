@@ -1,6 +1,6 @@
 package com.sw.yutnori.logic;
 
-import com.sw.yutnori.common.LogicalPosition;
+import com.sw.yutnori.model.LogicalPosition;
 import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.YutResult;
 

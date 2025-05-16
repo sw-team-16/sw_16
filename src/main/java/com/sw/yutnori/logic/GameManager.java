@@ -1,10 +1,9 @@
 // logic/GameManager.java
 package com.sw.yutnori.logic;
 
-import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.model.*;
 import com.sw.yutnori.model.enums.*;
-import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.ui.swing.GameSetupDisplay;
 
 import java.util.*;
 

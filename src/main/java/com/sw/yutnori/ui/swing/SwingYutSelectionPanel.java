@@ -1,9 +1,8 @@
-package com.sw.yutnori.ui;
-
-import com.sw.yutnori.ui.display.SelectionDisplay;
-import com.sw.yutnori.ui.display.SwingSelectionDisplay;
+package com.sw.yutnori.ui.swing;
 
 import javax.swing.*;
+
+
 import java.awt.*;
 import java.util.List;
 import java.util.function.Consumer;

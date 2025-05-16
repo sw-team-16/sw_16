@@ -1,7 +1,7 @@
 package com.sw.yutnori.ui;
 
-import com.sw.yutnori.board.BoardModel;
-import com.sw.yutnori.board.Node;
+import com.sw.yutnori.model.Board;
+import com.sw.yutnori.model.Node;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.model.enums.PieceState;
@@ -9,14 +9,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import com.sw.yutnori.ui.swing.SwingYutBoardPanel;
 
 class SwingYutBoardPanelTest {
-    private BoardModel boardModel;
+    private Board board;
     private SwingYutBoardPanel boardPanel;
     private Node node1, node2;
 
@@ -28,8 +28,8 @@ class SwingYutBoardPanelTest {
         List<Node> nodes = new ArrayList<>();
         nodes.add(node1);
         nodes.add(node2);
-        boardModel = new BoardModelStub(nodes, 300, 300);
-        boardPanel = new SwingYutBoardPanel(boardModel);
+        board = new Board("pentagon", 300, 300);
+        boardPanel = new SwingYutBoardPanel(board);
         // 실제 윷판 Board 크기로 설정
         boardPanel.setSize(1200, 1000);
     }
@@ -77,12 +77,12 @@ class SwingYutBoardPanelTest {
         assertEquals(30, btn.getHeight());
     }
 
-    static class BoardModelStub extends BoardModel {
+    static class BoardStub extends Board {
     
         private final List<Node> nodes;
         private final int width;
         private final int height;
-        public BoardModelStub(List<Node> nodes, int width, int height) {
+        public BoardStub(List<Node> nodes, int width, int height) {
             super("TEST", width, height);
             this.nodes = nodes;
             this.width = width;
