@@ -1,13 +1,13 @@
 package com.sw.yutnori.ui.swing;
 
-import com.sw.yutnori.board.BoardModel;
-import com.sw.yutnori.controller.InGameController;
-import com.sw.yutnori.logic.GameManager;
-import com.sw.yutnori.model.Player;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 import com.sw.yutnori.ui.swing.panel.SwingStatusPanel;
 import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
 import com.sw.yutnori.ui.swing.panel.SwingYutControlPanel;
+import com.sw.yutnori.controller.InGameController;
+import com.sw.yutnori.logic.GameManager;
+import com.sw.yutnori.model.Board;
+import com.sw.yutnori.model.Player;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,7 +63,7 @@ public class SwingInGameFrame extends JFrame {
         GameSetupDisplay.SetupData setupData = new GameSetupDisplay.SetupData("오각형", 2, 4, players);
 
         // 모델 및 매니저 생성
-        BoardModel model = new BoardModel("pentagon", boardPanelWidth, boardPanelHeight);
+        Board model = new Board("pentagon", boardPanelWidth, boardPanelHeight);
         GameManager gameManager = new GameManager();
         gameManager.createGameFromSetupData(setupData);
 

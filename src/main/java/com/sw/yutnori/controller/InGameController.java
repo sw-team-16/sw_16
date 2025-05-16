@@ -1,10 +1,10 @@
 // InGameController.java - GameManager 기반으로 수정된 버전
 package com.sw.yutnori.controller;
 
-import com.sw.yutnori.board.BoardModel;
 import com.sw.yutnori.logic.BoardPathManager;
-import com.sw.yutnori.common.LogicalPosition;
 import com.sw.yutnori.logic.GameManager;
+import com.sw.yutnori.model.Board;
+import com.sw.yutnori.model.LogicalPosition;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.YutResult;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InGameController {
-    private final BoardModel boardModel;
+    private final Board boardModel;
     private final GameManager gameManager;
     private final SwingYutBoardPanel yutBoardPanel;
     private final SwingYutControlPanel yutControlPanel;
@@ -33,13 +33,13 @@ public class InGameController {
     private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
     private YutResult pendingRandomYutResult = null;
 
-    public InGameController(BoardModel boardModel, GameManager gameManager, GameSetupDisplay.SetupData setupData) {
+    public InGameController(Board boardModel, GameManager gameManager, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
         this.gameManager = gameManager;
         this.setupData = setupData;
         this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
         this.yutControlPanel = new SwingYutControlPanel(this);
-        this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount());
+        this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount(), gameManager);
         this.yutBoardPanel.setInGameController(this);
         this.displayManager = new PiecePositionDisplayManager(boardModel, yutBoardPanel, gameManager);
     }
@@ -111,31 +111,59 @@ public class InGameController {
 
             var moveResult = gameManager.movePiece(selectedPieceId, finalResult);
 
-            // 항상 윷판 전체 새로고침
-            yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
+            // 이동한 말의 소유자 Status UI 갱신)
+            statusPanel.updatePlayerStatus(gameManager.getPiece(selectedPieceId).getPlayer());
 
-            if (moveResult.groupingOccurred()) {
-                JOptionPane.showMessageDialog(null, moveResult.targetPieceIds().size() + "개의 말을 업었습니다.", "업기", JOptionPane.INFORMATION_MESSAGE);
-            }
-            if (moveResult.captureOccurred()) { //말을 잡을 경우 랜더링을 다시 해줘야 상대방의 말이 판에서 사라짐
+            // 잡기 발생 시 잡힌 말 소유자 Status UI 갱신
+            if (moveResult.captureOccurred()) {
+                for (Piece capturedPiece : moveResult.capturedPieces()) {
+                    statusPanel.updatePlayerStatus(capturedPiece.getPlayer());
+                }
                 JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
             }
 
-            if (!moveResult.requiresAnotherMove()) {
-                gameManager.nextTurn(playerId);
-                Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
-                setGameContext(nextPlayerId);
-                yutControlPanel.startNewTurn();
-            } else {
-                yutControlPanel.enableRandomButton(true);
-            }
+            // 항상 보드 UI 갱신
+            yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
+
+            // // 선택 초기화 및 강조 해제
+            // selectedPieceId = null;
+            // yutBoardPanel.highlightSelectedPiece(null);
+
+            // 턴 처리
+            handleTurnChange(moveResult.requiresAnotherMove());
 
         } catch (Exception ex) {
             handleError(ex);
         } finally {
-            resetPieceSelection();
             yutControlPanel.restorePanel();
         }
+    }
+
+    // 턴 처리 로직 분리
+    private void handleTurnChange(boolean requiresAnotherMove) {
+        if (!requiresAnotherMove) {
+            gameManager.nextTurn(playerId);
+            Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
+            setGameContext(nextPlayerId);
+            controlPanel.startNewTurn();
+        } else {
+            controlPanel.enableRandomButton(true);
+        }
+        // 모든 플레이어의 Status UI 갱신 (필요시)
+        for (com.sw.yutnori.model.Player player : gameManager.getCurrentGame().getPlayers()) {
+            statusPanel.updatePlayerStatus(player);
+        }
+    }
+
+    public void initializeView() {
+        // 모든 플레이어의 대기 말 상태 표시
+        for (com.sw.yutnori.model.Player player : gameManager.getCurrentGame().getPlayers()) {
+            statusPanel.updatePlayerStatus(player);
+        }
+        // 보드 위의 초기 말 상태 표시
+        yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
+        // 첫 번째 턴의 플레이어로 context 설정
+        setGameContext(gameManager.getCurrentGame().getCurrentTurnPlayer().getId());
     }
 
     public void promptPieceSelection(Long playerId) {
@@ -144,7 +172,12 @@ public class InGameController {
             yutControlPanel.showError("플레이어 정보를 찾을 수 없습니다.");
             return;
         }
-        List<Piece> pieces = player.getPieces();
+        // READY 또는 ON_BOARD && !FINISHED인 말만 선택 옵션으로 제시
+        List<Piece> pieces = player.getPieces().stream()
+                .filter(p -> (p.getState() == com.sw.yutnori.model.enums.PieceState.READY ||
+                              p.getState() == com.sw.yutnori.model.enums.PieceState.ON_BOARD)
+                             && !p.isFinished())
+                .toList();
         if (pieces.isEmpty()) {
             yutControlPanel.showError("선택 가능한 말이 없습니다.");
             return;
@@ -172,6 +205,7 @@ public class InGameController {
             int selectedIdx = java.util.Arrays.asList(displayOptions).indexOf(selected.toString());
             if (selectedIdx >= 0) {
                 selectedPieceId = pieceIds[selectedIdx];
+                    // yutBoardPanel.highlightSelectedPiece(selectedPieceId);
                 if (pendingRandomYutResult != null) {
                     onConfirmButtonClicked(List.of(pendingRandomYutResult.name()));
                     pendingRandomYutResult = null;
@@ -214,5 +248,9 @@ public class InGameController {
 
     public SwingStatusPanel getStatusPanel() {
         return statusPanel;
+    }
+
+    public Board getBoardModel() {
+        return boardModel;
     }
 }
