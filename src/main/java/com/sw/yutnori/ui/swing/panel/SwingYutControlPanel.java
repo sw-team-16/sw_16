@@ -21,12 +21,10 @@ import java.util.List;
 public class SwingYutControlPanel extends JPanel {
 
     private final ControlDisplay controlDisplay;
-
-    private Long playerId;
-
-    private final InGameController controller;
     private final YutDisplay yutDisplay;
     private final ResultDisplay resultDisplay;
+
+    private final InGameController controller;
 
     public SwingYutControlPanel(InGameController controller) {
         setLayout(new BorderLayout());
@@ -43,11 +41,6 @@ public class SwingYutControlPanel extends JPanel {
         controlDisplay.setOnCustomYutCallback(this::showCustomYutSelectionPanel);
     }
 
-    // 플레이어 ID 설정
-    public void setGameContext(Long playerId) {
-        this.playerId = playerId;
-    }
-
     // 선택 UI 또는 패널 활성화 로직
     public void enableYutSelection() {
         System.out.println("윷 선택 UI를 활성화합니다.");
@@ -57,11 +50,7 @@ public class SwingYutControlPanel extends JPanel {
     private void showCustomYutSelectionPanel() {
         removeAll();
 
-        Consumer<List<String>> onConfirm = selectedYuts -> {
-            controller.promptPieceSelection(playerId); // 말 선택 창 띄움
-            controller.onConfirmButtonClicked(selectedYuts); // '완료' 버튼 클릭 시 발생하는 이벤트
-
-        };
+        Consumer<List<String>> onConfirm = controller::onConfirmButtonClicked;
         Runnable onCancel = this::restorePanel;
 
         SwingYutSelectionPanel selectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
@@ -122,26 +111,11 @@ public class SwingYutControlPanel extends JPanel {
         });
     }
 
-    // 윷 결과 업데이트
-    public void updateYutResult(String koreanResult, String result) {
-        displayYutResult(koreanResult);
-        updateCurrentYut(result);
-        updateYutSticks(result);
+    // 윷 및 결과창 업데이트
+    public void updateDisplay(String result) {
+        yutDisplay.displayYutSticks(result);
+        resultDisplay.updateCurrentYut(result);
     }
-
-    public void displayYutResult(String result) {
-        resultDisplay.displayYutResult(result);
-    }
-
-    public void updateCurrentYut(String yutType) {
-        resultDisplay.updateCurrentYut(yutType);
-        yutDisplay.displayYutResult(yutType);
-    }
-
-    public void updateYutSticks(String yutType) {
-        yutDisplay.displayYutResult(yutType);
-    }
-
 
     // 랜덤 윷 버튼 활성화 및 비활성화
     public void enableRandomButton(boolean enabled) {
