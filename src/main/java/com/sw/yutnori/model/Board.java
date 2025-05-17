@@ -33,6 +33,7 @@ public class Board {
     }
 
     public Node findNode(int a, int b) {
+        if (nodes == null) return null;
         return nodes.stream()
                 .filter(n -> n.getA() == a && n.getB() == b)
                 .findFirst()
