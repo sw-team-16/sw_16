@@ -23,7 +23,7 @@ public class SwingYutDisplay implements YutDisplay {
     }
 
     @Override
-    public void displayYutResult(String yutType) {
+    public void displayYutSticks(String yutType) {
         reset();
 
         Random random = new Random();
