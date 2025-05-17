@@ -1,8 +1,10 @@
 package com.sw.yutnori.ui.swing.display;
 
+import com.sw.yutnori.model.enums.YutResult;
 import com.sw.yutnori.ui.display.ResultDisplay;
 
 import javax.swing.*;
+import java.util.List;
 
 public class SwingResultDisplay implements ResultDisplay {
     private final JLabel[] resultLabels;
@@ -16,37 +18,45 @@ public class SwingResultDisplay implements ResultDisplay {
 
     @Override
     public void displayYutResult(String result) {
-        // 윷이나 모인 경우 특별 처리
-        if (isSpecialResult(result)) {
-            handleSpecialResult(result);
-        } else {
-            handleNormalResult(result);
-        }
+        String koreanResult = convertYutTypeToKorean(result);
 
-        // 현재 윷 결과 업데이트
-        updateCurrentYut(convertYutTypeToEnglish(result));
+        // 윷이나 모인 경우 특별 처리
+        if (isSpecialResult(koreanResult)) {
+            handleSpecialResult(koreanResult);
+        } else {
+            handleNormalResult(koreanResult);
+        }
     }
 
     // 윷 혹은 모가 나온 경우 결과 처리
     private void handleSpecialResult(String result) {
-        String currentText = resultLabels[currentResultIndex].getText();
+        // 현재 표시된 모든 라벨을 확인하여 동일한 결과가 있는지 확인
+        for (int i = 0; i <= currentResultIndex; i++) {
+            String labelText = resultLabels[i].getText();
 
-        if (currentText.equals("-")) {
-            resultLabels[currentResultIndex].setText(result);
-            return;
+            // 기존에 윷 혹은 모가 있을 때 동일한 결과가 나온 경우
+            if (labelText.equals(result)) {
+                resultLabels[i].setText("<html>" + result + "<sup>2</sup></html>");
+                return;
+            }
+
+            // 동일한 윷, 모가 3번 이상 나오는 경우
+            if (labelText.startsWith("<html>") && labelText.contains(result + "<sup>")) {
+                try {
+                    int startIdx = labelText.indexOf("<sup>") + 5;
+                    int endIdx = labelText.indexOf("</sup>");
+                    String countStr = labelText.substring(startIdx, endIdx);
+                    int count = Integer.parseInt(countStr);
+
+                    resultLabels[i].setText("<html>" + result + "<sup>" + (count + 1) + "</sup></html>");
+                    return;
+                } catch (Exception e) {
+                    System.err.println("윗첨자 파싱 오류: " + e);
+                }
+            }
         }
 
-        if (currentText.equals(result) || (currentText.startsWith("<html>") && currentText.contains(result))) {
-            resultLabels[currentResultIndex].setText(formatYutResultWithSuperscript(result, currentText));
-            return;
-        }
-
-        moveToNextLabel();
-        resultLabels[currentResultIndex].setText(result);
-    }
-
-    // 윷 혹은 모 이외의 결과 처리
-    private void handleNormalResult(String result) {
+        // 윷 혹은 모가 처음 나온 경우
         if (resultLabels[currentResultIndex].getText().equals("-")) {
             resultLabels[currentResultIndex].setText(result);
         } else {
@@ -55,10 +65,37 @@ public class SwingResultDisplay implements ResultDisplay {
         }
     }
 
+    // 윷 혹은 모 이외의 결과 처리
+    private void handleNormalResult(String result) {
+        if (resultLabels[currentResultIndex].getText().equals("-")) {
+            resultLabels[currentResultIndex].setText(convertYutTypeToKorean(result));
+        } else {
+            moveToNextLabel();
+            resultLabels[currentResultIndex].setText(convertYutTypeToKorean(result));
+        }
+    }
+
     private void moveToNextLabel() {
         currentResultIndex++;
         if (currentResultIndex >= resultLabels.length) {
             resetResults();
+        }
+    }
+
+    @Override
+    public void syncWithYutResults(List<YutResult> yutResults) {
+        // 모든 라벨 초기화
+        resetResults();
+
+        // 현재 실제 윷 결과들로 화면 업데이트
+        if (yutResults != null && !yutResults.isEmpty()) {
+            currentResultIndex = 0;
+            for (YutResult result : yutResults) {
+                displayYutResult(result.name());
+                if (currentResultIndex < resultLabels.length - 1) {
+                    currentResultIndex++;
+                }
+            }
         }
     }
 
@@ -77,34 +114,40 @@ public class SwingResultDisplay implements ResultDisplay {
 
     @Override
     public boolean isSpecialResult(String result) {
-        return result.equals("윷") || result.equals("모");
+        return result.equals("윷") || result.equals("모") ||
+                result.equals("YUT") || result.equals("MO");
     }
 
     // 윷이나 모가 나올 경우 나온 횟수를 HTML 태그 활용해 윗첨자로 표시
     private String formatYutResultWithSuperscript(String result, String currentText) {
-        // HTML 태그가 있는지 확인
-        if (currentText.startsWith("<html>")) {
-            // 기존 텍스트에서 결과와 횟수 추출
-            String content = currentText.substring(6, currentText.length() - 7);
-            int startIndex = content.indexOf("<sup>");
+        // 디버깅용
+        System.out.println("입력 값: result=" + result + ", currentText=" + currentText);
 
-            if (startIndex > 0) {
-                String baseText = content.substring(0, startIndex);
-                String countText = content.substring(startIndex + 5, content.indexOf("</sup>"));
-
-                // 같은 결과인 경우에만 횟수 증가
-                if (baseText.equals(result)) {
-                    try {
-                        int count = Integer.parseInt(countText);
-                        return "<html>" + result + "<sup>" + (count + 1) + "</sup></html>";
-                    } catch (NumberFormatException e) {
-                        return "<html>" + result + "<sup>2</sup></html>";
-                    }
-                }
-            }
+        // 기본 케이스: 처음 중복되는 경우
+        if (!currentText.contains("<sup>")) {
+            return "<html>" + result + "<sup>2</sup></html>";
         }
 
-        // 처음 중복되는 경우 - 횟수 2부터 시작
+        try {
+            // 정규식을 사용하여 숫자 추출
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<sup>(\\d+)</sup>");
+            java.util.regex.Matcher matcher = pattern.matcher(currentText);
+
+            if (matcher.find()) {
+                String countText = matcher.group(1);
+                int count = Integer.parseInt(countText);
+                String newResult = "<html>" + result + "<sup>" + (count + 1) + "</sup></html>";
+                System.out.println("변환 결과: " + newResult);
+                return newResult;
+            } else {
+                System.out.println("윗첨자 숫자를 찾지 못함");
+            }
+        } catch (Exception e) {
+            System.err.println("윗첨자 파싱 오류: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // 기본값
         return "<html>" + result + "<sup>2</sup></html>";
     }
 

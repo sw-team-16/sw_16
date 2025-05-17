@@ -15,6 +15,7 @@ import com.sw.yutnori.ui.swing.panel.SwingYutControlPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +31,8 @@ public class InGameController {
 
     private Long playerId;
     private Long selectedPieceId = null;
+    private YutResult selectedYutResult = null;
     private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
-    private YutResult pendingRandomYutResult = null;
 
     public InGameController(Board boardModel, GameManager gameManager, GameSetupDisplay.SetupData setupData) {
         this.boardModel = boardModel;
@@ -46,98 +47,114 @@ public class InGameController {
 
     public void setGameContext(Long playerId) {
         this.playerId = playerId;
-        this.yutControlPanel.setGameContext(playerId);
         this.statusPanel.updateCurrentPlayer(gameManager.getPlayer(playerId).getName());
     }
 
+    // '랜덤 윷 던지기' 버튼 클릭 시 발생하는 이벤트
     public void onRandomYutButtonClicked() {
         try {
+            // 윷이나 모가 나올 때까지 계속 윷을 던지고 그 결과를 저장
             YutResult result = gameManager.generateRandomYut();
-            pendingRandomYutResult = result;
+            gameManager.addYutResult(result);
+            yutControlPanel.updateDisplay(result.name());
+            yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
 
-            String korean = yutControlPanel.getResultDisplay().convertYutTypeToKorean(result.name());
-            yutControlPanel.updateYutResult(korean, result.name());
-
+            // 윷 던지기 완료
             if (result != YutResult.YUT && result != YutResult.MO) {
                 yutControlPanel.enableRandomButton(false);
+                yutControlPanel.enableCustomButton(false);
+
+                processTurn();
             }
-            yutControlPanel.enableCustomButton(false);
-
-            promptPieceSelection(playerId);
-
         } catch (Exception ex) {
             handleError(ex);
         }
     }
 
+    // '지정 윷 던지기' 패널에서 윷 선택 완료 후 발생하는 이벤트
     public void onConfirmButtonClicked(List<String> selectedYuts) {
         try {
-            if (selectedYuts.isEmpty() || selectedPieceId == null) {
-                yutControlPanel.showErrorAndRestore("선택된 윷 결과 또는 말이 없습니다.");
-                return;
+            // 사용자가 선택한 각 윷에 대해 처리
+            for (String selectedYut : selectedYuts) {
+                String engResult = yutControlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
+                YutResult yutResult = convertStringToYutResult(engResult);
+
+                gameManager.addYutResult(yutResult);
+                System.out.println("윷 추가: " + yutResult + ", 현재 저장된 윷: " + gameManager.getYutResults().size());
             }
 
-            LogicalPosition current = piecePrevPositionMap.getOrDefault(
-                    selectedPieceId,
-                    new LogicalPosition(
-                            selectedPieceId,
-                            gameManager.getPiece(selectedPieceId).getA(),
-                            gameManager.getPiece(selectedPieceId).getB())
-            );
+            yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
+            System.out.println("저장 완료 후 윷 결과: " + gameManager.getYutResults());
 
-            BoardType boardType = gameManager.getCurrentGame().getBoardType();
+            processTurn();
+        } catch (Exception ex) {
+            handleError(ex);
+        }
+    }
 
-            for (String selectedYut : selectedYuts) {
-                String eng = yutControlPanel.getResultDisplay().convertYutTypeToEnglish(selectedYut);
-                YutResult result = convertStringToYutResult(eng);
-                yutControlPanel.updateYutResult(selectedYut, eng);
+    // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
+    private void processTurn() {
+        try {
+            while (!gameManager.getYutResults().isEmpty()) {
+                promptPieceSelection(playerId);
+                promptYutSelection();
+
+                if (selectedPieceId == null || selectedYutResult == null) {
+                    yutControlPanel.showErrorAndRestore("선택된 말 또는 윷 결과가 없습니다.");
+                    return;
+                }
+
+                // 선택된 윷 결과를 사용하여 말 이동 처리
+                LogicalPosition current = piecePrevPositionMap.getOrDefault(
+                        selectedPieceId,
+                        new LogicalPosition(
+                                selectedPieceId,
+                                gameManager.getPiece(selectedPieceId).getA(),
+                                gameManager.getPiece(selectedPieceId).getB())
+                );
+
+                BoardType boardType = gameManager.getCurrentGame().getBoardType();
 
                 current = BoardPathManager.calculateDestination(
                         selectedPieceId,
                         current.getA(), current.getB(),
                         current.getA(), current.getB(),
-                        result,
+                        selectedYutResult,
                         boardType
                 );
                 System.out.printf("[디버깅] 말 ID: %d, %s 결과 적용 후 위치: (%d, %d)%n",
-                        selectedPieceId, selectedYut, current.getA(), current.getB());
-            }
+                        selectedPieceId, selectedYutResult, current.getA(), current.getB());
 
-            YutResult finalResult = convertStringToYutResult(
-                    yutControlPanel.getResultDisplay().convertYutTypeToEnglish(
-                            selectedYuts.get(selectedYuts.size() - 1)
-                    )
-            );
+                var moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
 
-            var moveResult = gameManager.movePiece(selectedPieceId, finalResult);
+                // 이동한 말의 소유자 Status UI 갱신
+                statusPanel.updatePlayerStatus(gameManager.getPiece(selectedPieceId).getPlayer());
 
-            // 이동한 말의 소유자 Status UI 갱신)
-            statusPanel.updatePlayerStatus(gameManager.getPiece(selectedPieceId).getPlayer());
-
-            // 잡기 발생 시 잡힌 말 소유자 Status UI 갱신
-            if (moveResult.captureOccurred()) {
-                for (Piece capturedPiece : moveResult.capturedPieces()) {
-                    statusPanel.updatePlayerStatus(capturedPiece.getPlayer());
+                // 잡기 발생 시 잡힌 말 소유자 Status UI 갱신
+                if (moveResult.captureOccurred()) {
+                    for (Piece capturedPiece : moveResult.capturedPieces()) {
+                        statusPanel.updatePlayerStatus(capturedPiece.getPlayer());
+                    }
+                    JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
                 }
-                JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
+
+                // 항상 보드 UI 갱신
+                yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
+                yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
+                // 선택 초기화 및 강조 해제
+                // selectedPieceId = null;
+                // yutBoardPanel.highlightSelectedPiece(null);
+
+                // 턴 처리
+                handleTurnChange(moveResult.requiresAnotherMove());
             }
-
-            // 항상 보드 UI 갱신
-            yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
-
-            // // 선택 초기화 및 강조 해제
-            // selectedPieceId = null;
-            // yutBoardPanel.highlightSelectedPiece(null);
-
-            // 턴 처리
-            handleTurnChange(moveResult.requiresAnotherMove());
-
         } catch (Exception ex) {
             handleError(ex);
         } finally {
             yutControlPanel.restorePanel();
         }
     }
+
 
     // 턴 처리 로직 분리
     private void handleTurnChange(boolean requiresAnotherMove) {
@@ -148,6 +165,7 @@ public class InGameController {
             yutControlPanel.startNewTurn();
         } else {
             yutControlPanel.enableRandomButton(true);
+            yutControlPanel.enableCustomButton(true);
         }
         // 모든 플레이어의 Status UI 갱신 (필요시)
         for (com.sw.yutnori.model.Player player : gameManager.getCurrentGame().getPlayers()) {
@@ -206,13 +224,44 @@ public class InGameController {
             if (selectedIdx >= 0) {
                 selectedPieceId = pieceIds[selectedIdx];
                     // yutBoardPanel.highlightSelectedPiece(selectedPieceId);
-                if (pendingRandomYutResult != null) {
-                    onConfirmButtonClicked(List.of(pendingRandomYutResult.name()));
-                    pendingRandomYutResult = null;
-                }
             }
         }
     }
+
+    // 던져서 나온 윷 결과 중 이전에 선택한 말에 적용할 값 선택
+    public void promptYutSelection() {
+        List<YutResult> yutResults = gameManager.getYutResults();
+        if (yutResults.isEmpty()) {
+            yutControlPanel.showError("선택 가능한 윷 결과가 없습니다.");
+            return;
+        }
+
+        String[] displayOptions =  new String[yutResults.size()];
+        for (int i = 0; i < yutResults.size(); i++) {
+            YutResult result = yutResults.get(i);
+            displayOptions[i] = convertYutResultToKorean(result);
+        }
+
+        Object selected = JOptionPane.showInputDialog(
+                null,
+                "사용할 윷 결과를 선택하세요",
+                "윷 결과 선택",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                displayOptions,
+                displayOptions[0]
+        );
+
+        if (selected != null) {
+            int selectedIdx = java.util.Arrays.asList(displayOptions).indexOf(selected.toString());
+            if (selectedIdx >= 0) {
+                selectedYutResult = yutResults.get(selectedIdx);
+                gameManager.deleteYutResult(selectedYutResult);
+                yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
+            }
+        }
+    }
+
 
     public void resetPieceSelection() {
         selectedPieceId = null;
@@ -229,8 +278,19 @@ public class InGameController {
             case "GEOL" -> YutResult.GEOL;
             case "YUT" -> YutResult.YUT;
             case "MO" -> YutResult.MO;
-            case "BACKDO" -> YutResult.BACK_DO;
+            case "BACKDO", "BACK_DO" -> YutResult.BACK_DO;
             default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
+        };
+    }
+
+    private String convertYutResultToKorean(YutResult result) {
+        return switch (result) {
+            case DO -> "도";
+            case GAE -> "개";
+            case GEOL -> "걸";
+            case YUT -> "윷";
+            case MO -> "모";
+            case BACK_DO -> "빽도";
         };
     }
 

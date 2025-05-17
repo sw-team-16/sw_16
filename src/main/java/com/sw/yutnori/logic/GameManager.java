@@ -12,6 +12,8 @@ public class GameManager {
     private final Map<Long, Player> playerMap = new HashMap<>();
     private final Map<Long, Piece> pieceMap = new HashMap<>();
 
+    private final List<YutResult> yutResults = new ArrayList<>();
+
     private long pieceIdCounter = 1;
 
     private long generatePieceId() {
@@ -102,6 +104,22 @@ public class GameManager {
         else if (r < 0.8) return YutResult.GEOL;
         else if (r < 0.95) return YutResult.YUT;
         else return YutResult.MO;
+    }
+
+    public void addYutResult(YutResult result) {
+        yutResults.add(result);
+    }
+
+    public List<YutResult> getYutResults() {
+        return yutResults;
+    }
+
+    public void deleteYutResult(YutResult result) {
+        yutResults.remove(result);
+    }
+
+    public void clearYutResults() {
+        yutResults.clear();
     }
 
     public MovePieceResult movePiece(Long pieceId, YutResult result) {
@@ -202,6 +220,7 @@ public class GameManager {
         }
         int nextIndex = (index + 1) % players.size();
         currentGame.setCurrentTurnPlayer(players.get(nextIndex)); // 이 줄 꼭 필요
+        clearYutResults();
     }
 
 
