@@ -100,11 +100,11 @@ public class BoardPathManager {
             // (5,1) 지름길 루트 시작
             path = List.of(
                     new LogicalPosition(pieceId, 5, 1),
-                    new LogicalPosition(pieceId, 1, 10),//도
-                    new LogicalPosition(pieceId, 2, 10),//개
+                    new LogicalPosition(pieceId, 10, 1),//도
+                    new LogicalPosition(pieceId, 10, 1),//개
                     new LogicalPosition(pieceId, 3, 10),//걸
-                    new LogicalPosition(pieceId, 2, 30), //윷
-                    new LogicalPosition(pieceId, 1, 30),//모
+                    new LogicalPosition(pieceId, 30, 2), //윷
+                    new LogicalPosition(pieceId, 30, 1),//모
                     new LogicalPosition(pieceId, 5, 3),
                     new LogicalPosition(pieceId, 1, 4),
                     new LogicalPosition(pieceId, 2, 4),
@@ -116,19 +116,19 @@ public class BoardPathManager {
             // (5,1) → (3,10) 도착 후 추가 이동
             path = List.of(
                     new LogicalPosition(pieceId, 3, 10),
-                    new LogicalPosition(pieceId, 2, 40),
-                    new LogicalPosition(pieceId, 1, 40),
+                    new LogicalPosition(pieceId, 40, 2),
+                    new LogicalPosition(pieceId, 40, 1),
                     new LogicalPosition(pieceId, 0, 1)
             );
         } else if (a == 5 && b == 2) {
             // (5,2) 지름길 루트 시작
             path = List.of(
                     new LogicalPosition(pieceId, 5, 2),
-                    new LogicalPosition(pieceId, 1, 20),
-                    new LogicalPosition(pieceId, 2, 20),
+                    new LogicalPosition(pieceId, 20, 1),
+                    new LogicalPosition(pieceId, 20, 2),
                     new LogicalPosition(pieceId, 3, 10),
-                    new LogicalPosition(pieceId, 2, 40),
-                    new LogicalPosition(pieceId, 1, 40),
+                    new LogicalPosition(pieceId, 40, 2),
+                    new LogicalPosition(pieceId, 40, 1),
                     new LogicalPosition(pieceId, 0, 1)
             );
         } else {
@@ -201,19 +201,19 @@ public class BoardPathManager {
                 new LogicalPosition(pieceId, 0, 1)
         });
         shortcutRoutes.put("5,2", new LogicalPosition[]{
-                new LogicalPosition(pieceId, 1, 20),
-                new LogicalPosition(pieceId, 2, 20),
+                new LogicalPosition(pieceId, 20, 1),
+                new LogicalPosition(pieceId, 20, 2),
                 new LogicalPosition(pieceId, 3, 10),
-                new LogicalPosition(pieceId, 1, 50),
-                new LogicalPosition(pieceId, 2, 50),
+                new LogicalPosition(pieceId, 50, 1),
+                new LogicalPosition(pieceId, 50, 2),
                 new LogicalPosition(pieceId, 0, 1)
         });
         shortcutRoutes.put("5,3", new LogicalPosition[]{
-                new LogicalPosition(pieceId, 2, 30),
-                new LogicalPosition(pieceId, 1, 30),
+                new LogicalPosition(pieceId, 30, 1),
+                new LogicalPosition(pieceId, 30, 2),
                 new LogicalPosition(pieceId, 3, 10),
-                new LogicalPosition(pieceId, 1, 50),
-                new LogicalPosition(pieceId, 2, 50),
+                new LogicalPosition(pieceId, 50, 2),
+                new LogicalPosition(pieceId, 50, 1),
                 new LogicalPosition(pieceId, 0, 1)
         });
 
@@ -231,8 +231,8 @@ public class BoardPathManager {
         // === 지름길 도중 분기 처리 (예: (3,10) 이후) ===
         if (prevA == 5 && prevB == 1 && a == 3 && b == 10) {
             LogicalPosition[] tail = new LogicalPosition[]{
-                    new LogicalPosition(pieceId, 1, 40),
-                    new LogicalPosition(pieceId, 2, 40),
+                    new LogicalPosition(pieceId, 40, 1),
+                    new LogicalPosition(pieceId, 40, 2),
                     new LogicalPosition(pieceId, 5, 4),
                     new LogicalPosition(pieceId, 1, 5),
                     new LogicalPosition(pieceId, 2, 5),
@@ -244,16 +244,16 @@ public class BoardPathManager {
         }
         if (prevA == 5 && prevB == 2 && a == 3 && b == 10) {
             LogicalPosition[] tail = new LogicalPosition[]{
-                    new LogicalPosition(pieceId, 1, 50),
-                    new LogicalPosition(pieceId, 2, 50),
+                    new LogicalPosition(pieceId, 50, 1),
+                    new LogicalPosition(pieceId, 50, 2),
                     new LogicalPosition(pieceId, 0, 1)
             };
             return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
         }
         if (prevA == 5 && prevB == 3 && a == 3 && b == 10) {
             LogicalPosition[] tail = new LogicalPosition[]{
-                    new LogicalPosition(pieceId, 1, 50),
-                    new LogicalPosition(pieceId, 2, 50),
+                    new LogicalPosition(pieceId, 50, 1),
+                    new LogicalPosition(pieceId, 50, 2),
                     new LogicalPosition(pieceId, 0, 1)
             };
             return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
@@ -318,31 +318,31 @@ public class BoardPathManager {
         });
 
         shortcuts.put("5,2", new LogicalPosition[]{
-                new LogicalPosition(pieceId, 1, 20), new LogicalPosition(pieceId, 2, 20),
-                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 50),
-                new LogicalPosition(pieceId, 1, 50), new LogicalPosition(pieceId, 5, 5),
+                new LogicalPosition(pieceId, 20, 1), new LogicalPosition(pieceId, 20, 2),
+                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 50, 2),
+                new LogicalPosition(pieceId, 50, 1), new LogicalPosition(pieceId, 5, 5),
                 new LogicalPosition(pieceId, 1, 6), new LogicalPosition(pieceId, 2, 6),
                 new LogicalPosition(pieceId, 3, 6), new LogicalPosition(pieceId, 4, 6),
                 new LogicalPosition(pieceId, 5, 6), new LogicalPosition(pieceId, 0, 1)
         });
 
         shortcuts.put("5,3", new LogicalPosition[]{
-                new LogicalPosition(pieceId, 1, 30), new LogicalPosition(pieceId, 2, 30),
-                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 60),
-                new LogicalPosition(pieceId, 1, 60), new LogicalPosition(pieceId, 0, 1)
+                new LogicalPosition(pieceId, 30, 1), new LogicalPosition(pieceId, 30, 2),
+                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 60, 2),
+                new LogicalPosition(pieceId, 60, 1), new LogicalPosition(pieceId, 0, 1)
         });
 
         shortcuts.put("5,4", new LogicalPosition[]{
-                new LogicalPosition(pieceId, 1, 40), new LogicalPosition(pieceId, 2, 40),
-                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 2, 60),
-                new LogicalPosition(pieceId, 1, 60), new LogicalPosition(pieceId, 0, 1)
+                new LogicalPosition(pieceId, 40, 1), new LogicalPosition(pieceId, 40, 2),
+                new LogicalPosition(pieceId, 3, 10), new LogicalPosition(pieceId, 60, 2),
+                new LogicalPosition(pieceId, 60, 1), new LogicalPosition(pieceId, 0, 1)
         });
 
         // (3,10)에 도착한 경우: 이전 위치에 따라 별도 분기
         if (a == 3 && b == 10) {
             if ((prevA == 5 && prevB == 1) || (prevA == 5 && prevB == 2) || (prevA == 5 && prevB == 4)) {
                 LogicalPosition[] tail = {
-                        new LogicalPosition(pieceId, 2, 60), new LogicalPosition(pieceId, 1, 60),
+                        new LogicalPosition(pieceId, 60, 2), new LogicalPosition(pieceId, 60, 1),
                         new LogicalPosition(pieceId, 0, 1)
                 };
                 return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];

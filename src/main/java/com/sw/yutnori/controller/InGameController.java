@@ -39,6 +39,7 @@ public class InGameController {
         this.gameManager = gameManager;
         this.setupData = setupData;
         this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
+        this.yutBoardPanel.setGameManager(gameManager);
         this.yutControlPanel = new SwingYutControlPanel(this);
         this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount(), gameManager);
         this.yutBoardPanel.setInGameController(this);
@@ -112,6 +113,7 @@ public class InGameController {
                                 gameManager.getPiece(selectedPieceId).getA(),
                                 gameManager.getPiece(selectedPieceId).getB())
                 );
+
 
                 BoardType boardType = gameManager.getCurrentGame().getBoardType();
 

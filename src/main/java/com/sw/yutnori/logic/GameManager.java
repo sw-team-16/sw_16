@@ -1,4 +1,13 @@
 // logic/GameManager.java
+// 말이도 처리(업기 및 잡기) : movePiece
+/*
+
+업힌 말과 함께 이동:movingGroup
+도착지에 적이 있으면 묶음 말 전체 잡기 : targetGroup
+아군 말 도착지에 있으면 업기: groupedAllyPieceIds
+잡힌 말 초기화: (0,1), READY
+*
+* */
 package com.sw.yutnori.logic;
 
 import com.sw.yutnori.model.*;
@@ -121,12 +130,12 @@ public class GameManager {
     public void clearYutResults() {
         yutResults.clear();
     }
-
+/////////////////말의 이동 로직
     public MovePieceResult movePiece(Long pieceId, YutResult result) {
         Piece piece = pieceMap.get(pieceId);
         if (piece == null) throw new IllegalArgumentException("Invalid piece ID: " + pieceId);
 
-        // READY 상태에서 처음 보드로 이동하는 경우, 시작점에서 출발
+        // READY 상태에서 처음 보드로 이동하는 경우
         if (piece.getState() == PieceState.READY) {
             piece.setLogicalPosition(0, 1);
         }
@@ -135,32 +144,58 @@ public class GameManager {
         int b = piece.getB();
 
         LogicalPosition dest = BoardPathManager.calculateDestination(
-                pieceId,
-                a,
-                b,
-                a,
-                b,
-                result,
-                currentGame.getBoardType()
+                pieceId, a, b, a, b, result, currentGame.getBoardType()
         );
 
-        // 잡기 또는 업기 판단
+        //  함께 이동할 아군 말들 (묶여 있는 경우 포함)
+        List<Piece> movingGroup = new ArrayList<>();
+        movingGroup.add(piece);
+        for (Piece other : pieceMap.values()) {
+            if (!other.getPieceId().equals(piece.getPieceId()) &&
+                    other.getPlayer().equals(piece.getPlayer()) &&
+                    other.getA() == a && other.getB() == b &&
+                    other.isGrouped()) {
+                movingGroup.add(other);
+            }
+        }
+
         boolean capture = false;
         boolean group = false;
+        boolean finish = false;
         List<Piece> capturedPieces = new ArrayList<>();
         List<Long> groupedAllyPieceIds = new ArrayList<>();
-        for (Piece other : pieceMap.values()) {
-            if (!other.getPlayer().equals(piece.getPlayer()) &&
-                    other.getA() == dest.getA() && other.getB() == dest.getB()) {
-                // 잡힌 말 처리: 상태를 READY로, 위치를 (0,0)으로, isGrouped를 false로
-                other.setLogicalPosition(0, 0); // 대기 위치로 이동
-                other.setState(PieceState.READY);
-                other.setGrouped(false);
+
+        //  이동 위치에 적이 있으면 잡기 (묶여 있으면 전체 묶음)
+        for (Piece target : pieceMap.values()) {
+            if (target.getPlayer().equals(piece.getPlayer())) continue;
+
+            if (target.getA() == dest.getA() && target.getB() == dest.getB()) {
+                // 타겟 묶음까지 모두 잡기
+                List<Piece> targetGroup = new ArrayList<>();
+                targetGroup.add(target);
+                for (Piece p : pieceMap.values()) {
+                    if (!p.getPieceId().equals(target.getPieceId()) &&
+                            p.getPlayer().equals(target.getPlayer()) &&
+                            p.getA() == target.getA() && p.getB() == target.getB() &&
+                            p.isGrouped()) {
+                        targetGroup.add(p);
+                    }
+                }
+                for (Piece p : targetGroup) {
+                    p.setLogicalPosition(0, 1); // 잡힌 말은 시작 위치로
+                    p.setState(PieceState.READY);
+                    p.setGrouped(false);
+                    capturedPieces.add(p);
+                }
                 capture = true;
-                capturedPieces.add(other);
-            } else if (other.getPlayer().equals(piece.getPlayer()) &&
-                    other.getA() == dest.getA() && other.getB() == dest.getB() &&
-                    !other.getPieceId().equals(pieceId)) {
+            }
+        }
+
+        // 💼 아군 말 업기 처리 (이동 후 같은 위치의 내 말들)
+        for (Piece other : pieceMap.values()) {
+            if (!other.getPieceId().equals(piece.getPieceId()) &&
+                    other.getPlayer().equals(piece.getPlayer()) &&
+                    other.getA() == dest.getA() && other.getB() == dest.getB()) {
                 other.setGrouped(true);
                 piece.setGrouped(true);
                 group = true;
@@ -168,31 +203,33 @@ public class GameManager {
             }
         }
 
-        // 말 이동 처리
-        piece.setLogicalPosition(dest.getA(), dest.getB());
+        // 이동 수행 (묶인 아군 말들 포함)
+        for (Piece p : movingGroup) {
+            p.setLogicalPosition(dest.getA(), dest.getB());
 
-        // 골인 지점 도달 시 처리
-        boolean finish = dest.getA() == 0 && dest.getB() == 1;
-        if (finish) {
-            piece.setState(PieceState.FINISHED);
-            piece.setFinished(true);
-            Player owner = piece.getPlayer();
-            owner.setFinishedCount(owner.getFinishedCount() + 1);
-        } else {
-            piece.setState(PieceState.ON_BOARD);
+            if (dest.getA() == 0 && dest.getB() == 1) {
+                p.setState(PieceState.FINISHED);
+                p.setFinished(true);
+                Player owner = p.getPlayer();
+                owner.setFinishedCount(owner.getFinishedCount() + 1);
+                finish = true;
+            } else {
+                p.setState(PieceState.ON_BOARD);
+            }
         }
 
         boolean moreTurn = result == YutResult.YUT || result == YutResult.MO || capture;
 
         return new MovePieceResult(
-            capture,
-            capturedPieces,
-            group,
-            groupedAllyPieceIds,
-            finish,
-            moreTurn
+                capture,
+                capturedPieces,
+                group,
+                groupedAllyPieceIds,
+                finish,
+                moreTurn
         );
     }
+
 
     public Turn getCurrentTurn() {
         List<Turn> turns = currentGame.getTurns();

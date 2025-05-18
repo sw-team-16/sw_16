@@ -1,6 +1,6 @@
 /*
  * YutBoardPanel.java
- * 윷판을 그리는 Panel
+ * 윷판, 말의 표시를 그리는 Panel
  *  - 배경, 연결선, 노드, 노드 그림자, 중앙/모서리 노드 강조, 시작 노드 강조
  * 
  * 
@@ -214,8 +214,14 @@ public class SwingYutBoardPanel extends JPanel {
             }
         }
     }
+    public void setGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+
     public void refreshAllPieceMarkers(List<Player> players) {
-        removeAll(); // 모든 컴포넌트 제거
+        removeAll(); // 모든 컴포넌트 제거(기존 마킬 제거)
+        revalidate();
+        repaint();
         pieceButtons.clear();
 
         // paintComponent와 동일하게 offsetX, offsetY 계산
