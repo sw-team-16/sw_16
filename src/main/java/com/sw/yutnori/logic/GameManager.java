@@ -14,6 +14,7 @@ import com.sw.yutnori.model.*;
 import com.sw.yutnori.model.enums.*;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
+import javax.swing.*;
 import java.util.*;
 
 public class GameManager {
@@ -167,7 +168,7 @@ public class GameManager {
 
         //  이동 위치에 적이 있으면 잡기 (묶여 있으면 전체 묶음)
         for (Piece target : pieceMap.values()) {
-            if (target.getPlayer().equals(piece.getPlayer())) continue;
+            if (target.getPlayer().equals(piece.getPlayer()) || target.getState() != PieceState.ON_BOARD) continue;
 
             if (target.getA() == dest.getA() && target.getB() == dest.getB()) {
                 // 타겟 묶음까지 모두 잡기
@@ -191,7 +192,7 @@ public class GameManager {
             }
         }
 
-        // 💼 아군 말 업기 처리 (이동 후 같은 위치의 내 말들)
+        // 아군 말 업기 처리 (이동 후 같은 위치의 내 말들)
         for (Piece other : pieceMap.values()) {
             if (!other.getPieceId().equals(piece.getPieceId()) &&
                     other.getPlayer().equals(piece.getPlayer()) &&
@@ -228,6 +229,9 @@ public class GameManager {
                 finish,
                 moreTurn
         );
+
+
+
     }
 
 

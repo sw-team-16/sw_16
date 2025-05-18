@@ -116,11 +116,14 @@ public class InGameController {
 
 
                 BoardType boardType = gameManager.getCurrentGame().getBoardType();
+                Piece piece = gameManager.getPiece(selectedPieceId);
+                int prevA = piece.getA();
+                int prevB = piece.getB();
 
                 current = BoardPathManager.calculateDestination(
                         selectedPieceId,
                         current.getA(), current.getB(),
-                        current.getA(), current.getB(),
+                        prevA, prevB,
                         selectedYutResult,
                         boardType
                 );
@@ -128,6 +131,27 @@ public class InGameController {
                         selectedPieceId, selectedYutResult, current.getA(), current.getB());
 
                 var moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
+                // 말이 끝까지 도달했는지 확인하고 메시지 출력
+                if (moveResult.reachedEndPoint()) {
+                    String playerName = gameManager.getPiece(selectedPieceId).getPlayer().getName();
+                    List<Piece> playerPieces = gameManager.getPiece(selectedPieceId).getPlayer().getPieces();
+                    int pieceNumber = -1;
+
+                    for (int i = 0; i < playerPieces.size(); i++) {
+                        if (playerPieces.get(i).getPieceId().equals(selectedPieceId)) {
+                            pieceNumber = i + 1;  // 말 번호 (1번부터 시작)
+                            break;
+                        }
+                    }
+
+                    JOptionPane.showMessageDialog(
+                            null,
+                            playerName + "님의 " + pieceNumber + "번 말이 도착지에 도달했습니다!",
+                            "완주",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                }
+
 
                 // 이동한 말의 소유자 Status UI 갱신
                 statusPanel.updatePlayerStatus(gameManager.getPiece(selectedPieceId).getPlayer());
@@ -213,7 +237,7 @@ public class InGameController {
 
         Object selected = JOptionPane.showInputDialog(
                 null,
-                "사용할 말을 선택하세요",
+                "[" + player.getName() + "] 사용할 말을 선택하세요",  // 🔹 수정된 부분
                 "말 선택",
                 JOptionPane.PLAIN_MESSAGE,
                 null,

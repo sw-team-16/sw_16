@@ -112,7 +112,7 @@ public class BoardPathManager {
                     new LogicalPosition(pieceId, 4, 4),
                     new LogicalPosition(pieceId, 0, 1)
             );
-        } else if (a == 3 && b == 10 && prevA == 5 && prevB == 1) {
+        } else if (a == 3 && b == 10 ) {
             // (5,1) → (3,10) 도착 후 추가 이동
             path = List.of(
                     new LogicalPosition(pieceId, 3, 10),
@@ -120,6 +120,7 @@ public class BoardPathManager {
                     new LogicalPosition(pieceId, 40, 1),
                     new LogicalPosition(pieceId, 0, 1)
             );
+
         } else if (a == 5 && b == 2) {
             // (5,2) 지름길 루트 시작
             path = List.of(
