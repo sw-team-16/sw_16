@@ -80,24 +80,64 @@ public class SwingYutControlPanel extends JPanel {
     }
 
     public void showWinnerDialog(String winnerName) {
-        JOptionPane.showMessageDialog(this, winnerName + "님이 승리했습니다!", "게임 종료", JOptionPane.INFORMATION_MESSAGE);
-        String message = winnerName + "님이 승리했습니다!";
-        String[] options = {"재시작", "종료"};
-        int choice = JOptionPane.showOptionDialog(
-            this,
-            message,
-            "게임 종료",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.INFORMATION_MESSAGE,
-            null,
-            options,
-            options[0]
-        );
-        if (choice == JOptionPane.YES_OPTION) {
-            // Controller logic is now handled in InGameController
-        } else if (choice == JOptionPane.NO_OPTION) {
-            System.exit(0);
+        Window window = SwingUtilities.getWindowAncestor(this);
+        JFrame frame = (window instanceof JFrame) ? (JFrame) window : null;
+        if (frame == null) {
+            JOptionPane.showMessageDialog(this, winnerName + "님이 승리했습니다!", "게임 종료", JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
+
+        // 오버레이(GlassPane) 생성
+        JPanel overlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.setColor(new Color(0, 0, 0, 120)); // 반투명 overlay
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        overlay.setOpaque(false);
+        overlay.setLayout(new GridBagLayout());
+
+        // 중앙 게임 종료 Panel 생성
+        JPanel dialogPanel = new JPanel();
+        dialogPanel.setBackground(Color.WHITE);
+        dialogPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+        dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.Y_AXIS));
+        dialogPanel.setPreferredSize(new Dimension(350, 200));
+
+        JLabel label = new JLabel(winnerName + "님이 승리했습니다!");
+        label.setFont(label.getFont().deriveFont(Font.BOLD, 22f));
+        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        label.setBorder(BorderFactory.createEmptyBorder(36, 0, 30, 0));
+        dialogPanel.add(label);
+
+        dialogPanel.add(Box.createVerticalGlue());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 40, 0));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 24, 0));
+        JButton restartBtn = new JButton("재시작");
+        JButton exitBtn = new JButton("종료");
+        restartBtn.setPreferredSize(new Dimension(100, 38));
+        exitBtn.setPreferredSize(new Dimension(100, 38));
+        buttonPanel.add(restartBtn);
+        buttonPanel.add(exitBtn);
+        dialogPanel.add(buttonPanel);
+
+        // 버튼 동작
+        restartBtn.addActionListener(e -> {
+            frame.getGlassPane().setVisible(false);
+            closeWindowAndOpenSetup();
+        });
+        exitBtn.addActionListener(e -> System.exit(0));
+
+        // 오버레이에 다이얼로그 중앙 배치
+        overlay.add(dialogPanel, new GridBagConstraints());
+        frame.setGlassPane(overlay);
+        overlay.setVisible(true);
+        overlay.requestFocusInWindow();
     }
 
     public void closeWindowAndOpenSetup() {
