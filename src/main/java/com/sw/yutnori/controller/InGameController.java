@@ -119,19 +119,21 @@ public class InGameController {
                 Piece piece = gameManager.getPiece(selectedPieceId);
                 int prevA = piece.getA();
                 int prevB = piece.getB();
+//
+//                current = BoardPathManager.calculateDestination(
+//                        selectedPieceId,
+//                        current.getA(), current.getB(),
+//                        prevA, prevB,
+//                        selectedYutResult,
+//                        boardType
+//                );
 
-                current = BoardPathManager.calculateDestination(
-                        selectedPieceId,
-                        current.getA(), current.getB(),
-                        prevA, prevB,
-                        selectedYutResult,
-                        boardType
-                );
-                System.out.printf("[디버깅] 말 ID: %d, %s 결과 적용 후 위치: (%d, %d)%n",
-                        selectedPieceId, selectedYutResult, current.getA(), current.getB());
 
                 var moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
-                // 말이 끝까지 도달했는지 확인하고 메시지 출력
+                Piece pieceAfterMove = gameManager.getPiece(selectedPieceId);
+
+                System.out.printf("[디버깅] 말 ID: %d, 최종 위치: (%d, %d)%n",
+                        pieceAfterMove.getPieceId(), pieceAfterMove.getA(), pieceAfterMove.getB());
                 if (moveResult.reachedEndPoint()) {
                     String playerName = gameManager.getPiece(selectedPieceId).getPlayer().getName();
                     List<Piece> playerPieces = gameManager.getPiece(selectedPieceId).getPlayer().getPieces();

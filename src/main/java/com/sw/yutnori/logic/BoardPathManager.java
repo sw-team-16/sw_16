@@ -84,96 +84,118 @@ public class BoardPathManager {
             case HEXAGON -> calculateHEXAGON(pieceId, currentA, currentB, prevA, prevB, result);
         };
     }
-
     public static LogicalPosition calculateSQUARE(
             Long pieceId,
             int a,
             int b,
             int prevA,
             int prevB,
-            YutResult result) {
-
-        int step = result.getStepCount(); // 윷 결과별 이동 수
+            YutResult result
+    ) {
+        int step = result.getStepCount();
         List<LogicalPosition> path;
 
-        if (a == 5 && b == 1) {
-            // (5,1) 지름길 루트 시작
-            path = List.of(
-                    new LogicalPosition(pieceId, 5, 1),
-                    new LogicalPosition(pieceId, 10, 1),//도
-                    new LogicalPosition(pieceId, 10, 1),//개
-                    new LogicalPosition(pieceId, 3, 10),//걸
-                    new LogicalPosition(pieceId, 30, 2), //윷
-                    new LogicalPosition(pieceId, 30, 1),//모
-                    new LogicalPosition(pieceId, 5, 3),
-                    new LogicalPosition(pieceId, 1, 4),
-                    new LogicalPosition(pieceId, 2, 4),
-                    new LogicalPosition(pieceId, 3, 4),
-                    new LogicalPosition(pieceId, 4, 4),
-                    new LogicalPosition(pieceId, 0, 1)
-            );
-        } else if (a == 3 && b == 10 ) {
-            // (5,1) → (3,10) 도착 후 추가 이동
-            path = List.of(
-                    new LogicalPosition(pieceId, 3, 10),
-                    new LogicalPosition(pieceId, 40, 2),
-                    new LogicalPosition(pieceId, 40, 1),
-                    new LogicalPosition(pieceId, 0, 1)
-            );
+        String key = a + "," + b;
 
-        } else if (a == 5 && b == 2) {
-            // (5,2) 지름길 루트 시작
-            path = List.of(
-                    new LogicalPosition(pieceId, 5, 2),
-                    new LogicalPosition(pieceId, 20, 1),
-                    new LogicalPosition(pieceId, 20, 2),
-                    new LogicalPosition(pieceId, 3, 10),
-                    new LogicalPosition(pieceId, 40, 2),
-                    new LogicalPosition(pieceId, 40, 1),
-                    new LogicalPosition(pieceId, 0, 1)
-            );
+        // 모든 경로 정의
+        Map<String, List<LogicalPosition>> pathMap = new HashMap<>();
+
+        pathMap.put("5,1", List.of(
+                new LogicalPosition(pieceId, 5, 1),
+                new LogicalPosition(pieceId, 10, 1),
+                new LogicalPosition(pieceId, 10, 2),
+                new LogicalPosition(pieceId, 3, 10),
+                new LogicalPosition(pieceId, 40, 2),
+                new LogicalPosition(pieceId, 40, 1),
+                new LogicalPosition(pieceId, 0, 1)
+        ));
+
+        pathMap.put("10,1", pathMap.get("5,1").subList(1, pathMap.get("5,1").size()));
+        pathMap.put("10,2", pathMap.get("5,1").subList(2, pathMap.get("5,1").size()));
+        pathMap.put("3,10", List.of(
+                new LogicalPosition(pieceId, 3, 10),
+                new LogicalPosition(pieceId, 40, 2),
+                new LogicalPosition(pieceId, 40, 1),
+                new LogicalPosition(pieceId, 0, 1)
+        ));
+        pathMap.put("40,2", pathMap.get("3,10").subList(1, pathMap.get("3,10").size()));
+        pathMap.put("40,1", pathMap.get("3,10").subList(2, pathMap.get("3,10").size()));
+
+        pathMap.put("5,2", List.of(
+                new LogicalPosition(pieceId, 5, 2),
+                new LogicalPosition(pieceId, 20, 1),
+                new LogicalPosition(pieceId, 20, 2),
+                new LogicalPosition(pieceId, 3, 10),
+                new LogicalPosition(pieceId, 40, 2),
+                new LogicalPosition(pieceId, 40, 1),
+                new LogicalPosition(pieceId, 0, 1)
+        ));
+        pathMap.put("20,1", pathMap.get("5,2").subList(1, pathMap.get("5,2").size()));
+        pathMap.put("20,2", pathMap.get("5,2").subList(2, pathMap.get("5,2").size()));
+
+        pathMap.put("5,3", List.of(
+                new LogicalPosition(pieceId, 5, 3),
+                new LogicalPosition(pieceId, 1, 4),
+                new LogicalPosition(pieceId, 2, 4),
+                new LogicalPosition(pieceId, 3, 4),
+                new LogicalPosition(pieceId, 4, 4),
+                new LogicalPosition(pieceId, 0, 1)
+        ));
+        pathMap.put("1,4", pathMap.get("5,3").subList(1, pathMap.get("5,3").size()));
+        pathMap.put("2,4", pathMap.get("5,3").subList(2, pathMap.get("5,3").size()));
+        pathMap.put("3,4", pathMap.get("5,3").subList(3, pathMap.get("5,3").size()));
+        pathMap.put("4,4", pathMap.get("5,3").subList(4, pathMap.get("5,3").size()));
+
+        // 일반 경로
+        List<LogicalPosition> generalPath = List.of(
+                new LogicalPosition(pieceId, 0, 1),
+                new LogicalPosition(pieceId, 1, 1),
+                new LogicalPosition(pieceId, 2, 1),
+                new LogicalPosition(pieceId, 3, 1),
+                new LogicalPosition(pieceId, 4, 1),
+                new LogicalPosition(pieceId, 5, 1),
+                new LogicalPosition(pieceId, 1, 2),
+                new LogicalPosition(pieceId, 2, 2),
+                new LogicalPosition(pieceId, 3, 2),
+                new LogicalPosition(pieceId, 4, 2),
+                new LogicalPosition(pieceId, 5, 2),
+                new LogicalPosition(pieceId, 1, 3),
+                new LogicalPosition(pieceId, 2, 3),
+                new LogicalPosition(pieceId, 3, 3),
+                new LogicalPosition(pieceId, 4, 3),
+                new LogicalPosition(pieceId, 5, 3),
+                new LogicalPosition(pieceId, 1, 4),
+                new LogicalPosition(pieceId, 2, 4),
+                new LogicalPosition(pieceId, 3, 4),
+                new LogicalPosition(pieceId, 4, 4),
+                new LogicalPosition(pieceId, 0, 1)
+        );
+
+        if (pathMap.containsKey(key)) {
+            path = pathMap.get(key);
         } else {
-            // 일반 경로
-            path = List.of(
-                    new LogicalPosition(pieceId, 0, 1),
-                    new LogicalPosition(pieceId, 1, 1),
-                    new LogicalPosition(pieceId, 2, 1),
-                    new LogicalPosition(pieceId, 3, 1),
-                    new LogicalPosition(pieceId, 4, 1),
-                    new LogicalPosition(pieceId, 5, 1),
-                    new LogicalPosition(pieceId, 1, 2),
-                    new LogicalPosition(pieceId, 2, 2),
-                    new LogicalPosition(pieceId, 3, 2),
-                    new LogicalPosition(pieceId, 4, 2),
-                    new LogicalPosition(pieceId, 5, 2),
-                    new LogicalPosition(pieceId, 1, 3),
-                    new LogicalPosition(pieceId, 2, 3),
-                    new LogicalPosition(pieceId, 3, 3),
-                    new LogicalPosition(pieceId, 4, 3),
-                    new LogicalPosition(pieceId, 5, 3),
-                    new LogicalPosition(pieceId, 1, 4),
-                    new LogicalPosition(pieceId, 2, 4),
-                    new LogicalPosition(pieceId, 3, 4),
-                    new LogicalPosition(pieceId, 4, 4),
-                    new LogicalPosition(pieceId, 0, 1)
-            );
+            path = generalPath;
         }
 
         // 현재 위치 인덱스 탐색
         int currentIdx = -1;
         for (int i = 0; i < path.size(); i++) {
-            if (path.get(i).getA() == a && path.get(i).getB() == b) {
+            LogicalPosition pos = path.get(i);
+            if (pos.getA() == a && pos.getB() == b) {
                 currentIdx = i;
                 break;
             }
         }
 
-        // 못 찾은 경우 현재 위치 반환
         if (currentIdx == -1) return new LogicalPosition(pieceId, a, b);
 
         int nextIdx = Math.min(currentIdx + step, path.size() - 1);
         return path.get(nextIdx);
     }
+
+
+
+
 
 
 
