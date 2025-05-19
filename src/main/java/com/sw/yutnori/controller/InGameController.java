@@ -150,6 +150,11 @@ public class InGameController {
                             "완주",
                             JOptionPane.INFORMATION_MESSAGE
                     );
+
+                    // 게임 종료 체크 및 승자 알림
+                    if (checkGameFinishedAndShowWinner()) {
+                        return;
+                    }
                 }
 
 
@@ -338,5 +343,19 @@ public class InGameController {
 
     public Board getBoardModel() {
         return boardModel;
+    }
+
+    // 게임 종료 체크 및 승자 알림
+    private boolean checkGameFinishedAndShowWinner() {
+        var game = gameManager.getCurrentGame();
+        for (var player : game.getPlayers()) {
+            if (player.getFinishedCount() == game.getNumPieces()) {
+                game.setWinnerPlayer(player);
+                game.setState(com.sw.yutnori.model.enums.GameState.FINISHED);
+                yutControlPanel.showWinnerDialog(player.getName());
+                return true;
+            }
+        }
+        return false;
     }
 }
