@@ -96,21 +96,19 @@ public class InGameController {
 
     // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
     private void processTurn() {
+        GameManager.MovePieceResult moveResult;
         try {
-            while (!gameManager.getYutResults().isEmpty()) {
-                selectedYutResult = gameManager.getYutResults().get(0); // 항상 첫 윷 결과 사용
-
+            do {
+                // 빽도 확인 여부위해 우선 하나 가져옴
+                selectedYutResult = gameManager.getYutResults().get(0);
                 // 빽도 예외 처리
                 if (selectedYutResult == YutResult.BACK_DO) {
                     var player = gameManager.getPlayer(playerId);
 
                     if (gameManager.isBackDoTurnSkippable(player)) {
                         gameManager.deleteYutResult(selectedYutResult);
-                        JOptionPane.showMessageDialog(null, "OnBoard 상태의 말이 없어 턴을 넘깁니다.", "빽도", JOptionPane.INFORMATION_MESSAGE);
-                        gameManager.nextTurn(playerId);
-                        Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
-                        setGameContext(nextPlayerId);
-                        yutControlPanel.startNewTurn();
+                        JOptionPane.showMessageDialog(null, "움직일 수 있는 말이 없어 턴을 넘깁니다.", "빽도", JOptionPane.INFORMATION_MESSAGE);
+                        handleTurnChange();    // 중복 내용 리팩토링
                         return;
                     } else {
                         promptBackDoPieceSelection(playerId);
@@ -139,7 +137,7 @@ public class InGameController {
                 int prevA = piece.getA();
                 int prevB = piece.getB();
 
-                var moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
+                moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
                 Piece pieceAfterMove = gameManager.getPiece(selectedPieceId);
 
                 System.out.printf("[디버깅] 말 ID: %d, 최종 위치: (%d, %d)%n",
@@ -180,8 +178,8 @@ public class InGameController {
                 yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
                 yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
 
-                handleTurnChange(moveResult.requiresAnotherMove());
-            }
+            } while (!gameManager.getYutResults().isEmpty() || moveResult.captureOccurred());
+            handleTurnChange();
         } catch (Exception ex) {
             handleError(ex);
         } finally {
@@ -191,16 +189,11 @@ public class InGameController {
 
 
     // 턴 처리 로직 분리
-    public void handleTurnChange(boolean requiresAnotherMove) {
-        if (!requiresAnotherMove) {
-            gameManager.nextTurn(playerId);
-            Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
-            setGameContext(nextPlayerId);
-            yutControlPanel.startNewTurn();
-        } else {
-            // 자동으로 윷을 한 번 더 던지기
-            SwingUtilities.invokeLater(() -> onRandomYutButtonClicked());
-        }
+    public void handleTurnChange() {
+        gameManager.nextTurn(playerId);
+        Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
+        setGameContext(nextPlayerId);
+        yutControlPanel.startNewTurn();
         // 모든 플레이어의 Status UI 갱신 (필요시)
         for (com.sw.yutnori.model.Player player : gameManager.getCurrentGame().getPlayers()) {
             statusPanel.updatePlayerStatus(player);
@@ -291,7 +284,9 @@ public class InGameController {
             int selectedIdx = java.util.Arrays.asList(displayOptions).indexOf(selected.toString());
             if (selectedIdx >= 0) {
                 selectedYutResult = yutResults.get(selectedIdx);
+                System.out.println("선택된 윷 결과: " + selectedYutResult);
                 gameManager.deleteYutResult(selectedYutResult);
+                System.out.println("삭제 후 윷 결과: " + gameManager.getYutResults());
                 yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
             }
         }
