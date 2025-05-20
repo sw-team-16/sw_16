@@ -118,39 +118,6 @@ public class SwingResultDisplay implements ResultDisplay {
                 result.equals("YUT") || result.equals("MO");
     }
 
-    // 윷이나 모가 나올 경우 나온 횟수를 HTML 태그 활용해 윗첨자로 표시
-    private String formatYutResultWithSuperscript(String result, String currentText) {
-        // 디버깅용
-        System.out.println("입력 값: result=" + result + ", currentText=" + currentText);
-
-        // 기본 케이스: 처음 중복되는 경우
-        if (!currentText.contains("<sup>")) {
-            return "<html>" + result + "<sup>2</sup></html>";
-        }
-
-        try {
-            // 정규식을 사용하여 숫자 추출
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<sup>(\\d+)</sup>");
-            java.util.regex.Matcher matcher = pattern.matcher(currentText);
-
-            if (matcher.find()) {
-                String countText = matcher.group(1);
-                int count = Integer.parseInt(countText);
-                String newResult = "<html>" + result + "<sup>" + (count + 1) + "</sup></html>";
-                System.out.println("변환 결과: " + newResult);
-                return newResult;
-            } else {
-                System.out.println("윗첨자 숫자를 찾지 못함");
-            }
-        } catch (Exception e) {
-            System.err.println("윗첨자 파싱 오류: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        // 기본값
-        return "<html>" + result + "<sup>2</sup></html>";
-    }
-
     @Override
     public String convertYutTypeToKorean(String englishYutType) {
         return convertYutType(englishYutType, true);
