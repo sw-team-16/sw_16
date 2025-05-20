@@ -6,6 +6,7 @@ import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Board;
 import com.sw.yutnori.model.LogicalPosition;
 import com.sw.yutnori.model.Piece;
+import com.sw.yutnori.model.Player;
 import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.YutResult;
 import com.sw.yutnori.ui.swing.PiecePositionDisplayManager;
@@ -95,93 +96,119 @@ public class InGameController {
     }
 
     // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
+
+    // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
     private void processTurn() {
         try {
-            while (!gameManager.getYutResults().isEmpty()) {
-                selectedYutResult = gameManager.getYutResults().get(0); // 항상 첫 윷 결과 사용
+            if (gameManager.getYutResults().isEmpty()) return;
 
-                // 빽도 예외 처리
-                if (selectedYutResult == YutResult.BACK_DO) {
-                    var player = gameManager.getPlayer(playerId);
+            selectedYutResult = gameManager.getYutResults().get(0); // 항상 첫 윷 결과 사용
 
-                    if (gameManager.isBackDoTurnSkippable(player)) {
-                        gameManager.deleteYutResult(selectedYutResult);
-                        JOptionPane.showMessageDialog(null, "OnBoard 상태의 말이 없어 턴을 넘깁니다.", "빽도", JOptionPane.INFORMATION_MESSAGE);
-                        gameManager.nextTurn(playerId);
-                        Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
-                        setGameContext(nextPlayerId);
-                        yutControlPanel.startNewTurn();
-                        return;
-                    } else {
-                        promptBackDoPieceSelection(playerId);
-                        promptYutSelection(); // 선택된 빽도 삭제 포함
-                    }
-                } else {
-                    promptPieceSelection(playerId);
-                    promptYutSelection();
-                }
+            // 빽도 예외 처리
+            if (selectedYutResult == YutResult.BACK_DO) {
+                var player = gameManager.getPlayer(playerId);
 
-                if (selectedPieceId == null || selectedYutResult == null) {
-                    yutControlPanel.showErrorAndRestore("선택된 말 또는 윷 결과가 없습니다.");
+                if (gameManager.isBackDoTurnSkippable(player)) {
+                    gameManager.deleteYutResult(selectedYutResult);
+                    JOptionPane.showMessageDialog(null, "OnBoard 상태의 말이 없어 턴을 넘깁니다.", "빽도", JOptionPane.INFORMATION_MESSAGE);
+                    gameManager.nextTurn(playerId);
+                    Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
+                    setGameContext(nextPlayerId);
+                    yutControlPanel.startNewTurn();
                     return;
+                } else {
+                    promptBackDoPieceSelection(playerId);
+                    promptYutSelection(); // 선택된 빽도 삭제 포함
+                }
+            } else {
+                promptPieceSelection(playerId);
+                promptYutSelection();
+            }
+
+            if (selectedPieceId == null || selectedYutResult == null) {
+                yutControlPanel.showErrorAndRestore("선택된 말 또는 윷 결과가 없습니다.");
+                return;
+            }
+
+            LogicalPosition current = piecePrevPositionMap.getOrDefault(
+                    selectedPieceId,
+                    new LogicalPosition(
+                            selectedPieceId,
+                            gameManager.getPiece(selectedPieceId).getA(),
+                            gameManager.getPiece(selectedPieceId).getB())
+            );
+
+            BoardType boardType = gameManager.getCurrentGame().getBoardType();
+            Piece piece = gameManager.getPiece(selectedPieceId);
+            int prevA = piece.getA();
+            int prevB = piece.getB();
+
+            var moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
+            Piece pieceAfterMove = gameManager.getPiece(selectedPieceId);
+
+            System.out.printf("[디버깅] 말 ID: %d, 최종 위치: (%d, %d)%n",
+                    pieceAfterMove.getPieceId(), pieceAfterMove.getA(), pieceAfterMove.getB());
+
+            if (moveResult.reachedEndPoint()) {
+                String playerName = pieceAfterMove.getPlayer().getName();
+                List<Piece> playerPieces = pieceAfterMove.getPlayer().getPieces();
+                int pieceNumber = -1;
+                for (int i = 0; i < playerPieces.size(); i++) {
+                    if (playerPieces.get(i).getPieceId().equals(selectedPieceId)) {
+                        pieceNumber = i + 1;
+                        break;
+                    }
                 }
 
-                LogicalPosition current = piecePrevPositionMap.getOrDefault(
-                        selectedPieceId,
-                        new LogicalPosition(
-                                selectedPieceId,
-                                gameManager.getPiece(selectedPieceId).getA(),
-                                gameManager.getPiece(selectedPieceId).getB())
+                JOptionPane.showMessageDialog(
+                        null,
+                        playerName + "님의 " + pieceNumber + "번 말이 도착지에 도달했습니다!",
+                        "완주",
+                        JOptionPane.INFORMATION_MESSAGE
                 );
 
-                BoardType boardType = gameManager.getCurrentGame().getBoardType();
-                Piece piece = gameManager.getPiece(selectedPieceId);
-                int prevA = piece.getA();
-                int prevB = piece.getB();
-
-                var moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
-                Piece pieceAfterMove = gameManager.getPiece(selectedPieceId);
-
-                System.out.printf("[디버깅] 말 ID: %d, 최종 위치: (%d, %d)%n",
-                        pieceAfterMove.getPieceId(), pieceAfterMove.getA(), pieceAfterMove.getB());
-
-                if (moveResult.reachedEndPoint()) {
-                    String playerName = pieceAfterMove.getPlayer().getName();
-                    List<Piece> playerPieces = pieceAfterMove.getPlayer().getPieces();
-                    int pieceNumber = -1;
-                    for (int i = 0; i < playerPieces.size(); i++) {
-                        if (playerPieces.get(i).getPieceId().equals(selectedPieceId)) {
-                            pieceNumber = i + 1;
-                            break;
-                        }
-                    }
-
-                    JOptionPane.showMessageDialog(
-                            null,
-                            playerName + "님의 " + pieceNumber + "번 말이 도착지에 도달했습니다!",
-                            "완주",
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
-
-                    if (checkGameFinishedAndShowWinner()) {
-                        return;
-                    }
+                if (checkGameFinishedAndShowWinner()) {
+                    return;
                 }
-
-                statusPanel.updatePlayerStatus(pieceAfterMove.getPlayer());
-
-                if (moveResult.captureOccurred()) {
-                    for (Piece capturedPiece : moveResult.capturedPieces()) {
-                        statusPanel.updatePlayerStatus(capturedPiece.getPlayer());
-                    }
-                    JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
-                }
-
-                yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
-                yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
-
-                handleTurnChange(moveResult.requiresAnotherMove());
             }
+
+            statusPanel.updatePlayerStatus(pieceAfterMove.getPlayer());
+
+            if (moveResult.captureOccurred()) {
+                for (Piece capturedPiece : moveResult.capturedPieces()) {
+                    statusPanel.updatePlayerStatus(capturedPiece.getPlayer());
+                }
+                JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
+            }
+            if (moveResult.groupingOccurred()) {
+                List<Long> groupedIds = moveResult.groupedAllyPieceIds();
+                String grouped = groupedIds.stream()
+                        .map(id -> {
+                            Player p = gameManager.getPiece(id).getPlayer();
+                            List<Piece> pieces = p.getPieces();
+                            for (int i = 0; i < pieces.size(); i++) {
+                                if (pieces.get(i).getPieceId().equals(id)) {
+                                    return (i + 1) + "번";
+                                }
+                            }
+                            return "알 수 없음";
+                        })
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse("없음");
+
+                JOptionPane.showMessageDialog(
+                        null,
+                        "같은 위치의 아군 말을 업었습니다: " + grouped,
+                        "업기",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+
+            yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
+            yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
+
+            handleTurnChange(moveResult.requiresAnotherMove());
+
         } catch (Exception ex) {
             handleError(ex);
         } finally {
@@ -198,11 +225,18 @@ public class InGameController {
             setGameContext(nextPlayerId);
             yutControlPanel.startNewTurn();
         } else {
-            // 자동으로 윷을 한 번 더 던지기
-            SwingUtilities.invokeLater(() -> onRandomYutButtonClicked());
+            // 오직 랜덤 윷 버튼으로 추가된 턴에만 자동 실행
+            if (yutControlPanel.wasRandomYutButtonUsed()) {
+                SwingUtilities.invokeLater(() -> onRandomYutButtonClicked());
+            } else {
+                JOptionPane.showMessageDialog(null, "한 번 더 이동할 수 있습니다. 윷을 던지세요.", "추가 턴", JOptionPane.INFORMATION_MESSAGE);
+                yutControlPanel.enableRandomButton(true);
+                yutControlPanel.enableCustomButton(true);
+            }
         }
-        // 모든 플레이어의 Status UI 갱신 (필요시)
-        for (com.sw.yutnori.model.Player player : gameManager.getCurrentGame().getPlayers()) {
+
+        // 모든 플레이어의 상태 패널 갱신
+        for (Player player : gameManager.getCurrentGame().getPlayers()) {
             statusPanel.updatePlayerStatus(player);
         }
     }

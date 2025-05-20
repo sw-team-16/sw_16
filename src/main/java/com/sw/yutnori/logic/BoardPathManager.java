@@ -103,8 +103,13 @@ public class BoardPathManager {
                 new LogicalPosition(pieceId, 10, 1),
                 new LogicalPosition(pieceId, 10, 2),
                 new LogicalPosition(pieceId, 3, 10),
-                new LogicalPosition(pieceId, 40, 2),
-                new LogicalPosition(pieceId, 40, 1),
+                new LogicalPosition(pieceId, 30, 2),
+                new LogicalPosition(pieceId, 30, 1),
+                new LogicalPosition(pieceId, 5, 3),
+                new LogicalPosition(pieceId, 1, 4),
+                new LogicalPosition(pieceId, 2, 4),
+                new LogicalPosition(pieceId, 3, 4),
+                new LogicalPosition(pieceId, 4, 4),
                 new LogicalPosition(pieceId, 0, 1)
         ));
 
