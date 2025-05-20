@@ -188,6 +188,10 @@ public class BoardPathManager {
         if (currentIdx == -1) return new LogicalPosition(pieceId, a, b);
 
         int nextIdx = Math.min(currentIdx + step, path.size() - 1);
+        if (nextIdx < 0) {
+            // BACK_DO로 인해 뒤로 갈 수 없는 경우 → 현재 위치 그대로 유지
+            return new LogicalPosition(pieceId, a, b);
+        }
         return path.get(nextIdx);
     }
     public static LogicalPosition calculatePENTAGON(
@@ -282,7 +286,8 @@ public class BoardPathManager {
         for (int i = 0; i < path.size(); i++) {
             if (path.get(i).getA() == a && path.get(i).getB() == b) {
                 int destIndex = Math.min(i + step, path.size() - 1);
-                return path.get(destIndex);
+                if (destIndex < 0) {return new LogicalPosition(pieceId, a, b);}
+                else {return path.get(destIndex);}
             }
         }
 
@@ -453,6 +458,10 @@ public class BoardPathManager {
         if (currentIdx == -1) return new LogicalPosition(pieceId, a, b);
 
         int nextIdx = Math.min(currentIdx + step, path.size() - 1);
+        if (nextIdx < 0) {
+            // BACK_DO로 인해 뒤로 갈 수 없는 경우 → 현재 위치 그대로 유지
+            return new LogicalPosition(pieceId, a, b);
+        }
         return path.get(nextIdx);
     }
 

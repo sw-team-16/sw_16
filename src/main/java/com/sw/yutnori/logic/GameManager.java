@@ -134,6 +134,8 @@ public class GameManager {
         yutResults.clear();
     }
 /////////////////말의 이동 로직
+
+    /////////////////말의 이동 로직
     public MovePieceResult movePiece(Long pieceId, YutResult result) {
         Piece piece = pieceMap.get(pieceId);
         if (piece == null) throw new IllegalArgumentException("Invalid piece ID: " + pieceId);
@@ -150,7 +152,7 @@ public class GameManager {
                 pieceId, a, b, a, b, result, currentGame.getBoardType()
         );
 
-        //  함께 이동할 아군 말들 (묶여 있는 경우 포함)
+        // 함께 이동할 아군 말들 (묶여 있는 경우 포함)
         List<Piece> movingGroup = new ArrayList<>();
         movingGroup.add(piece);
         for (Piece other : pieceMap.values()) {
@@ -168,7 +170,7 @@ public class GameManager {
         List<Piece> capturedPieces = new ArrayList<>();
         List<Long> groupedAllyPieceIds = new ArrayList<>();
 
-        //  이동 위치에 적이 있으면 잡기 (묶여 있으면 전체 묶음)
+        // 이동 위치에 적이 있으면 잡기 (묶여 있으면 전체 묶음)
         for (Piece target : pieceMap.values()) {
             if (target.getPlayer().equals(piece.getPlayer()) || target.getState() != PieceState.ON_BOARD) continue;
 
@@ -210,7 +212,11 @@ public class GameManager {
         for (Piece p : movingGroup) {
             p.setLogicalPosition(dest.getA(), dest.getB());
 
-            if (dest.getA() == 0 && dest.getB() == 1) {
+            // 도착점이 (0,1)이라도 실제 이동한 경우에만 FINISHED 처리
+            boolean isAtGoal = (dest.getA() == 0 && dest.getB() == 1);
+            boolean isMoving = !(a == dest.getA() && b == dest.getB());
+
+            if (isAtGoal && isMoving) {
                 p.setState(PieceState.FINISHED);
                 p.setFinished(true);
                 Player owner = p.getPlayer();
@@ -231,9 +237,6 @@ public class GameManager {
                 finish,
                 moreTurn
         );
-
-
-
     }
 
 
