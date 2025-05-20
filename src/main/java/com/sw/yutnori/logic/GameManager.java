@@ -109,12 +109,14 @@ public class GameManager {
 
     public YutResult generateRandomYut() {
         double r = Math.random();
-        if (r < 0.3) return YutResult.DO;
-        else if (r < 0.6) return YutResult.GAE;
-        else if (r < 0.8) return YutResult.GEOL;
-        else if (r < 0.95) return YutResult.YUT;
-        else return YutResult.MO;
+        if (r < 0.25) return YutResult.DO;
+        else if (r < 0.5) return YutResult.GAE;
+        else if (r < 0.7) return YutResult.GEOL;
+        else if (r < 0.85) return YutResult.YUT;
+        else if (r < 0.95) return YutResult.MO;
+        else return YutResult.BACK_DO;  // 빽도 추가 (마지막 5% 확률)
     }
+
 
     public void addYutResult(YutResult result) {
         yutResults.add(result);
