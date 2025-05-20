@@ -100,7 +100,7 @@ public class InGameController {
             while (!gameManager.getYutResults().isEmpty()) {
                 selectedYutResult = gameManager.getYutResults().get(0); // 항상 첫 윷 결과 사용
 
-                // 🟡 빽도 예외 처리
+                // 빽도 예외 처리
                 if (selectedYutResult == YutResult.BACK_DO) {
                     var player = gameManager.getPlayer(playerId);
 
@@ -198,14 +198,15 @@ public class InGameController {
             setGameContext(nextPlayerId);
             yutControlPanel.startNewTurn();
         } else {
-            yutControlPanel.enableRandomButton(true);
-            yutControlPanel.enableCustomButton(true);
+            // 자동으로 윷을 한 번 더 던지기
+            SwingUtilities.invokeLater(() -> onRandomYutButtonClicked());
         }
         // 모든 플레이어의 Status UI 갱신 (필요시)
         for (com.sw.yutnori.model.Player player : gameManager.getCurrentGame().getPlayers()) {
             statusPanel.updatePlayerStatus(player);
         }
     }
+
 
     public void initializeView() {
         // 모든 플레이어의 대기 말 상태 표시
