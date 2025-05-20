@@ -4,10 +4,7 @@ import com.sw.yutnori.model.LogicalPosition;
 import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.YutResult;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class BoardPathManager {
 
@@ -84,6 +81,7 @@ public class BoardPathManager {
             case HEXAGON -> calculateHEXAGON(pieceId, currentA, currentB, prevA, prevB, result);
         };
     }
+
     public static LogicalPosition calculateSQUARE(
             Long pieceId,
             int a,
@@ -192,99 +190,83 @@ public class BoardPathManager {
         int nextIdx = Math.min(currentIdx + step, path.size() - 1);
         return path.get(nextIdx);
     }
-
-
-
-
-
-
-
-    private static LogicalPosition calculatePENTAGON(
+    public static LogicalPosition calculatePENTAGON(
             Long pieceId,
             int a,
             int b,
             int prevA,
             int prevB,
-            YutResult result) {
+            YutResult result
+    ) {
         int step = yutResultToStep(result);
+        List<LogicalPosition> path;
+        String key = a + "," + b;
 
-        // === 지름길 경로 정의 ===
-        Map<String, LogicalPosition[]> shortcutRoutes = new HashMap<>();
-        shortcutRoutes.put("5,1", new LogicalPosition[]{
-                new LogicalPosition(pieceId, 1, 10), //도
-                new LogicalPosition(pieceId, 2, 10), // 개
-                new LogicalPosition(pieceId, 3, 10), // 걸
-                new LogicalPosition(pieceId, 1, 40), // 윷
-                new LogicalPosition(pieceId, 2, 40), // 모
+        Map<String, List<LogicalPosition>> pathMap = new HashMap<>();
+
+        // 분기점 경로: (5,1)
+        pathMap.put("5,1", List.of(
+                new LogicalPosition(pieceId, 5, 1),
+                new LogicalPosition(pieceId, 10, 1),
+                new LogicalPosition(pieceId, 10, 2),
+                new LogicalPosition(pieceId, 3, 10),
+                new LogicalPosition(pieceId, 40, 2),
+                new LogicalPosition(pieceId, 40, 1),
                 new LogicalPosition(pieceId, 5, 4),
                 new LogicalPosition(pieceId, 1, 5),
                 new LogicalPosition(pieceId, 2, 5),
                 new LogicalPosition(pieceId, 3, 5),
                 new LogicalPosition(pieceId, 4, 5),
                 new LogicalPosition(pieceId, 0, 1)
-        });
-        shortcutRoutes.put("5,2", new LogicalPosition[]{
+        ));
+        pathMap.put("10,1", pathMap.get("5,1").subList(1, pathMap.get("5,1").size()));
+        pathMap.put("10,2", pathMap.get("5,1").subList(2, pathMap.get("5,1").size()));
+        pathMap.put("3,10", pathMap.get("5,1").subList(3, pathMap.get("5,1").size()));
+        pathMap.put("40,2", pathMap.get("5,1").subList(4, pathMap.get("5,1").size()));
+        pathMap.put("40,1", pathMap.get("5,1").subList(5, pathMap.get("5,1").size()));
+        pathMap.put("5,4", pathMap.get("5,1").subList(6, pathMap.get("5,1").size()));
+        pathMap.put("1,5", pathMap.get("5,1").subList(7, pathMap.get("5,1").size()));
+        pathMap.put("2,5", pathMap.get("5,1").subList(8, pathMap.get("5,1").size()));
+        pathMap.put("3,5", pathMap.get("5,1").subList(9, pathMap.get("5,1").size()));
+        pathMap.put("4,5", pathMap.get("5,1").subList(10, pathMap.get("5,1").size()));
+
+        // 분기점 경로: (5,2)
+        pathMap.put("5,2", List.of(
+                new LogicalPosition(pieceId, 5, 2),
                 new LogicalPosition(pieceId, 20, 1),
                 new LogicalPosition(pieceId, 20, 2),
                 new LogicalPosition(pieceId, 3, 10),
-                new LogicalPosition(pieceId, 50, 1),
-                new LogicalPosition(pieceId, 50, 2),
+                new LogicalPosition(pieceId, 40, 2),
+                new LogicalPosition(pieceId, 40, 1),
+                new LogicalPosition(pieceId, 5, 4),
+                new LogicalPosition(pieceId, 1, 5),
+                new LogicalPosition(pieceId, 2, 5),
+                new LogicalPosition(pieceId, 3, 5),
+                new LogicalPosition(pieceId, 4, 5),
                 new LogicalPosition(pieceId, 0, 1)
-        });
-        shortcutRoutes.put("5,3", new LogicalPosition[]{
+        ));
+        pathMap.put("20,1", pathMap.get("5,2").subList(1, pathMap.get("5,2").size()));
+        pathMap.put("20,2", pathMap.get("5,2").subList(2, pathMap.get("5,2").size()));
+
+        // 분기점 경로: (5,3)
+        pathMap.put("5,3", List.of(
+                new LogicalPosition(pieceId, 5, 3),
                 new LogicalPosition(pieceId, 30, 1),
                 new LogicalPosition(pieceId, 30, 2),
                 new LogicalPosition(pieceId, 3, 10),
                 new LogicalPosition(pieceId, 50, 2),
                 new LogicalPosition(pieceId, 50, 1),
                 new LogicalPosition(pieceId, 0, 1)
-        });
+        ));
+        pathMap.put("30,1", pathMap.get("5,3").subList(1, pathMap.get("5,3").size()));
+        pathMap.put("30,2", pathMap.get("5,3").subList(2, pathMap.get("5,3").size()));
+        pathMap.put("50,2", pathMap.get("5,3").subList(4, pathMap.get("5,3").size()));
+        pathMap.put("50,1", pathMap.get("5,3").subList(5, pathMap.get("5,3").size()));
 
-        // === 현재가 지름길 시작점이면 ===
-        String key = a + "," + b;
-        if (shortcutRoutes.containsKey(key)) {
-            LogicalPosition[] route = shortcutRoutes.get(key);
-            if (step - 1 < route.length) {
-                return route[step - 1];
-            } else {
-                return route[route.length - 1]; // 마지막 지점 고정
-            }
-        }
-
-        // === 지름길 도중 분기 처리 (예: (3,10) 이후) ===
-        if (prevA == 5 && prevB == 1 && a == 3 && b == 10) {
-            LogicalPosition[] tail = new LogicalPosition[]{
-                    new LogicalPosition(pieceId, 40, 1),
-                    new LogicalPosition(pieceId, 40, 2),
-                    new LogicalPosition(pieceId, 5, 4),
-                    new LogicalPosition(pieceId, 1, 5),
-                    new LogicalPosition(pieceId, 2, 5),
-                    new LogicalPosition(pieceId, 3, 5),
-                    new LogicalPosition(pieceId, 4, 5),
-                    new LogicalPosition(pieceId, 0, 1)
-            };
-            return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
-        }
-        if (prevA == 5 && prevB == 2 && a == 3 && b == 10) {
-            LogicalPosition[] tail = new LogicalPosition[]{
-                    new LogicalPosition(pieceId, 50, 1),
-                    new LogicalPosition(pieceId, 50, 2),
-                    new LogicalPosition(pieceId, 0, 1)
-            };
-            return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
-        }
-        if (prevA == 5 && prevB == 3 && a == 3 && b == 10) {
-            LogicalPosition[] tail = new LogicalPosition[]{
-                    new LogicalPosition(pieceId, 50, 1),
-                    new LogicalPosition(pieceId, 50, 2),
-                    new LogicalPosition(pieceId, 0, 1)
-            };
-            return step - 1 < tail.length ? tail[step - 1] : tail[tail.length - 1];
-        }
-
-        // === 기본 루트 ===
-        LogicalPosition[] normalRoute = new LogicalPosition[]{
-                new LogicalPosition(pieceId, 0, 1), new LogicalPosition(pieceId, 1, 1), new LogicalPosition(pieceId, 2, 1),
+        // 일반 경로
+        List<LogicalPosition> generalPath = List.of(
+                new LogicalPosition(pieceId, 0, 1),
+                new LogicalPosition(pieceId, 1, 1), new LogicalPosition(pieceId, 2, 1),
                 new LogicalPosition(pieceId, 3, 1), new LogicalPosition(pieceId, 4, 1), new LogicalPosition(pieceId, 5, 1),
                 new LogicalPosition(pieceId, 1, 2), new LogicalPosition(pieceId, 2, 2), new LogicalPosition(pieceId, 3, 2),
                 new LogicalPosition(pieceId, 4, 2), new LogicalPosition(pieceId, 5, 2), new LogicalPosition(pieceId, 1, 3),
@@ -293,17 +275,26 @@ public class BoardPathManager {
                 new LogicalPosition(pieceId, 3, 4), new LogicalPosition(pieceId, 4, 4), new LogicalPosition(pieceId, 5, 4),
                 new LogicalPosition(pieceId, 1, 5), new LogicalPosition(pieceId, 2, 5), new LogicalPosition(pieceId, 3, 5),
                 new LogicalPosition(pieceId, 4, 5), new LogicalPosition(pieceId, 0, 1)
-        };
+        );
 
-        for (int i = 0; i < normalRoute.length; i++) {
-            if (normalRoute[i].getA() == a && normalRoute[i].getB() == b) {
-                int destIndex = Math.min(i + step, normalRoute.length - 1);
-                return normalRoute[destIndex];
+        path = pathMap.getOrDefault(key, generalPath);
+
+        for (int i = 0; i < path.size(); i++) {
+            if (path.get(i).getA() == a && path.get(i).getB() == b) {
+                int destIndex = Math.min(i + step, path.size() - 1);
+                return path.get(destIndex);
             }
         }
 
-        return new LogicalPosition(pieceId, a, b); // fallback
+        return new LogicalPosition(pieceId, a, b);
     }
+
+
+
+
+
+
+
 
     private static int yutResultToStep(YutResult result) {
         return switch (result) {
