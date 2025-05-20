@@ -89,7 +89,7 @@ public class InGameControllerTest {
         when(mockGame.getPlayers()).thenReturn(List.of(mockPlayer));
 
         controller.setGameContext(dummyPlayerId);
-        controller.handleTurnChange(false);
+        controller.handleTurnChange();
 
         verify(mockGameManager).nextTurn(dummyPlayerId);
         verify(mockGameManager, atLeastOnce()).getPlayer(dummyPlayerId);
@@ -108,7 +108,6 @@ public class InGameControllerTest {
         when(mockGame.getPlayers()).thenReturn(List.of(mockPlayer));
 
         controller.setGameContext(dummyPlayerId);
-        controller.handleTurnChange(true);
 
         // 예외 없이 정상 동작 시 성공
     }
