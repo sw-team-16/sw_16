@@ -133,8 +133,8 @@ public class GameManager {
     public void clearYutResults() {
         yutResults.clear();
     }
-/////////////////말의 이동 로직
 
+    // 말의 이동 로직
     public MovePieceResult movePiece(Long pieceId, YutResult result) {
         Piece piece = pieceMap.get(pieceId);
         if (piece == null) throw new IllegalArgumentException("Invalid piece ID: " + pieceId);
@@ -226,15 +226,12 @@ public class GameManager {
             }
         }
 
-        boolean moreTurn = result == YutResult.YUT || result == YutResult.MO || capture;
-
         return new MovePieceResult(
                 capture,
                 capturedPieces,
                 group,
                 groupedAllyPieceIds,
-                finish,
-                moreTurn
+                finish
         );
     }
 
@@ -274,8 +271,7 @@ public class GameManager {
             List<Piece> capturedPieces,
             boolean groupingOccurred,
             List<Long> groupedAllyPieceIds,
-            boolean reachedEndPoint,
-            boolean requiresAnotherMove
+            boolean reachedEndPoint
     ) {}
 
 
