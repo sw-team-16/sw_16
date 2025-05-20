@@ -286,18 +286,12 @@ public class BoardPathManager {
         for (int i = 0; i < path.size(); i++) {
             if (path.get(i).getA() == a && path.get(i).getB() == b) {
                 int destIndex = Math.min(i + step, path.size() - 1);
-                if (destIndex < 0) {return new LogicalPosition(pieceId, a, b);}
-                else {return path.get(destIndex);}
+                return path.get(destIndex);
             }
         }
 
         return new LogicalPosition(pieceId, a, b);
     }
-
-
-
-
-
 
 
 
@@ -455,7 +449,14 @@ public class BoardPathManager {
             }
         }
 
-        if (currentIdx == -1) return new LogicalPosition(pieceId, a, b);
+        if (currentIdx == -1) {
+            // path의 맨 앞이 (0,1)이라면 시작 위치일 가능성 → index 0으로 간주
+            if (a == 0 && b == 1) {
+                currentIdx = 0;
+            } else {
+                return new LogicalPosition(pieceId, a, b); // 아무 경로도 못 찾음 → 정지
+            }
+        }
 
         int nextIdx = Math.min(currentIdx + step, path.size() - 1);
         if (nextIdx < 0) {

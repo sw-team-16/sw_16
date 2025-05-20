@@ -135,7 +135,6 @@ public class GameManager {
     }
 /////////////////말의 이동 로직
 
-    /////////////////말의 이동 로직
     public MovePieceResult movePiece(Long pieceId, YutResult result) {
         Piece piece = pieceMap.get(pieceId);
         if (piece == null) throw new IllegalArgumentException("Invalid piece ID: " + pieceId);
@@ -278,4 +277,32 @@ public class GameManager {
             boolean reachedEndPoint,
             boolean requiresAnotherMove
     ) {}
+
+
+    // 현재 플레이어의 ON_BOARD 상태인 말이 있는지 확인
+    public boolean hasOnBoardPiece(Player player) {
+        for (Piece piece : player.getPieces()) {
+            if (piece.getState() == PieceState.ON_BOARD) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 현재 플레이어의 ON_BOARD 상태 말 리스트 반환
+    public List<Piece> getOnBoardPieces(Player player) {
+        List<Piece> result = new ArrayList<>();
+        for (Piece piece : player.getPieces()) {
+            if (piece.getState() == PieceState.ON_BOARD) {
+                result.add(piece);
+            }
+        }
+        return result;
+    }
+
+    // 빽도 처리 시 말이 하나도 없으면 턴을 넘겨야 하는 조건 확인
+    public boolean isBackDoTurnSkippable(Player player) {
+        return !hasOnBoardPiece(player);
+    }
+
 }
