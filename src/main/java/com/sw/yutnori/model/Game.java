@@ -4,6 +4,8 @@ import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.GameState;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -16,7 +18,7 @@ public class Game {
     private GameState state;
     private Player currentTurnPlayer;
     private Player winnerPlayer;
-    private List<Player> players;
+    private List<Player> players = new ArrayList<>();
     private List<Turn> turns;
     private List<Board> boards;
 }

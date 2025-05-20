@@ -94,103 +94,103 @@ public class InGameController {
     }
 
     // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
-    private void processTurn() {
-        try {
-            while (!gameManager.getYutResults().isEmpty()) {
-                promptPieceSelection(playerId);
-                promptYutSelection();
+        private void processTurn() {
+            try {
+                while (!gameManager.getYutResults().isEmpty()) {
+                    promptPieceSelection(playerId);
+                    promptYutSelection();
 
-                if (selectedPieceId == null || selectedYutResult == null) {
-                    yutControlPanel.showErrorAndRestore("선택된 말 또는 윷 결과가 없습니다.");
-                    return;
-                }
+                    if (selectedPieceId == null || selectedYutResult == null) {
+                        yutControlPanel.showErrorAndRestore("선택된 말 또는 윷 결과가 없습니다.");
+                        return;
+                    }
 
-                // 선택된 윷 결과를 사용하여 말 이동 처리
-                LogicalPosition current = piecePrevPositionMap.getOrDefault(
-                        selectedPieceId,
-                        new LogicalPosition(
-                                selectedPieceId,
-                                gameManager.getPiece(selectedPieceId).getA(),
-                                gameManager.getPiece(selectedPieceId).getB())
-                );
-
-
-                BoardType boardType = gameManager.getCurrentGame().getBoardType();
-                Piece piece = gameManager.getPiece(selectedPieceId);
-                int prevA = piece.getA();
-                int prevB = piece.getB();
-//
-//                current = BoardPathManager.calculateDestination(
-//                        selectedPieceId,
-//                        current.getA(), current.getB(),
-//                        prevA, prevB,
-//                        selectedYutResult,
-//                        boardType
-//                );
+                    // 선택된 윷 결과를 사용하여 말 이동 처리
+                    LogicalPosition current = piecePrevPositionMap.getOrDefault(
+                            selectedPieceId,
+                            new LogicalPosition(
+                                    selectedPieceId,
+                                    gameManager.getPiece(selectedPieceId).getA(),
+                                    gameManager.getPiece(selectedPieceId).getB())
+                    );
 
 
-                var moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
-                Piece pieceAfterMove = gameManager.getPiece(selectedPieceId);
+                    BoardType boardType = gameManager.getCurrentGame().getBoardType();
+                    Piece piece = gameManager.getPiece(selectedPieceId);
+                    int prevA = piece.getA();
+                    int prevB = piece.getB();
+    //
+    //                current = BoardPathManager.calculateDestination(
+    //                        selectedPieceId,
+    //                        current.getA(), current.getB(),
+    //                        prevA, prevB,
+    //                        selectedYutResult,
+    //                        boardType
+    //                );
 
-                System.out.printf("[디버깅] 말 ID: %d, 최종 위치: (%d, %d)%n",
-                        pieceAfterMove.getPieceId(), pieceAfterMove.getA(), pieceAfterMove.getB());
-                if (moveResult.reachedEndPoint()) {
-                    String playerName = gameManager.getPiece(selectedPieceId).getPlayer().getName();
-                    List<Piece> playerPieces = gameManager.getPiece(selectedPieceId).getPlayer().getPieces();
-                    int pieceNumber = -1;
 
-                    for (int i = 0; i < playerPieces.size(); i++) {
-                        if (playerPieces.get(i).getPieceId().equals(selectedPieceId)) {
-                            pieceNumber = i + 1;  // 말 번호 (1번부터 시작)
-                            break;
+                    var moveResult = gameManager.movePiece(selectedPieceId, selectedYutResult);
+                    Piece pieceAfterMove = gameManager.getPiece(selectedPieceId);
+
+                    System.out.printf("[디버깅] 말 ID: %d, 최종 위치: (%d, %d)%n",
+                            pieceAfterMove.getPieceId(), pieceAfterMove.getA(), pieceAfterMove.getB());
+                    if (moveResult.reachedEndPoint()) {
+                        String playerName = gameManager.getPiece(selectedPieceId).getPlayer().getName();
+                        List<Piece> playerPieces = gameManager.getPiece(selectedPieceId).getPlayer().getPieces();
+                        int pieceNumber = -1;
+
+                        for (int i = 0; i < playerPieces.size(); i++) {
+                            if (playerPieces.get(i).getPieceId().equals(selectedPieceId)) {
+                                pieceNumber = i + 1;  // 말 번호 (1번부터 시작)
+                                break;
+                            }
+                        }
+
+                        JOptionPane.showMessageDialog(
+                                null,
+                                playerName + "님의 " + pieceNumber + "번 말이 도착지에 도달했습니다!",
+                                "완주",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+
+                        // 게임 종료 체크 및 승자 알림
+                        if (checkGameFinishedAndShowWinner()) {
+                            return;
                         }
                     }
 
-                    JOptionPane.showMessageDialog(
-                            null,
-                            playerName + "님의 " + pieceNumber + "번 말이 도착지에 도달했습니다!",
-                            "완주",
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
 
-                    // 게임 종료 체크 및 승자 알림
-                    if (checkGameFinishedAndShowWinner()) {
-                        return;
+                    // 이동한 말의 소유자 Status UI 갱신
+                    statusPanel.updatePlayerStatus(gameManager.getPiece(selectedPieceId).getPlayer());
+
+                    // 잡기 발생 시 잡힌 말 소유자 Status UI 갱신
+                    if (moveResult.captureOccurred()) {
+                        for (Piece capturedPiece : moveResult.capturedPieces()) {
+                            statusPanel.updatePlayerStatus(capturedPiece.getPlayer());
+                        }
+                        JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
                     }
+
+                    // 항상 보드 UI 갱신
+                    yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
+                    yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
+                    // 선택 초기화 및 강조 해제
+                    // selectedPieceId = null;
+                    // yutBoardPanel.highlightSelectedPiece(null);
+
+                    // 턴 처리
+                    handleTurnChange(moveResult.requiresAnotherMove());
                 }
-
-
-                // 이동한 말의 소유자 Status UI 갱신
-                statusPanel.updatePlayerStatus(gameManager.getPiece(selectedPieceId).getPlayer());
-
-                // 잡기 발생 시 잡힌 말 소유자 Status UI 갱신
-                if (moveResult.captureOccurred()) {
-                    for (Piece capturedPiece : moveResult.capturedPieces()) {
-                        statusPanel.updatePlayerStatus(capturedPiece.getPlayer());
-                    }
-                    JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
-                }
-
-                // 항상 보드 UI 갱신
-                yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
-                yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
-                // 선택 초기화 및 강조 해제
-                // selectedPieceId = null;
-                // yutBoardPanel.highlightSelectedPiece(null);
-
-                // 턴 처리
-                handleTurnChange(moveResult.requiresAnotherMove());
+            } catch (Exception ex) {
+                handleError(ex);
+            } finally {
+                yutControlPanel.restorePanel();
             }
-        } catch (Exception ex) {
-            handleError(ex);
-        } finally {
-            yutControlPanel.restorePanel();
         }
-    }
 
 
     // 턴 처리 로직 분리
-    private void handleTurnChange(boolean requiresAnotherMove) {
+    public void handleTurnChange(boolean requiresAnotherMove) {
         if (!requiresAnotherMove) {
             gameManager.nextTurn(playerId);
             Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
