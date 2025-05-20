@@ -100,7 +100,7 @@ public class InGameController {
             while (!gameManager.getYutResults().isEmpty()) {
                 selectedYutResult = gameManager.getYutResults().get(0); // 항상 첫 윷 결과 사용
 
-                // 🟡 빽도 예외 처리
+                // 빽도 예외 처리
                 if (selectedYutResult == YutResult.BACK_DO) {
                     var player = gameManager.getPlayer(playerId);
 

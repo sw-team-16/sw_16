@@ -194,6 +194,7 @@ public class BoardPathManager {
         }
         return path.get(nextIdx);
     }
+
     public static LogicalPosition calculatePENTAGON(
             Long pieceId,
             int a,
@@ -267,31 +268,58 @@ public class BoardPathManager {
         pathMap.put("50,2", pathMap.get("5,3").subList(4, pathMap.get("5,3").size()));
         pathMap.put("50,1", pathMap.get("5,3").subList(5, pathMap.get("5,3").size()));
 
-        // 일반 경로
+        // 일반 경로 수정
         List<LogicalPosition> generalPath = List.of(
                 new LogicalPosition(pieceId, 0, 1),
-                new LogicalPosition(pieceId, 1, 1), new LogicalPosition(pieceId, 2, 1),
-                new LogicalPosition(pieceId, 3, 1), new LogicalPosition(pieceId, 4, 1), new LogicalPosition(pieceId, 5, 1),
+                new LogicalPosition(pieceId, 1, 1), new LogicalPosition(pieceId, 2, 1), new LogicalPosition(pieceId, 3, 1),
+                new LogicalPosition(pieceId, 4, 1), new LogicalPosition(pieceId, 5, 1),
                 new LogicalPosition(pieceId, 1, 2), new LogicalPosition(pieceId, 2, 2), new LogicalPosition(pieceId, 3, 2),
                 new LogicalPosition(pieceId, 4, 2), new LogicalPosition(pieceId, 5, 2), new LogicalPosition(pieceId, 1, 3),
                 new LogicalPosition(pieceId, 2, 3), new LogicalPosition(pieceId, 3, 3), new LogicalPosition(pieceId, 4, 3),
                 new LogicalPosition(pieceId, 5, 3), new LogicalPosition(pieceId, 1, 4), new LogicalPosition(pieceId, 2, 4),
                 new LogicalPosition(pieceId, 3, 4), new LogicalPosition(pieceId, 4, 4), new LogicalPosition(pieceId, 5, 4),
                 new LogicalPosition(pieceId, 1, 5), new LogicalPosition(pieceId, 2, 5), new LogicalPosition(pieceId, 3, 5),
-                new LogicalPosition(pieceId, 4, 5), new LogicalPosition(pieceId, 0, 1)
+                new LogicalPosition(pieceId, 4, 5), new LogicalPosition(pieceId, 5, 5), new LogicalPosition(pieceId, 0, 1)
         );
 
         path = pathMap.getOrDefault(key, generalPath);
 
+        if (step == -1) {
+            path = generalPath;
+        }
+        int currentIdx = -1;
         for (int i = 0; i < path.size(); i++) {
-            if (path.get(i).getA() == a && path.get(i).getB() == b) {
-                int destIndex = Math.min(i + step, path.size() - 1);
-                return path.get(destIndex);
+            LogicalPosition pos = path.get(i);
+            if (pos.getA() == a && pos.getB() == b) {
+                currentIdx = i;
+                break;
             }
         }
 
-        return new LogicalPosition(pieceId, a, b);
+        System.out.println("[디버깅] 경로 전체:");
+        for (int i = 0; i < path.size(); i++) {
+            LogicalPosition p = path.get(i);
+            System.out.printf("[%d] (%d, %d)\\n", i, p.getA(), p.getB());
+        }
+        System.out.printf("[디버깅] 현재 위치: (%d, %d), step: %d\\n", a, b, step);
+        System.out.printf("[디버깅] currentIdx: %d, nextIdx: %d\\n", currentIdx, currentIdx + step);
+
+        if (currentIdx == -1) {
+            if (a == 0 && b == 1) {
+                currentIdx = 0;
+            } else {
+                return new LogicalPosition(pieceId, a, b);
+            }
+        }
+
+        int nextIdx = currentIdx + step;
+        if (nextIdx < 0 || nextIdx >= path.size()) {
+            return new LogicalPosition(pieceId, a, b);
+        }
+
+        return path.get(nextIdx);
     }
+
 
 
 
