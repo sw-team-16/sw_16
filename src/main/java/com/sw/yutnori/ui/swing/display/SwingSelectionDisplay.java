@@ -172,7 +172,6 @@ public class SwingSelectionDisplay implements SelectionDisplay {
     private JButton createYutButton(String text) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(60, 60));
-        button.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         return button;
     }
 
