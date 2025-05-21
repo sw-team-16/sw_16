@@ -10,6 +10,8 @@ package com.sw.yutnori.ui.swing.panel;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -233,8 +235,29 @@ public class SwingYutBoardPanel extends JPanel {
 
         for (Player player : players) {
             Color color = ColorUtils.parseColor(player.getColor());
+            // 그룹핑된 말 그룹 표시
+            List<List<Piece>> grouped = gameManager.getGroupedPieceLists(player);
+            Set<Long> groupedIds = new HashSet<>();
+            for (List<Piece> group : grouped) {
+                if (group.isEmpty()) continue;
+                Piece rep = group.get(0); // 대표
+                Node node = board.findNode(rep.getA(), rep.getB());
+                if (node == null) continue;
+                int x = (int) node.getX() + offsetX - (pieceSize / 2);
+                int y = (int) node.getY() + offsetY - (pieceSize / 2);
+                String labelText = gameManager.getGroupDisplayString(group);
+                JLabel pieceLabel = new JLabel(labelText, SwingConstants.CENTER);
+                pieceLabel.setToolTipText(labelText);
+                pieceLabel.setBounds(x, y, pieceSize, pieceSize);
+                pieceLabel.setOpaque(true);
+                pieceLabel.setBackground(color);
+                pieceButtons.put(rep.getPieceId(), pieceLabel);
+                add(pieceLabel);
+                for (Piece p : group) groupedIds.add(p.getPieceId());
+            }
+            // 그룹이 아닌 개별 말 표시
             for (Piece piece : player.getPieces()) {
-                if (piece.getState() == PieceState.ON_BOARD && !piece.isFinished()) {
+                if ((piece.getState() == PieceState.ON_BOARD && !piece.isFinished()) && !groupedIds.contains(piece.getPieceId())) {
                     Node node = board.findNode(piece.getA(), piece.getB());
                     if (node == null) continue;
                     int x = (int) node.getX() + offsetX - (pieceSize / 2);
@@ -246,7 +269,6 @@ public class SwingYutBoardPanel extends JPanel {
                     pieceLabel.setOpaque(true);
                     pieceLabel.setBackground(color);
                     pieceLabel.setForeground(Color.BLACK);
-                    pieceLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
                     pieceButtons.put(piece.getPieceId(), pieceLabel);
                     add(pieceLabel);
                 }

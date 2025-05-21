@@ -104,7 +104,6 @@ public class SwingControlDisplay implements ControlDisplay {
             resultLabels[i] = new JLabel("-");
             resultLabels[i].setHorizontalAlignment(SwingConstants.CENTER);
             resultLabels[i].setName("resultLabel" + i);
-            resultLabels[i].setFont(new Font("맑은 고딕", Font.BOLD, 32));
             panel.add(resultLabels[i]);
         }
 
@@ -120,7 +119,6 @@ public class SwingControlDisplay implements ControlDisplay {
 
         currentYutLabel = new JLabel("-");
         currentYutLabel.setName("currentYutLabel");
-        currentYutLabel.setFont(new Font("맑은 고딕", Font.BOLD, 32));
         panel.add(currentYutLabel);
 
         return panel;

@@ -301,4 +301,41 @@ public class GameManager {
         return !hasOnBoardPiece(player);
     }
 
+    // 플레이어의 그룹핑된 말(같은 위치, isGrouped==true)을 그룹별로 반환
+    public List<List<Piece>> getGroupedPieceLists(Player player) {
+        List<Piece> onBoard = getOnBoardPieces(player);
+        List<List<Piece>> groups = new ArrayList<>();
+        Set<Long> visited = new HashSet<>();
+        for (Piece p : onBoard) {
+            if (visited.contains(p.getPieceId())) continue;
+            if (p.isGrouped()) {
+                // 같은 위치, 같은 player, isGrouped==true
+                List<Piece> group = new ArrayList<>();
+                for (Piece other : onBoard) {
+                    if (other.getA() == p.getA() && other.getB() == p.getB() && other.isGrouped()) {
+                        group.add(other);
+                        visited.add(other.getPieceId());
+                    }
+                }
+                // 대표 pieceId가 가장 작은 말이 그룹 대표
+                group.sort(Comparator.comparing(Piece::getPieceId));
+                groups.add(group);
+            }
+        }
+        return groups;
+    }
+
+    // 그룹(말 리스트)을 "1,2,3" 식으로 표시하는 문자열 반환
+    public String getGroupDisplayString(List<Piece> group) {
+        if (group == null || group.isEmpty()) return "";
+        Player player = group.get(0).getPlayer();
+        List<Piece> all = player.getPieces();
+        List<Integer> nums = new ArrayList<>();
+        for (Piece p : group) {
+            int idx = all.indexOf(p);
+            if (idx >= 0) nums.add(idx + 1);
+        }
+        nums.sort(Integer::compareTo);
+        return nums.stream().map(String::valueOf).reduce((a,b)->a+","+b).orElse("") ;
+    }
 }

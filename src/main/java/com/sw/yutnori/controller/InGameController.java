@@ -17,9 +17,13 @@ import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class InGameController {
     private final Board boardModel;
@@ -95,7 +99,29 @@ public class InGameController {
         }
     }
 
-    // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
+    // 턴 처리 로직 분리
+    public void handleTurnChange(boolean requiresAnotherMove) {
+        if (!requiresAnotherMove) {
+            gameManager.nextTurn(playerId);
+            Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
+            setGameContext(nextPlayerId);
+            yutControlPanel.startNewTurn();
+        } else {
+            // 오직 랜덤 윷 버튼으로 추가된 턴에만 자동 실행
+            if (yutControlPanel.wasRandomYutButtonUsed()) {
+                SwingUtilities.invokeLater(() -> onRandomYutButtonClicked());
+            } else {
+                JOptionPane.showMessageDialog(null, "한 번 더 이동할 수 있습니다. 윷을 던지세요.", "추가 턴", JOptionPane.INFORMATION_MESSAGE);
+                yutControlPanel.enableRandomButton(true);
+                yutControlPanel.enableCustomButton(true);
+            }
+        }
+
+        // 모든 플레이어의 상태 패널 갱신
+        for (Player player : gameManager.getCurrentGame().getPlayers()) {
+            statusPanel.updatePlayerStatus(player);
+        }
+    }
 
     // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
     private void processTurn() {
@@ -182,6 +208,12 @@ public class InGameController {
             }
             if (moveResult.groupingOccurred()) {
                 List<Long> groupedIds = moveResult.groupedAllyPieceIds();
+                if (!groupedIds.isEmpty()) {
+                    // 그룹 대표 pieceId로 그룹 객체 찾기
+                    List<Piece> group = groupedIds.stream().map(gameManager::getPiece).toList();
+                    String groupedStr = gameManager.getGroupDisplayString(group);
+                    System.out.println("[디버깅] 업힌 그룹: " + groupedStr);
+                }
                 String grouped = groupedIds.stream()
                         .map(id -> {
                             Player p = gameManager.getPiece(id).getPlayer();
@@ -207,37 +239,14 @@ public class InGameController {
             yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
             yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
 
-            handleTurnChange(moveResult.requiresAnotherMove());
+            boolean anotherMove = (selectedYutResult == YutResult.YUT 
+            || selectedYutResult == YutResult.MO || moveResult.captureOccurred());
+            handleTurnChange(anotherMove);
 
         } catch (Exception ex) {
             handleError(ex);
         } finally {
             yutControlPanel.restorePanel();
-        }
-    }
-
-
-    // 턴 처리 로직 분리
-    public void handleTurnChange(boolean requiresAnotherMove) {
-        if (!requiresAnotherMove) {
-            gameManager.nextTurn(playerId);
-            Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
-            setGameContext(nextPlayerId);
-            yutControlPanel.startNewTurn();
-        } else {
-            // 오직 랜덤 윷 버튼으로 추가된 턴에만 자동 실행
-            if (yutControlPanel.wasRandomYutButtonUsed()) {
-                SwingUtilities.invokeLater(() -> onRandomYutButtonClicked());
-            } else {
-                JOptionPane.showMessageDialog(null, "한 번 더 이동할 수 있습니다. 윷을 던지세요.", "추가 턴", JOptionPane.INFORMATION_MESSAGE);
-                yutControlPanel.enableRandomButton(true);
-                yutControlPanel.enableCustomButton(true);
-            }
-        }
-
-        // 모든 플레이어의 상태 패널 갱신
-        for (Player player : gameManager.getCurrentGame().getPlayers()) {
-            statusPanel.updatePlayerStatus(player);
         }
     }
 
@@ -259,40 +268,50 @@ public class InGameController {
             yutControlPanel.showError("플레이어 정보를 찾을 수 없습니다.");
             return;
         }
-        // READY 또는 ON_BOARD && !FINISHED인 말만 선택 옵션으로 제시
-        List<Piece> pieces = player.getPieces().stream()
+        // 그룹핑된 말 그룹 추출
+        List<List<Piece>> grouped = gameManager.getGroupedPieceLists(player);
+        Set<Long> groupedIds = new HashSet<>();
+        for (List<Piece> group : grouped) {
+            for (Piece p : group) groupedIds.add(p.getPieceId());
+        }
+        // 그룹이 아닌 개별 말(READY/ON_BOARD, isGrouped==false, !FINISHED)
+        List<Piece> singles = player.getPieces().stream()
                 .filter(p -> (p.getState() == com.sw.yutnori.model.enums.PieceState.READY ||
                               p.getState() == com.sw.yutnori.model.enums.PieceState.ON_BOARD)
-                             && !p.isFinished())
+                             && !p.isFinished() && !groupedIds.contains(p.getPieceId()))
                 .toList();
-        if (pieces.isEmpty()) {
+        // 옵션 구성: 그룹 + 개별
+        List<String> displayList = new ArrayList<>();
+        List<Long> pieceIdList = new ArrayList<>();
+        for (List<Piece> group : grouped) {
+            displayList.add(gameManager.getGroupDisplayString(group));
+            // 대표 pieceId(가장 작은 값)
+            pieceIdList.add(group.stream().min(Comparator.comparing(Piece::getPieceId)).get().getPieceId());
+        }
+        for (Piece p : singles) {
+            int idx = player.getPieces().indexOf(p) + 1;
+            displayList.add(String.valueOf(idx));
+            pieceIdList.add(p.getPieceId());
+        }
+        if (displayList.isEmpty()) {
             yutControlPanel.showError("선택 가능한 말이 없습니다.");
             return;
         }
-
-        // index+1로 표시(말 번호는 양측 모두 1부터 n(2<=n<=5) 순서대로 표시), PieceId로 매핑
-        String[] displayOptions = new String[pieces.size()];
-        Long[] pieceIds = new Long[pieces.size()];
-        for (int i = 0; i < pieces.size(); i++) {
-            displayOptions[i] = (i + 1) + "번";
-            pieceIds[i] = pieces.get(i).getPieceId();
-        }
-
+        String[] displayOptions = displayList.toArray(new String[0]);
+        Long[] pieceIds = pieceIdList.toArray(new Long[0]);
         Object selected = JOptionPane.showInputDialog(
                 null,
-                "[" + player.getName() + "] 사용할 말을 선택하세요",  // 🔹 수정된 부분
+                "[" + player.getName() + "] 사용할 말을 선택하세요",
                 "말 선택",
                 JOptionPane.PLAIN_MESSAGE,
                 null,
                 displayOptions,
                 displayOptions[0]
         );
-
         if (selected != null) {
             int selectedIdx = java.util.Arrays.asList(displayOptions).indexOf(selected.toString());
             if (selectedIdx >= 0) {
                 selectedPieceId = pieceIds[selectedIdx];
-                    // yutBoardPanel.highlightSelectedPiece(selectedPieceId);
             }
         }
     }
