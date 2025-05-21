@@ -95,7 +95,29 @@ public class InGameController {
         }
     }
 
-    // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
+    // 턴 처리 로직 분리
+    public void handleTurnChange(boolean requiresAnotherMove) {
+        if (!requiresAnotherMove) {
+            gameManager.nextTurn(playerId);
+            Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
+            setGameContext(nextPlayerId);
+            yutControlPanel.startNewTurn();
+        } else {
+            // 오직 랜덤 윷 버튼으로 추가된 턴에만 자동 실행
+            if (yutControlPanel.wasRandomYutButtonUsed()) {
+                SwingUtilities.invokeLater(() -> onRandomYutButtonClicked());
+            } else {
+                JOptionPane.showMessageDialog(null, "한 번 더 이동할 수 있습니다. 윷을 던지세요.", "추가 턴", JOptionPane.INFORMATION_MESSAGE);
+                yutControlPanel.enableRandomButton(true);
+                yutControlPanel.enableCustomButton(true);
+            }
+        }
+
+        // 모든 플레이어의 상태 패널 갱신
+        for (Player player : gameManager.getCurrentGame().getPlayers()) {
+            statusPanel.updatePlayerStatus(player);
+        }
+    }
 
     // onConfirmButtonClicked()에서 말 이동 및 턴 처리 로직 분리
     private void processTurn() {
@@ -207,37 +229,14 @@ public class InGameController {
             yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
             yutControlPanel.getResultDisplay().syncWithYutResults(gameManager.getYutResults());
 
-            handleTurnChange(moveResult.requiresAnotherMove());
+            boolean anotherMove = (selectedYutResult == YutResult.YUT 
+            || selectedYutResult == YutResult.MO || moveResult.captureOccurred());
+            handleTurnChange(anotherMove);
 
         } catch (Exception ex) {
             handleError(ex);
         } finally {
             yutControlPanel.restorePanel();
-        }
-    }
-
-
-    // 턴 처리 로직 분리
-    public void handleTurnChange(boolean requiresAnotherMove) {
-        if (!requiresAnotherMove) {
-            gameManager.nextTurn(playerId);
-            Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
-            setGameContext(nextPlayerId);
-            yutControlPanel.startNewTurn();
-        } else {
-            // 오직 랜덤 윷 버튼으로 추가된 턴에만 자동 실행
-            if (yutControlPanel.wasRandomYutButtonUsed()) {
-                SwingUtilities.invokeLater(() -> onRandomYutButtonClicked());
-            } else {
-                JOptionPane.showMessageDialog(null, "한 번 더 이동할 수 있습니다. 윷을 던지세요.", "추가 턴", JOptionPane.INFORMATION_MESSAGE);
-                yutControlPanel.enableRandomButton(true);
-                yutControlPanel.enableCustomButton(true);
-            }
-        }
-
-        // 모든 플레이어의 상태 패널 갱신
-        for (Player player : gameManager.getCurrentGame().getPlayers()) {
-            statusPanel.updatePlayerStatus(player);
         }
     }
 
