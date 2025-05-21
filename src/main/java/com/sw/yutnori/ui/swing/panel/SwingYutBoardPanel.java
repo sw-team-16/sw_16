@@ -269,7 +269,6 @@ public class SwingYutBoardPanel extends JPanel {
                     pieceLabel.setOpaque(true);
                     pieceLabel.setBackground(color);
                     pieceLabel.setForeground(Color.BLACK);
-                    pieceLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
                     pieceButtons.put(piece.getPieceId(), pieceLabel);
                     add(pieceLabel);
                 }
