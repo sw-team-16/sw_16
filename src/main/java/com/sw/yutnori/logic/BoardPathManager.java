@@ -272,6 +272,15 @@ public class BoardPathManager {
         pathMap.put("30,2", pathMap.get("5,3").subList(2, pathMap.get("5,3").size()));
         pathMap.put("50,2", pathMap.get("5,3").subList(4, pathMap.get("5,3").size()));
         pathMap.put("50,1", pathMap.get("5,3").subList(5, pathMap.get("5,3").size()));
+        // 중심 노드
+        pathMap.put("3,10", List.of(
+                new LogicalPosition(pieceId, 3, 10),
+                new LogicalPosition(pieceId, 50, 2),
+                new LogicalPosition(pieceId, 50, 1),
+                new LogicalPosition(pieceId, 0, 1)
+        ));
+        pathMap.put("50,2", pathMap.get("3,10").subList(1, pathMap.get("3,10").size()));
+        pathMap.put("50,1", pathMap.get("3,10").subList(2, pathMap.get("3,10").size()));
 
         // 일반 경로 수정
         List<LogicalPosition> generalPath = List.of(

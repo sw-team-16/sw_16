@@ -199,7 +199,9 @@ public class GameManager {
         for (Piece other : pieceMap.values()) {
             if (!other.getPieceId().equals(piece.getPieceId()) &&
                     other.getPlayer().equals(piece.getPlayer()) &&
-                    other.getA() == dest.getA() && other.getB() == dest.getB()) {
+                    other.getA() == dest.getA() &&
+                    other.getB() == dest.getB() &&
+                    other.getState() == PieceState.ON_BOARD) {  // 상태 체크 추가
                 other.setGrouped(true);
                 piece.setGrouped(true);
                 group = true;
