@@ -1,7 +1,5 @@
 package com.sw.yutnori.ui.display;
 
-import javax.swing.*;
-
 public interface ControlDisplay {
 
     YutDisplay createYutDisplay();
@@ -16,5 +14,5 @@ public interface ControlDisplay {
     void enableRandomButton(boolean enabled);
     void enableCustomButton(boolean enabled);
 
-    JPanel getPanel();
+    Object getMainComponent();
 }

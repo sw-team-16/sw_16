@@ -219,7 +219,7 @@ public class SwingControlDisplay implements ControlDisplay {
     }
 
     @Override
-    public JPanel getPanel() {
+    public Object getMainComponent() {
         return mainPanel;
     }
 }
