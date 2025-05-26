@@ -4,7 +4,9 @@ package com.sw.yutnori.controller;
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Board;
 import com.sw.yutnori.model.Player;
+import com.sw.yutnori.ui.UIFactory;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.ui.swing.SwingUIFactory;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -14,9 +16,11 @@ public class GameSetupController {
     private GameSetupDisplay.SetupData lastSetupData;
     private final Consumer<InGameController> onGameStartCallback;
     private Consumer<Result> resultCallback;
+    private final UIFactory uiFactory;
 
-    public GameSetupController(Consumer<InGameController> onGameStartCallback) {
+    public GameSetupController(Consumer<InGameController> onGameStartCallback, UIFactory uiFactory) {
         this.onGameStartCallback = onGameStartCallback;
+        this.uiFactory = uiFactory;
     }
 
     public void setResultCallback(Consumer<Result> callback) {
@@ -77,13 +81,13 @@ public class GameSetupController {
         // 게임 초기화
         gameManager.createGameFromSetupData(data);
 
-        InGameController controller = new InGameController(model, gameManager, data);
+        InGameController controller = new InGameController(model, gameManager, data, uiFactory);
 
         List<Player> players = gameManager.getCurrentGame().getPlayers();
         if (!players.isEmpty()) {
             Long playerId = players.get(0).getId();
             controller.setGameContext(playerId);
-            controller.getYutBoardPanel().renderPieceObjects(playerId, players.get(0).getPieces());
+            controller.getYutBoardPanel().renderPieceObjects(players.get(0).getPieces());
         }
 
         return controller;
