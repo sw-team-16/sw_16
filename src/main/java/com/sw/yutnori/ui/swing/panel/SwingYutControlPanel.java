@@ -8,6 +8,7 @@
  */
 package com.sw.yutnori.ui.swing.panel;
 
+import com.sw.yutnori.ui.panel.YutControlPanel;
 import com.sw.yutnori.ui.swing.SwingGameSetupFrame;
 import com.sw.yutnori.ui.display.*;
 import com.sw.yutnori.controller.InGameController;
@@ -18,7 +19,7 @@ import java.awt.*;
 import java.util.function.Consumer;
 import java.util.List;
 
-public class SwingYutControlPanel extends JPanel {
+public class SwingYutControlPanel extends JPanel implements YutControlPanel {
 
     private final ControlDisplay controlDisplay;
     private final YutDisplay yutDisplay;
@@ -41,11 +42,6 @@ public class SwingYutControlPanel extends JPanel {
         controlDisplay.setOnCustomYutCallback(this::showCustomYutSelectionPanel);
     }
 
-    // 선택 UI 또는 패널 활성화 로직
-    public void enableYutSelection() {
-        System.out.println("윷 선택 UI를 활성화합니다.");
-    }
-
     // '지정 윷 던지기' 클릭 시 창 변경
     private void showCustomYutSelectionPanel() {
         removeAll();
@@ -59,6 +55,7 @@ public class SwingYutControlPanel extends JPanel {
         repaint();
     }
 
+    @Override
     public void restorePanel() {
         removeAll();
         add(controlDisplay.getPanel(), BorderLayout.CENTER);
@@ -67,6 +64,7 @@ public class SwingYutControlPanel extends JPanel {
         repaint();
     }
 
+    @Override
     public void startNewTurn() {
         yutDisplay.reset();
         resultDisplay.resetResults();
@@ -75,10 +73,12 @@ public class SwingYutControlPanel extends JPanel {
         enableCustomButton(true);
     }
 
+    @Override
     public ResultDisplay getResultDisplay() {
         return resultDisplay;
     }
 
+    @Override
     public void showWinnerDialog(String winnerName) {
         Window window = SwingUtilities.getWindowAncestor(this);
         JFrame frame = (window instanceof JFrame) ? (JFrame) window : null;
@@ -140,7 +140,7 @@ public class SwingYutControlPanel extends JPanel {
         overlay.requestFocusInWindow();
     }
 
-    public void closeWindowAndOpenSetup() {
+    private void closeWindowAndOpenSetup() {
         Window window = SwingUtilities.getWindowAncestor(this);
         if (window != null) {
             window.dispose();
@@ -152,27 +152,32 @@ public class SwingYutControlPanel extends JPanel {
     }
 
     // 윷 및 결과창 업데이트
+    @Override
     public void updateDisplay(String result) {
         yutDisplay.displayYutSticks(result);
         resultDisplay.updateCurrentYut(result);
     }
 
     // 랜덤 윷 버튼 활성화 및 비활성화
+    @Override
     public void enableRandomButton(boolean enabled) {
         controlDisplay.enableRandomButton(enabled);
     }
 
     // 지정 윷 버튼 활성화 및 비활성화
+    @Override
     public void enableCustomButton(boolean enabled) {
         controlDisplay.enableCustomButton(enabled);
     }
 
     // 오류 메시지 표시 및 원래 패널로 복원
+    @Override
     public void showErrorAndRestore(String message) {
         showError(message);
         controlDisplay.restorePanel();
     }
 
+    @Override
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "오류", JOptionPane.ERROR_MESSAGE);
     }

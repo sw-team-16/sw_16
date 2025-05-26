@@ -11,23 +11,20 @@ package com.sw.yutnori.ui.swing.panel;
 import javax.swing.*;
 import java.awt.*;
 
-import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.model.enums.PieceState;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.ui.panel.StatusPanel;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// 임시 제작
-public class SwingStatusPanel extends JPanel {
+public class SwingStatusPanel extends JPanel implements StatusPanel {
     private final Map<String, JPanel> playerPanels = new HashMap<>();
-    private final GameManager gameManager;
 
-    public SwingStatusPanel(List<GameSetupDisplay.PlayerInfo> players, int pieceCount, GameManager gameManager) {
-        this.gameManager = gameManager;
+    public SwingStatusPanel(List<GameSetupDisplay.PlayerInfo> players, int pieceCount) {
         setLayout(new GridLayout(1, players.size()));
         setBorder(BorderFactory.createTitledBorder("Status"));
         for (GameSetupDisplay.PlayerInfo player : players) {
@@ -64,6 +61,8 @@ public class SwingStatusPanel extends JPanel {
             default: return new Color(211, 211, 211);
         }
     }
+
+    @Override
     public void updateCurrentPlayer(String currentPlayerName) {
         for (Map.Entry<String, JPanel> entry : playerPanels.entrySet()) {
             String playerName = entry.getKey();
@@ -84,6 +83,7 @@ public class SwingStatusPanel extends JPanel {
     }
 
     // 플레이어 상태 (Status) 업데이트
+    @Override
     public void updatePlayerStatus(Player player) {
         JPanel panel = playerPanels.get(player.getName());
         if (panel == null) return;
