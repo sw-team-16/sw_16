@@ -63,6 +63,7 @@ public class SwingSelectionDisplay implements SelectionDisplay {
         for (int i = 0; i < 3; i++) {
             JLabel label = new JLabel("-");
             label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setFont(new Font("맑은 고딕", Font.BOLD, 32));
             selectedYutsPanel.add(label);
         }
 
