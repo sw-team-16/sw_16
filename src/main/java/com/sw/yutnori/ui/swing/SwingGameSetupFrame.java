@@ -7,6 +7,7 @@
  */
 package com.sw.yutnori.ui.swing;
 
+import com.sw.yutnori.ui.UIFactory;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 import com.sw.yutnori.ui.swing.display.SwingGameSetupDisplay;
 import com.sw.yutnori.controller.GameSetupController;
@@ -18,6 +19,7 @@ import java.awt.*;
 public class SwingGameSetupFrame extends JFrame {
     private final GameSetupDisplay setupDisplay;
     private final GameSetupController controller;
+    private final UIFactory uiFactory;
 
     public SwingGameSetupFrame() {
         setTitle("윷놀이 게임 설정");
@@ -28,8 +30,10 @@ public class SwingGameSetupFrame extends JFrame {
         setupDisplay = new SwingGameSetupDisplay();
         add(setupDisplay.getPanel(), BorderLayout.CENTER);
 
+        uiFactory = new SwingUIFactory();
+
         // Controller 생성 및 콜백 등록
-        controller = new GameSetupController(this::startGame);
+        controller = new GameSetupController(this::startGame, uiFactory);
         controller.setResultCallback(result -> {
             if (result.success()) {
                 JOptionPane.showMessageDialog(SwingGameSetupFrame.this,
