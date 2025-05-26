@@ -3,7 +3,9 @@ package com.sw.yutnori.controller;
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.*;
 import com.sw.yutnori.model.enums.*;
+import com.sw.yutnori.ui.UIFactory;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.ui.swing.SwingUIFactory;
 import com.sw.yutnori.ui.swing.panel.SwingStatusPanel;
 import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
 import com.sw.yutnori.ui.swing.panel.SwingYutControlPanel;
@@ -28,6 +30,7 @@ public class InGameControllerTest {
     private Player mockPlayer;
     private Piece mockPiece;
     private YutResult result = YutResult.DO;
+    private UIFactory mockUI;
 
     @BeforeEach
     void setUp() {
@@ -37,6 +40,7 @@ public class InGameControllerTest {
         mockGame = mock(Game.class);
         mockPlayer = mock(Player.class);
         mockPiece = mock(Piece.class);
+        mockUI = mock(SwingUIFactory.class);
 
         when(mockSetupData.players()).thenReturn(List.of());
         when(mockSetupData.pieceCount()).thenReturn(4);
@@ -50,7 +54,7 @@ public class InGameControllerTest {
         when(mockPiece.getState()).thenReturn(PieceState.READY);
         when(mockPiece.isFinished()).thenReturn(false);
 
-        controller = new InGameController(mockBoard, mockGameManager, mockSetupData);
+        controller = new InGameController(mockBoard, mockGameManager, mockSetupData, mockUI);
     }
 
     @Test

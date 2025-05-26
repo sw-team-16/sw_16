@@ -1,54 +1,45 @@
 // InGameController.java - GameManager 기반으로 수정된 버전
 package com.sw.yutnori.controller;
 
-import com.sw.yutnori.logic.BoardPathManager;
 import com.sw.yutnori.logic.GameManager;
 import com.sw.yutnori.model.Board;
-import com.sw.yutnori.model.LogicalPosition;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
-import com.sw.yutnori.model.enums.BoardType;
 import com.sw.yutnori.model.enums.YutResult;
-import com.sw.yutnori.ui.swing.PiecePositionDisplayManager;
-import com.sw.yutnori.ui.swing.panel.SwingStatusPanel;
-import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
-import com.sw.yutnori.ui.swing.panel.SwingYutControlPanel;
+import com.sw.yutnori.ui.UIFactory;
+import com.sw.yutnori.ui.panel.StatusPanel;
+import com.sw.yutnori.ui.panel.YutBoardPanel;
+import com.sw.yutnori.ui.panel.YutControlPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class InGameController {
     private final Board boardModel;
     private final GameManager gameManager;
-    private final SwingYutBoardPanel yutBoardPanel;
-    private final SwingYutControlPanel yutControlPanel;
-    private final SwingStatusPanel statusPanel;
-    private final GameSetupDisplay.SetupData setupData;
-    private final PiecePositionDisplayManager displayManager;
+    private final YutBoardPanel yutBoardPanel;
+    private final YutControlPanel yutControlPanel;
+    private final StatusPanel statusPanel;
 
     private Long playerId;
     private Long selectedPieceId = null;
     private YutResult selectedYutResult = null;
-    private final Map<Long, LogicalPosition> piecePrevPositionMap = new HashMap<>();
 
-    public InGameController(Board boardModel, GameManager gameManager, GameSetupDisplay.SetupData setupData) {
+    public InGameController(Board boardModel, GameManager gameManager, GameSetupDisplay.SetupData setupData, UIFactory uiFactory) {
         this.boardModel = boardModel;
         this.gameManager = gameManager;
-        this.setupData = setupData;
-        this.yutBoardPanel = new SwingYutBoardPanel(boardModel);
+
+        this.yutBoardPanel = uiFactory.createYutBoardPanel(boardModel);
         this.yutBoardPanel.setGameManager(gameManager);
-        this.yutControlPanel = new SwingYutControlPanel(this);
-        this.statusPanel = new SwingStatusPanel(setupData.players(), setupData.pieceCount(), gameManager);
+        this.yutControlPanel = uiFactory.createYutControlPanel(this);
+        this.statusPanel = uiFactory.createStatusPanel(setupData.players(), setupData.pieceCount());
+
         this.yutBoardPanel.setInGameController(this);
-        this.displayManager = new PiecePositionDisplayManager(boardModel, yutBoardPanel, gameManager);
     }
 
     public void setGameContext(Long playerId) {
@@ -222,29 +213,17 @@ public class InGameController {
                     yutControlPanel.enableRandomButton(true);
                     yutControlPanel.enableCustomButton(true);
                     return;
-                } else if (gameManager.getYutResults().isEmpty()) {
+                } else if (gameManager.getYutResults().isEmpty()) {   // 던질 수 있는 윷이 없는 경우 무한루프 탈출
                     break;
                 }
             }
-            // 더 이상 움직일 말이 없고, 말이 잡히지도 않아 다음 턴으로 넘어감
+            // 더 이상 움직일 말이 없고, 말을 잡지도 않아 다음 플레이어의 턴으로 넘어감
             handleTurnChange();
         } catch (Exception ex) {
             handleError(ex);
         } finally {
             yutControlPanel.restorePanel();
         }
-    }
-
-
-    public void initializeView() {
-        // 모든 플레이어의 대기 말 상태 표시
-        for (com.sw.yutnori.model.Player player : gameManager.getCurrentGame().getPlayers()) {
-            statusPanel.updatePlayerStatus(player);
-        }
-        // 보드 위의 초기 말 상태 표시
-        yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
-        // 첫 번째 턴의 플레이어로 context 설정
-        setGameContext(gameManager.getCurrentGame().getCurrentTurnPlayer().getId());
     }
 
     public void promptPieceSelection(Long playerId) {
@@ -335,11 +314,6 @@ public class InGameController {
         }
     }
 
-
-    public void resetPieceSelection() {
-        selectedPieceId = null;
-    }
-
     public void setSelectedPieceId(Long pieceId) {
         this.selectedPieceId = pieceId;
     }
@@ -371,15 +345,15 @@ public class InGameController {
         yutControlPanel.showErrorAndRestore("게임 진행 중 오류 발생: " + ex.getMessage());
     }
 
-    public SwingYutBoardPanel getYutBoardPanel() {
+    public YutBoardPanel getYutBoardPanel() {
         return yutBoardPanel;
     }
 
-    public SwingYutControlPanel getControlPanel() {
+    public YutControlPanel getControlPanel() {
         return yutControlPanel;
     }
 
-    public SwingStatusPanel getStatusPanel() {
+    public StatusPanel getStatusPanel() {
         return statusPanel;
     }
 
