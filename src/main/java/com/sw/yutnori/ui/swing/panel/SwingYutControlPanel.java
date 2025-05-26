@@ -176,18 +176,4 @@ public class SwingYutControlPanel extends JPanel {
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "오류", JOptionPane.ERROR_MESSAGE);
     }
-    private boolean lastUsedRandom = false;
-
-    public void markUsedRandomButton() {
-        lastUsedRandom = true;
-    }
-
-    public void markUsedCustomButton() {
-        lastUsedRandom = false;
-    }
-
-    public boolean wasRandomYutButtonUsed() {
-        return lastUsedRandom;
-    }
-
 }
