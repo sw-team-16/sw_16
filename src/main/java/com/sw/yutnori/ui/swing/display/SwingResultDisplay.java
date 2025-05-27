@@ -21,7 +21,7 @@ public class SwingResultDisplay implements ResultDisplay {
         String koreanResult = convertYutTypeToKorean(result);
 
         // 윷이나 모인 경우 특별 처리
-        if (isSpecialResult(koreanResult)) {
+        if (koreanResult.equals("윷") || koreanResult.equals("모")) {
             handleSpecialResult(koreanResult);
         } else {
             handleNormalResult(koreanResult);
@@ -68,10 +68,10 @@ public class SwingResultDisplay implements ResultDisplay {
     // 윷 혹은 모 이외의 결과 처리
     private void handleNormalResult(String result) {
         if (resultLabels[currentResultIndex].getText().equals("-")) {
-            resultLabels[currentResultIndex].setText(convertYutTypeToKorean(result));
+            resultLabels[currentResultIndex].setText(result);
         } else {
             moveToNextLabel();
-            resultLabels[currentResultIndex].setText(convertYutTypeToKorean(result));
+            resultLabels[currentResultIndex].setText(result);
         }
     }
 
@@ -111,33 +111,4 @@ public class SwingResultDisplay implements ResultDisplay {
     public void updateCurrentYut(String yutType) {
         currentYutLabel.setText(convertYutTypeToKorean(yutType));
     }
-
-    @Override
-    public boolean isSpecialResult(String result) {
-        return result.equals("윷") || result.equals("모") ||
-                result.equals("YUT") || result.equals("MO");
-    }
-
-    @Override
-    public String convertYutTypeToKorean(String englishYutType) {
-        return convertYutType(englishYutType, true);
-    }
-
-    @Override
-    public String convertYutTypeToEnglish(String koreanYutType) {
-        return convertYutType(koreanYutType, false);
-    }
-
-    private String convertYutType(String yutType, boolean toKorean) {
-        return switch (yutType) {
-            case "도", "DO" -> toKorean ? "도" : "DO";
-            case "개", "GAE" -> toKorean ? "개" : "GAE";
-            case "걸", "GEOL" -> toKorean ? "걸" : "GEOL";
-            case "윷", "YUT" -> toKorean ? "윷" : "YUT";
-            case "모", "MO" -> toKorean ? "모" : "MO";
-            case "빽도", "BACKDO", "BACK_DO" -> toKorean ? "빽도" : "BACKDO";
-            default -> throw new IllegalArgumentException("알 수 없는 윷 타입: " + yutType);
-        };
-    }
-
 }
