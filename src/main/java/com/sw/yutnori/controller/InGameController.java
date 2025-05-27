@@ -121,14 +121,11 @@ public class InGameController {
                         setGameContext(nextPlayerId);
                         yutControlPanel.startNewTurn();
                         return;
-                    } else {
-                        promptBackDoPieceSelection(playerId);
-                        promptYutSelection();
                     }
-                } else {
-                    promptPieceSelection(playerId);
-                    promptYutSelection();
                 }
+
+                promptPieceSelection(playerId);
+                promptYutSelection();
 
                 if (selectedPieceId == null || selectedYutResult == null) {
                     yutControlPanel.showErrorAndRestore("선택된 말 또는 윷 결과가 없습니다.");
@@ -373,42 +370,5 @@ public class InGameController {
             }
         }
         return false;
-    }
-    public void promptBackDoPieceSelection(Long playerId) {
-        var player = gameManager.getPlayer(playerId);
-        if (player == null) {
-            yutControlPanel.showError("플레이어 정보를 찾을 수 없습니다.");
-            return;
-        }
-
-        List<Piece> pieces = gameManager.getOnBoardPieces(player);
-        if (pieces.isEmpty()) {
-            yutControlPanel.showError("OnBoard 상태의 말이 없습니다.");
-            return;
-        }
-
-        String[] displayOptions = new String[pieces.size()];
-        Long[] pieceIds = new Long[pieces.size()];
-        for (int i = 0; i < pieces.size(); i++) {
-            displayOptions[i] = (i + 1) + "번";
-            pieceIds[i] = pieces.get(i).getPieceId();
-        }
-
-        Object selected = JOptionPane.showInputDialog(
-                null,
-                "[" + player.getName() + "] 빽도 적용할 말을 선택하세요",
-                "빽도 말 선택",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                displayOptions,
-                displayOptions[0]
-        );
-
-        if (selected != null) {
-            int selectedIdx = java.util.Arrays.asList(displayOptions).indexOf(selected.toString());
-            if (selectedIdx >= 0) {
-                selectedPieceId = pieceIds[selectedIdx];
-            }
-        }
     }
 }
