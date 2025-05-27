@@ -7,12 +7,14 @@ import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.model.enums.YutResult;
 import com.sw.yutnori.ui.UIFactory;
+import com.sw.yutnori.ui.display.DialogDisplay;
 import com.sw.yutnori.ui.panel.StatusPanel;
 import com.sw.yutnori.ui.panel.YutBoardPanel;
 import com.sw.yutnori.ui.panel.YutControlPanel;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
+import com.sw.yutnori.ui.swing.display.SwingDialogDisplay;
 
-import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -25,6 +27,7 @@ public class InGameController {
     private final YutBoardPanel yutBoardPanel;
     private final YutControlPanel yutControlPanel;
     private final StatusPanel statusPanel;
+    private final DialogDisplay dialogDisplay;
 
     private Long playerId;
     private Long selectedPieceId = null;
@@ -34,10 +37,13 @@ public class InGameController {
         this.boardModel = boardModel;
         this.gameManager = gameManager;
 
+        this.dialogDisplay = uiFactory.createDialogDisplay();
         this.yutBoardPanel = uiFactory.createYutBoardPanel(boardModel);
         this.yutBoardPanel.setGameManager(gameManager);
         this.yutControlPanel = uiFactory.createYutControlPanel(this);
         this.statusPanel = uiFactory.createStatusPanel(setupData.players(), setupData.pieceCount());
+
+        ((SwingDialogDisplay)dialogDisplay).setParentComponent((Component)yutControlPanel);
 
         this.yutBoardPanel.setInGameController(this);
     }
@@ -115,7 +121,7 @@ public class InGameController {
 
                     if (gameManager.isBackDoTurnSkippable(player)) {
                         gameManager.deleteYutResult(selectedYutResult);
-                        JOptionPane.showMessageDialog(null, "OnBoard 상태의 말이 없어 턴을 넘깁니다.", "빽도", JOptionPane.INFORMATION_MESSAGE);
+                        dialogDisplay.showNoOnboardPieceDialog();
                         gameManager.nextTurn(playerId);
                         Long nextPlayerId = gameManager.getCurrentGame().getCurrentTurnPlayer().getId();
                         setGameContext(nextPlayerId);
@@ -124,6 +130,7 @@ public class InGameController {
                     }
                 }
 
+                // 플레이어로부터 움직일 말과 윷 결과 선택 받기
                 promptPieceSelection(playerId);
                 promptYutSelection();
 
@@ -138,6 +145,7 @@ public class InGameController {
                 System.out.printf("[디버깅] 말 ID: %d, 최종 위치: (%d, %d)%n",
                         pieceAfterMove.getPieceId(), pieceAfterMove.getA(), pieceAfterMove.getB());
 
+                // 말이 골인 지점에 도착했을 경우
                 if (moveResult.reachedEndPoint()) {
                     String playerName = pieceAfterMove.getPlayer().getName();
                     List<Piece> playerPieces = pieceAfterMove.getPlayer().getPieces();
@@ -148,14 +156,7 @@ public class InGameController {
                             break;
                         }
                     }
-
-                    JOptionPane.showMessageDialog(
-                            null,
-                            playerName + "님의 " + pieceNumber + "번 말이 도착지에 도달했습니다!",
-                            "완주",
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
-
+                    dialogDisplay.showGoalDialog(playerName, pieceNumber);
                     if (checkGameFinishedAndShowWinner()) {
                         return;
                     }
@@ -167,7 +168,7 @@ public class InGameController {
                     for (Piece capturedPiece : moveResult.capturedPieces()) {
                         statusPanel.updatePlayerStatus(capturedPiece.getPlayer());
                     }
-                    JOptionPane.showMessageDialog(null, "상대 말을 잡았습니다!", "잡기", JOptionPane.INFORMATION_MESSAGE);
+                    dialogDisplay.showCaptureDialog();
                 }
 
                 if (moveResult.groupingOccurred()) {
@@ -192,12 +193,7 @@ public class InGameController {
                             .reduce((a, b) -> a + ", " + b)
                             .orElse("없음");
 
-                    JOptionPane.showMessageDialog(
-                            null,
-                            "같은 위치의 아군 말을 업었습니다: " + grouped,
-                            "업기",
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
+                    dialogDisplay.showCarryDialog(grouped);
                 }
 
                 yutBoardPanel.refreshAllPieceMarkers(gameManager.getCurrentGame().getPlayers());
@@ -206,7 +202,7 @@ public class InGameController {
                 // 윷이나 모는 onRandomYutButtonClicked()에서 처리
                 // 따라서 한번 더 던지는 경우는 말을 잡았을 경우임
                 if (moveResult.captureOccurred()) {
-                    JOptionPane.showMessageDialog(null, "한 번 더 이동할 수 있습니다. 윷을 던지세요.", "추가 턴", JOptionPane.INFORMATION_MESSAGE);
+                    dialogDisplay.showOneMoreTurnDialog();
                     yutControlPanel.enableRandomButton(true);
                     yutControlPanel.enableCustomButton(true);
                     return;
@@ -226,7 +222,7 @@ public class InGameController {
     public void promptPieceSelection(Long playerId) {
         var player = gameManager.getPlayer(playerId);
         if (player == null) {
-            yutControlPanel.showError("플레이어 정보를 찾을 수 없습니다.");
+            dialogDisplay.showErrorDialog("플레이어 정보를 찾을 수 없습니다.");
             return;
         }
         // 그룹핑된 말 그룹 추출
@@ -255,20 +251,12 @@ public class InGameController {
             pieceIdList.add(p.getPieceId());
         }
         if (displayList.isEmpty()) {
-            yutControlPanel.showError("선택 가능한 말이 없습니다.");
+            dialogDisplay.showErrorDialog("선택 가능한 말이 없습니다.");
             return;
         }
         String[] displayOptions = displayList.toArray(new String[0]);
         Long[] pieceIds = pieceIdList.toArray(new Long[0]);
-        Object selected = JOptionPane.showInputDialog(
-                null,
-                "[" + player.getName() + "] 사용할 말을 선택하세요",
-                "말 선택",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                displayOptions,
-                displayOptions[0]
-        );
+        Object selected = dialogDisplay.pieceSelctionDialog(player, displayOptions);
         if (selected != null) {
             int selectedIdx = java.util.Arrays.asList(displayOptions).indexOf(selected.toString());
             if (selectedIdx >= 0) {
@@ -277,11 +265,11 @@ public class InGameController {
         }
     }
 
-    // 던져서 나온 윷 결과 중 이전에 선택한 말에 적용할 값 선택
+    // 던져서 나온 윷 결과 중 선택한 말에 적용할 값 선택
     public void promptYutSelection() {
         List<YutResult> yutResults = gameManager.getYutResults();
         if (yutResults.isEmpty()) {
-            yutControlPanel.showError("선택 가능한 윷 결과가 없습니다.");
+            dialogDisplay.showErrorDialog("선택 가능한 윷 결과가 없습니다.");
             return;
         }
 
@@ -291,15 +279,7 @@ public class InGameController {
             displayOptions[i] = convertYutResultToKorean(result);
         }
 
-        Object selected = JOptionPane.showInputDialog(
-                null,
-                "사용할 윷 결과를 선택하세요",
-                "윷 결과 선택",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                displayOptions,
-                displayOptions[0]
-        );
+        Object selected = dialogDisplay.yutSelectionDialog(displayOptions);
 
         if (selected != null) {
             int selectedIdx = java.util.Arrays.asList(displayOptions).indexOf(selected.toString());
@@ -358,6 +338,10 @@ public class InGameController {
         return boardModel;
     }
 
+    public DialogDisplay getDialogDisplay() {
+        return dialogDisplay;
+    }
+
     // 게임 종료 체크 및 승자 알림
     private boolean checkGameFinishedAndShowWinner() {
         var game = gameManager.getCurrentGame();
@@ -365,7 +349,7 @@ public class InGameController {
             if (player.getFinishedCount() == game.getNumPieces()) {
                 game.setWinnerPlayer(player);
                 game.setState(com.sw.yutnori.model.enums.GameState.FINISHED);
-                yutControlPanel.showWinnerDialog(player.getName());
+                dialogDisplay.showWinnerDialog(player.getName());
                 return true;
             }
         }
