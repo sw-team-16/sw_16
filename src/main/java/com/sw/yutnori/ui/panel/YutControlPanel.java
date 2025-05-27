@@ -10,8 +10,6 @@ public interface YutControlPanel {
 
     ResultDisplay getResultDisplay();
 
-    void showWinnerDialog(String winnerName);
-
     void updateDisplay(String result);
 
     void enableRandomButton(boolean enabled);
@@ -19,6 +17,4 @@ public interface YutControlPanel {
     void enableCustomButton(boolean enabled);
 
     void showErrorAndRestore(String message);
-
-    void showError(String message);
 }
