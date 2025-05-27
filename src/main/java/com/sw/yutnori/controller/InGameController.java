@@ -43,7 +43,10 @@ public class InGameController {
         this.yutControlPanel = uiFactory.createYutControlPanel(this);
         this.statusPanel = uiFactory.createStatusPanel(setupData.players(), setupData.pieceCount());
 
-        ((SwingDialogDisplay)dialogDisplay).setParentComponent((Component)yutControlPanel);
+        // Swing UI의 경우, 부모 컴포넌트 설정 필요
+        if (dialogDisplay instanceof SwingDialogDisplay) {
+            ((SwingDialogDisplay)dialogDisplay).setParentComponent((Component)yutControlPanel);
+        }
 
         this.yutBoardPanel.setInGameController(this);
     }
