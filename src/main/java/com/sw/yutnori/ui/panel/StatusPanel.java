@@ -7,4 +7,6 @@ public interface StatusPanel {
     void updateCurrentPlayer(String currentPlayerName);
 
     void updatePlayerStatus(Player player);
+
+    Object getMainComponent();
 }

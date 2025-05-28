@@ -16,4 +16,6 @@ public interface YutBoardPanel {
     void setGameManager(GameManager gameManager);
 
     void refreshAllPieceMarkers(List<Player> players);
+
+    Object getMainComponent();
 }

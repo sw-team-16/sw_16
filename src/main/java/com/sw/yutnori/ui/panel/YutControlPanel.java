@@ -17,4 +17,6 @@ public interface YutControlPanel {
     void enableCustomButton(boolean enabled);
 
     void showErrorAndRestore(String message);
+
+    Object getMainComponent();
 }

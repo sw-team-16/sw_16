@@ -259,4 +259,10 @@ public class SwingYutBoardPanel extends JPanel implements YutBoardPanel {
         revalidate();
         repaint();
     }
+
+    // Swing UI에서는 getMainComponent()가 필요하지 않지만, 인터페이스 구현을 위해 추가
+    @Override
+    public Object getMainComponent() {
+        return null;
+    }
 }
