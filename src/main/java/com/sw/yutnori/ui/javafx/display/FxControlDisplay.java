@@ -125,7 +125,7 @@ public class FxControlDisplay implements ControlDisplay {
             resultLabels[i] = new Label("-");
             resultLabels[i].setAlignment(Pos.CENTER);
             resultLabels[i].setId("resultLabel" + i);
-            resultLabels[i].setFont(Font.font("System", FontWeight.BOLD, 25));
+            resultLabels[i].setFont(Font.font("System", FontWeight.BOLD, 32));
             resultLabels[i].setPadding(new Insets(5, 10, 5, 10));
 
             GridPane.setHalignment(resultLabels[i], HPos.CENTER);
@@ -159,7 +159,7 @@ public class FxControlDisplay implements ControlDisplay {
 
         currentYutLabel = new Label("-");
         currentYutLabel.setId("currentYutLabel");
-        currentYutLabel.setFont(Font.font("System", FontWeight.BOLD, 25));
+        currentYutLabel.setFont(Font.font("System", FontWeight.BOLD, 32));
 
         pane.getChildren().addAll(titleLabel, currentYutLabel);
 
