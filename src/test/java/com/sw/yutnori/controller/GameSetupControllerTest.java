@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.sw.yutnori.ui.swing.SwingUIFactory;
 
 class GameSetupControllerTest {
     private Consumer<InGameController> onGameStartCallback;
@@ -30,7 +31,7 @@ class GameSetupControllerTest {
     void setUp() {
         onGameStartCallback = mock(Consumer.class);
         resultCallback = mock(Consumer.class);
-        controller = new GameSetupController(onGameStartCallback);
+        controller = new GameSetupController(onGameStartCallback, new SwingUIFactory());
         controller.setResultCallback(resultCallback);
     }
 
