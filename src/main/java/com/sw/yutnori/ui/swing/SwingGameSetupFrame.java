@@ -28,7 +28,7 @@ public class SwingGameSetupFrame extends JFrame {
         setLocationRelativeTo(null);
         
         setupDisplay = new SwingGameSetupDisplay();
-        add(setupDisplay.getPanel(), BorderLayout.CENTER);
+        add((JPanel) setupDisplay.getPanel(), BorderLayout.CENTER);
 
         uiFactory = new SwingUIFactory();
 

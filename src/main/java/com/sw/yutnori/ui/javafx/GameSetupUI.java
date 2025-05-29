@@ -8,6 +8,7 @@ import com.sw.yutnori.ui.javafx.FxUIFactory;
 import com.sw.yutnori.controller.GameSetupController;
 import com.sw.yutnori.controller.InGameController;
 import com.sw.yutnori.ui.javafx.display.FxGameSetupDisplay;
+import javafx.scene.Parent;
 
 public class GameSetupUI extends Application {
     private Stage primaryStage;
@@ -23,7 +24,7 @@ public class GameSetupUI extends Application {
 
         FxUIFactory uiFactory = new FxUIFactory();
         FxGameSetupDisplay setupDisplay = new FxGameSetupDisplay();
-        Scene scene = new Scene(setupDisplay.getPanel());
+        Scene scene = new Scene((Parent) setupDisplay.getPanel());
         primaryStage.setScene(scene);
         primaryStage.sizeToScene();
         primaryStage.show();
@@ -44,6 +45,7 @@ public class GameSetupUI extends Application {
     // 게임 시작
     private void startGame(InGameController inGameController) {
         primaryStage.hide();
-        // TODO: FxIngameFrame
+        FxInGameFrame gameFrame = new FxInGameFrame(inGameController);
+        gameFrame.show();
     }
 } 

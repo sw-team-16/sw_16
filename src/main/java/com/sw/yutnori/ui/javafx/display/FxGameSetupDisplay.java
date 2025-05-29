@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import com.sw.yutnori.ui.display.GameSetupDisplay;
 
-public class FxGameSetupDisplay extends GridPane {
+public class FxGameSetupDisplay extends GridPane implements GameSetupDisplay {
     private Consumer<com.sw.yutnori.ui.display.GameSetupDisplay.SetupData> onStartCallback;
 
     private final ComboBox<String> boardTypeCombo;
