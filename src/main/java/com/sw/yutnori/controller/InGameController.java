@@ -353,6 +353,7 @@ public class InGameController {
                 game.setWinnerPlayer(player);
                 game.setState(com.sw.yutnori.model.enums.GameState.FINISHED);
                 dialogDisplay.showWinnerDialog(player.getName());
+                yutBoardPanel.refreshAllPieceMarkers(game.getPlayers());
                 return true;
             }
         }

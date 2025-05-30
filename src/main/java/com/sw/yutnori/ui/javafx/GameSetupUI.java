@@ -12,6 +12,8 @@ import javafx.scene.Parent;
 
 public class GameSetupUI extends Application {
     private Stage primaryStage;
+    private FxUIFactory uiFactory;
+    private FxInGameFrame currentGameFrame;
 
     public static void launch(String[] args) {
         Application.launch(args);
@@ -20,9 +22,17 @@ public class GameSetupUI extends Application {
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
-        primaryStage.setTitle("윷놀이 게임 설정");
+        showSetupScreen();
+    }
 
-        FxUIFactory uiFactory = new FxUIFactory();
+    private void showSetupScreen() {
+        primaryStage.setTitle("윷놀이 게임 설정");
+        uiFactory = new FxUIFactory();
+        uiFactory.setRestartCallback(() -> {
+            if (currentGameFrame != null) currentGameFrame.close();
+            primaryStage.show();
+            showSetupScreen();
+        });
         FxGameSetupDisplay setupDisplay = new FxGameSetupDisplay();
         Scene scene = new Scene((Parent) setupDisplay.getPanel());
         primaryStage.setScene(scene);
@@ -45,7 +55,7 @@ public class GameSetupUI extends Application {
     // 게임 시작
     private void startGame(InGameController inGameController) {
         primaryStage.hide();
-        FxInGameFrame gameFrame = new FxInGameFrame(inGameController);
-        gameFrame.show();
+        currentGameFrame = new FxInGameFrame(inGameController);
+        currentGameFrame.show();
     }
 } 

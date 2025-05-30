@@ -17,6 +17,12 @@ import java.util.List;
 
 public class FxUIFactory implements UIFactory {
 
+    private Runnable restartCallback;
+
+    public void setRestartCallback(Runnable callback) {
+        this.restartCallback = callback;
+    }
+
     @Override
     public YutBoardPanel createYutBoardPanel(Board board) {
         return new FxYutBoardPanel(board);
@@ -34,6 +40,8 @@ public class FxUIFactory implements UIFactory {
 
     @Override
     public DialogDisplay createDialogDisplay() {
-        return new FxDialogDisplay();
+        FxDialogDisplay dialog = new FxDialogDisplay();
+        if (restartCallback != null) dialog.setOnRestartCallback(restartCallback);
+        return dialog;
     }
 }

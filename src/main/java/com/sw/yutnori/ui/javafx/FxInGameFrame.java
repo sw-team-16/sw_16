@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -19,10 +20,16 @@ public class FxInGameFrame extends Stage {
         // 메인 레이아웃
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
+        StackPane stackPane = new StackPane();
+        stackPane.getChildren().add(root);
 
-        // 먼저 Scene 생성
-        Scene scene = new Scene(root, 1500, 1000);
+        Scene scene = new Scene(stackPane, 1500, 1000);
         setScene(scene);
+
+        // DialogDisplay에 StackPane 주입 (화면 오버레이용)
+        if (controller.getDialogDisplay() instanceof com.sw.yutnori.ui.javafx.display.FxDialogDisplay fxDialogDisplay) {
+            fxDialogDisplay.setRootPane(stackPane);
+        }
 
         // Scene이 설정된 후 패널 추가
         Platform.runLater(() -> {
