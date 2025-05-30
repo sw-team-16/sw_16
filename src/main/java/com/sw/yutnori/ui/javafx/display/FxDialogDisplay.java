@@ -16,10 +16,14 @@ public class FxDialogDisplay implements DialogDisplay {
         alert.showAndWait();
     }
 
-    // !TODO: JavaFX 버전으로 구현 부탁드립니다.
+    // 게임 종료 알림
     @Override
     public void showWinnerDialog(String winnerName) {
-
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("게임 종료");
+        alert.setHeaderText(null);
+        alert.setContentText(winnerName + "님이 승리했습니다!");
+        alert.showAndWait();
     }
 
     @Override
