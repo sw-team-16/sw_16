@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -26,7 +27,7 @@ public class FxInGameFrame extends Stage {
         // Scene이 설정된 후 패널 추가
         Platform.runLater(() -> {
             // 패널 가져오기
-            HBox yutBoard = (HBox) controller.getYutBoardPanel().getMainComponent();
+            Pane yutBoard = (Pane) controller.getYutBoardPanel().getMainComponent();
             VBox controlComponent = (VBox) controller.getControlPanel().getMainComponent();
             HBox statusComponent = (HBox) controller.getStatusPanel().getMainComponent();
 

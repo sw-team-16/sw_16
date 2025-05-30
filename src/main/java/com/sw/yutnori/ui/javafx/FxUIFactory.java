@@ -19,7 +19,7 @@ public class FxUIFactory implements UIFactory {
 
     @Override
     public YutBoardPanel createYutBoardPanel(Board board) {
-        return new FxYutBoardPanel();   // 테스트 위해 임시 제작. 구현 후 알맞은 생성자로 변경 부탁드립니다.
+        return new FxYutBoardPanel(board);
     }
 
     @Override
