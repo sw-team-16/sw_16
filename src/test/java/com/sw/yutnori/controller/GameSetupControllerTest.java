@@ -163,4 +163,47 @@ class GameSetupControllerTest {
         assertNotNull(squareController);
         assertEquals("square", squareController.getBoardModel().getBoardType());
     }
+
+    @Test
+    void testHandleGameSetup_InvokesUIFactoryAndControllerMethods() {
+        //UI 패널 모킹
+        var mockUiFactory = mock(com.sw.yutnori.ui.UIFactory.class);
+        var mockYutBoardPanel = mock(com.sw.yutnori.ui.panel.YutBoardPanel.class);
+        var mockYutControlPanel = mock(com.sw.yutnori.ui.panel.YutControlPanel.class);
+        var mockStatusPanel = mock(com.sw.yutnori.ui.panel.StatusPanel.class);
+        var mockDialogDisplay = mock(com.sw.yutnori.ui.display.DialogDisplay.class);
+
+        // 실제 InGameController는 내부에서 생성되므로, YutBoardPanel 등만 Mock
+        when(mockUiFactory.createYutBoardPanel(any())).thenReturn(mockYutBoardPanel);
+        when(mockUiFactory.createYutControlPanel(any())).thenReturn(mockYutControlPanel);
+        when(mockUiFactory.createStatusPanel(any(), anyInt())).thenReturn(mockStatusPanel);
+        when(mockUiFactory.createDialogDisplay()).thenReturn(mockDialogDisplay);
+
+        Consumer<InGameController> onGameStartCallback = mock(Consumer.class);
+        Consumer<GameSetupController.Result> resultCallback = mock(Consumer.class);
+        GameSetupController controller = new GameSetupController(onGameStartCallback, mockUiFactory);
+        controller.setResultCallback(resultCallback);
+
+        var players = List.of(
+                new GameSetupDisplay.PlayerInfo("Player1", "RED"),
+                new GameSetupDisplay.PlayerInfo("Player2", "BLUE")
+        );
+        var data = new GameSetupDisplay.SetupData("사각형", 2, 4, players);
+
+        controller.handleGameSetup(data);
+
+        // UIFactory 메서드 호출 여부 검증
+        verify(mockUiFactory, times(1)).createYutBoardPanel(any());
+        verify(mockUiFactory, times(1)).createYutControlPanel(any());
+        verify(mockUiFactory, times(1)).createStatusPanel(any(), anyInt());
+        verify(mockUiFactory, times(1)).createDialogDisplay();
+
+        // InGameController 내부 동작 검증 (setGameContext, renderPieceObjects)
+        InGameController inGameController = controller.getInGameController();
+        assertNotNull(inGameController);
+        // setGameContext는 내부적으로 호출되므로, 상태 패널 업데이트가 정상적으로 호출되는지로 간접 검증
+        verify(mockStatusPanel, atLeastOnce()).updateCurrentPlayer(any());
+        // renderPieceObjects는 첫 번째 플레이어의 말 리스트로 호출됨
+        verify(mockYutBoardPanel, atLeastOnce()).renderPieceObjects(any());
+    }
 }
