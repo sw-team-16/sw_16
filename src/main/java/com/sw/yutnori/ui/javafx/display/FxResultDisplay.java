@@ -44,7 +44,7 @@ public class FxResultDisplay implements ResultDisplay {
             if (labelText.equals(result)) {
                 // HTML 대신 HBox와 Text 노드 사용
                 Text baseText = new Text(result);
-                baseText.setFont(Font.font("System", FontWeight.BOLD, 32));
+                baseText.setFont(Font.font("System", FontWeight.BOLD, 25));
 
                 Text superText = new Text("2");
                 superText.setFont(Font.font("System", FontWeight.BOLD, 16));

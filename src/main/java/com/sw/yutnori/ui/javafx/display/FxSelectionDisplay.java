@@ -69,7 +69,7 @@ public class FxSelectionDisplay implements SelectionDisplay {
         // 결과는 최대 3개까지 가능
         for (int i = 0; i < 3; i++) {
             resultLabels[i] = new Label("-");
-            resultLabels[i].setFont(Font.font("System", FontWeight.BOLD, 32));
+            resultLabels[i].setFont(Font.font("System", FontWeight.BOLD, 25));
             resultLabels[i].setAlignment(Pos.CENTER);
             resultLabels[i].setPrefWidth(90);
             selectedYutsPane.getChildren().add(resultLabels[i]);
@@ -202,7 +202,7 @@ public class FxSelectionDisplay implements SelectionDisplay {
                 container.setAlignment(Pos.CENTER);
 
                 Text baseText = new Text(yut);
-                baseText.setFont(Font.font("System", FontWeight.BOLD, 32));
+                baseText.setFont(Font.font("System", FontWeight.BOLD, 25));
 
                 Text superText = new Text(String.valueOf(count));
                 superText.setFont(Font.font("System", FontWeight.BOLD, 16));
