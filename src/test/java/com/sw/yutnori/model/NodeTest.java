@@ -84,13 +84,4 @@ class NodeTest {
         String s = "test";
         assertNotEquals(n1, s);
     }
-
-    // toString
-    @Test
-    void toString_returnsFormattedString() {
-        Node node = new Node(1, 2, 10.0, 20.0);
-        String str = node.toString();
-        assertNotNull(str);
-        assertTrue(str.contains("Node(1, 2, x=10.0, y=20.0)"));
-    }
 } 

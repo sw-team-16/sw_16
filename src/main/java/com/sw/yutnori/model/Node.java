@@ -49,9 +49,4 @@ public class Node {
         Node node = (Node) o;
         return a == node.a && b == node.b;
     }
-
-    @Override
-    public String toString() {
-        return "Node(" + a + ", " + b + ", x=" + x + ", y=" + y + ")";
-    }
 }

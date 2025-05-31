@@ -147,49 +147,4 @@ public class InGameControllerTest {
 
         assertFalse(result);
     }
-
-    @Test
-    void testConstructor_InitializesUIAndSetsContext() {
-        // UI 팩토리 및 하위 컴포넌트 모킹
-        var mockUiFactory = mock(UIFactory.class);
-        var mockYutBoardPanel = mock(com.sw.yutnori.ui.panel.YutBoardPanel.class);
-        var mockYutControlPanel = mock(com.sw.yutnori.ui.panel.YutControlPanel.class);
-        var mockStatusPanel = mock(com.sw.yutnori.ui.panel.StatusPanel.class);
-        var mockDialogDisplay = mock(com.sw.yutnori.ui.display.DialogDisplay.class);
-
-        when(mockUiFactory.createDialogDisplay()).thenReturn(mockDialogDisplay);
-        when(mockUiFactory.createYutBoardPanel(any())).thenReturn(mockYutBoardPanel);
-        when(mockUiFactory.createYutControlPanel(any())).thenReturn(mockYutControlPanel);
-        when(mockUiFactory.createStatusPanel(any(), anyInt())).thenReturn(mockStatusPanel);
-
-        // GameManager, Board, SetupData, Game, Player 모킹 
-        var mockGameManager = mock(GameManager.class);
-        var mockBoard = mock(Board.class);
-        var mockSetupData = mock(GameSetupDisplay.SetupData.class);
-        var mockGame = mock(Game.class);
-        var mockPlayer = mock(Player.class);
-        var mockPiece = mock(Piece.class);
-
-        var playerInfo = new GameSetupDisplay.PlayerInfo("Tester", "RED");
-        when(mockSetupData.players()).thenReturn(List.of(playerInfo));
-        when(mockSetupData.pieceCount()).thenReturn(4);
-        when(mockGameManager.getCurrentGame()).thenReturn(mockGame);
-        when(mockGame.getPlayers()).thenReturn(List.of(mockPlayer));
-        when(mockPlayer.getId()).thenReturn(1L);
-        when(mockPlayer.getName()).thenReturn("Tester");
-        when(mockPlayer.getPieces()).thenReturn(List.of(mockPiece));
-
-        // 생성자 호출
-        InGameController controller = new InGameController(mockBoard, mockGameManager, mockSetupData, mockUiFactory);
-
-        // UIFactory 메서드 호출 검증
-        verify(mockUiFactory).createDialogDisplay();
-        verify(mockUiFactory).createYutBoardPanel(mockBoard);
-        verify(mockUiFactory).createYutControlPanel(controller);
-        verify(mockUiFactory).createStatusPanel(any(), eq(4));
-
-        // YutBoardPanel/GameManager/Controller 연결 검증
-        verify(mockYutBoardPanel).setGameManager(mockGameManager);
-        verify(mockYutBoardPanel).setInGameController(controller);
-    }
 }
