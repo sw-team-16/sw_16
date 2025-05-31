@@ -63,6 +63,7 @@ public class SwingSelectionDisplay implements SelectionDisplay {
         for (int i = 0; i < 3; i++) {
             JLabel label = new JLabel("-");
             label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setFont(new Font("맑은 고딕", Font.BOLD, 32));
             selectedYutsPanel.add(label);
         }
 
@@ -185,7 +186,7 @@ public class SwingSelectionDisplay implements SelectionDisplay {
 
         // 결과 분류
         for (String yut : selectedYuts) {
-            if (isSpecialResult(yut)) {
+            if (yut.equals("윷") || yut.equals("모")) {
                 yutMoCount.put(yut, yutMoCount.getOrDefault(yut, 0) + 1);
             } else {
                 if (!otherResults.contains(yut)) {
@@ -227,16 +228,6 @@ public class SwingSelectionDisplay implements SelectionDisplay {
     }
 
     @Override
-    public List<String> getSelectedYuts() {
-        return new ArrayList<>(selectedYuts);
-    }
-
-    @Override
-    public boolean isSpecialResult(String result) {
-        return result.equals("윷") || result.equals("모");
-    }
-
-    @Override
     public void setOnConfirmCallback(Consumer<List<String>> callback) {
         this.onConfirmCallback = callback;
     }
@@ -247,8 +238,7 @@ public class SwingSelectionDisplay implements SelectionDisplay {
     }
 
     @Override
-    public JPanel getPanel() {
+    public Object getMainComponent() {
         return mainPanel;
     }
-
 }

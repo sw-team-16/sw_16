@@ -112,6 +112,8 @@ public class BoardPathManager {
                 new LogicalPosition(pieceId, 4, 4),
                 new LogicalPosition(pieceId, 0, 1)
         ));
+        pathMap.put("30,2", pathMap.get("5,1").subList(4, pathMap.get("5,1").size())); // (30,2) 이후 경로
+        pathMap.put("30,1", pathMap.get("5,1").subList(5, pathMap.get("5,1").size())); // (30,1) 이후 경로
 
         pathMap.put("10,1", pathMap.get("5,1").subList(1, pathMap.get("5,1").size()));
         pathMap.put("10,2", pathMap.get("5,1").subList(2, pathMap.get("5,1").size()));

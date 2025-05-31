@@ -12,6 +12,6 @@ public interface GameSetupDisplay {
     record PlayerInfo(String name, String color) {}
     record SetupData(String boardType, int playerCount, int pieceCount, java.util.List<PlayerInfo> players) {}
     
-    JPanel getPanel();
+    Object getPanel();
     void setOnStartCallback(java.util.function.Consumer<SetupData> callback);
 } 

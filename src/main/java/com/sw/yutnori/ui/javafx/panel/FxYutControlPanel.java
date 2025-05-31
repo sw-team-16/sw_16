@@ -1,26 +1,21 @@
-/*
- * SwingControlPanel.java
- * 윷놀이 게임 컨트롤 패널 클래스
- *  ui 화면만 구현
- * 
- * 
- * 
- */
-package com.sw.yutnori.ui.swing.panel;
+package com.sw.yutnori.ui.javafx.panel;
 
-import com.sw.yutnori.ui.panel.YutControlPanel;
-import com.sw.yutnori.ui.swing.SwingGameSetupFrame;
-import com.sw.yutnori.ui.display.*;
 import com.sw.yutnori.controller.InGameController;
-import com.sw.yutnori.ui.swing.display.SwingControlDisplay;
-import com.sw.yutnori.ui.swing.display.SwingDialogDisplay;
+import com.sw.yutnori.ui.display.ControlDisplay;
+import com.sw.yutnori.ui.display.DialogDisplay;
+import com.sw.yutnori.ui.display.ResultDisplay;
+import com.sw.yutnori.ui.display.YutDisplay;
+import com.sw.yutnori.ui.javafx.display.FxControlDisplay;
+import com.sw.yutnori.ui.panel.YutControlPanel;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.function.Consumer;
 import java.util.List;
+import java.util.function.Consumer;
 
-public class SwingYutControlPanel extends JPanel implements YutControlPanel {
+public class FxYutControlPanel extends VBox implements YutControlPanel {
 
     private final ControlDisplay controlDisplay;
     private final YutDisplay yutDisplay;
@@ -29,43 +24,51 @@ public class SwingYutControlPanel extends JPanel implements YutControlPanel {
 
     private final InGameController controller;
 
-    public SwingYutControlPanel(InGameController controller) {
-        setLayout(new BorderLayout());
+    public FxYutControlPanel(InGameController controller) {
+        setSpacing(10);
+        setPadding(new Insets(10));
 
-        this.controlDisplay = new SwingControlDisplay();
-        this.yutDisplay = controlDisplay.createYutDisplay();
-        this.resultDisplay = controlDisplay.createResultDisplay();
-
-        add((JPanel)controlDisplay.getMainComponent(), BorderLayout.CENTER);
+        // 명시적 크기 설정 추가
+        setPrefSize(350, 800);
+        setMinSize(300, 600);
 
         this.controller = controller;
         this.dialogDisplay = controller.getDialogDisplay();
-        ((SwingDialogDisplay)dialogDisplay).setParentComponent(this);
 
+        // 디스플레이 생성
+        this.controlDisplay = new FxControlDisplay();
+        this.yutDisplay = controlDisplay.createYutDisplay();
+        this.resultDisplay = controlDisplay.createResultDisplay();
+
+        // 컴포넌트 가져오기 및 안전한 추가
+        Node controlComponent = (Node) controlDisplay.getMainComponent();
+        if (controlComponent != null) {
+            getChildren().add(controlComponent);
+        } else {
+            dialogDisplay.showErrorDialog("ControlDisplay가 정상적으로 생성되지 않았습니다.");
+        }
+
+        // 콜백 설정
         controlDisplay.setOnRandomYutCallback(controller::onRandomYutButtonClicked);
         controlDisplay.setOnCustomYutCallback(this::showCustomYutSelectionPanel);
     }
 
     // '지정 윷 던지기' 클릭 시 창 변경
     private void showCustomYutSelectionPanel() {
-        removeAll();
+        getChildren().clear();
 
         Consumer<List<String>> onConfirm = controller::onConfirmButtonClicked;
         Runnable onCancel = this::restorePanel;
 
-        SwingYutSelectionPanel selectionPanel = new SwingYutSelectionPanel(onConfirm, onCancel);
-        add(selectionPanel);
-        revalidate();
-        repaint();
+        FxYutSelectionPanel selectionPanel = new FxYutSelectionPanel(onConfirm, onCancel);
+        getChildren().add(selectionPanel);
     }
 
     @Override
     public void restorePanel() {
-        removeAll();
-        add((JPanel)controlDisplay.getMainComponent(), BorderLayout.CENTER);
+        getChildren().clear();
+        getChildren().add((Pane) controlDisplay.getMainComponent());
         controlDisplay.restorePanel();
-        revalidate();
-        repaint();
     }
 
     @Override
@@ -107,9 +110,7 @@ public class SwingYutControlPanel extends JPanel implements YutControlPanel {
         controlDisplay.restorePanel();
     }
 
-    // Swing UI에서는 getMainComponent()가 필요하지 않지만, 인터페이스 구현을 위해 추가
-    @Override
     public Object getMainComponent() {
-        return null;
+        return this;
     }
 }

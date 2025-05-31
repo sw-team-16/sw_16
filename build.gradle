@@ -9,6 +9,7 @@ plugins {
     id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
 }
 
 group = 'com.sw'
@@ -74,12 +75,17 @@ dependencies {
 
 }
 
+javafx {
+    version = '17.0.15'
+    modules = ['javafx.controls', 'javafx.fxml']
+}
+
 tasks.named('test') {
     useJUnitPlatform()
 }
 
 application {
-    mainClass = 'com.sw.yutnori.ui.swing.SwingGameSetupFrame' // 게임 설정 화면 (설정이 성공적으로 완료되면 InGameFrame으로 이동함)
+    mainClass = 'com.sw.yutnori.MainApp' // 게임 설정 화면 (default: Swing) 명령어: --args="--ui=swing" 또는는 "--args=--ui=fx"
 }
 
 tasks.named('run') { // 게임 설정 화면 실행

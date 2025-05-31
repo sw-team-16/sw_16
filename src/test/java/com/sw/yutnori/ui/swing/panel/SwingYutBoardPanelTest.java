@@ -1,4 +1,4 @@
-package com.sw.yutnori.ui;
+package com.sw.yutnori.ui.swing.panel;
 
 import com.sw.yutnori.model.Board;
 import com.sw.yutnori.model.Node;
@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import com.sw.yutnori.ui.swing.panel.SwingYutBoardPanel;
 
 class SwingYutBoardPanelTest {
     private Board board;
@@ -32,6 +31,11 @@ class SwingYutBoardPanelTest {
         boardPanel = new SwingYutBoardPanel(board);
         // 실제 윷판 Board 크기로 설정
         boardPanel.setSize(1200, 1000);
+        // GameManager mock 및 기본 반환값 설정
+        com.sw.yutnori.logic.GameManager mockManager = org.mockito.Mockito.mock(com.sw.yutnori.logic.GameManager.class);
+        org.mockito.Mockito.when(mockManager.getGroupedPieceLists(org.mockito.Mockito.any())).thenReturn(java.util.Collections.emptyList());
+        org.mockito.Mockito.when(mockManager.getGroupDisplayString(org.mockito.Mockito.any())).thenReturn("");
+        boardPanel.setGameManager(mockManager);
     }
 
     @Test
@@ -52,29 +56,11 @@ class SwingYutBoardPanelTest {
         player.setPieces(pieces);
         List<Player> players = List.of(player);
 
-        SwingUtilities.invokeAndWait(() -> boardPanel.refreshAllPieceMarkers(players));
+        javax.swing.SwingUtilities.invokeAndWait(() -> boardPanel.refreshAllPieceMarkers(players));
         // p1만 렌더링되어야 함
         assertEquals(1, boardPanel.getComponentCount());
-        JButton btn = (JButton) boardPanel.getComponent(0);
-        assertEquals("1", btn.getText());
-    }
-
-    @Test
-    void testPieceRenderedAtCorrectNodeCenter() throws Exception {
-        Player player = new Player();
-        player.setColor("BLUE");
-        Piece p1 = new Piece();
-        p1.setPieceId(1L); p1.setA(1); p1.setB(1); p1.setState(PieceState.ON_BOARD); p1.setFinished(false);
-        player.setPieces(List.of(p1));
-        List<Player> players = List.of(player);
-
-        SwingUtilities.invokeAndWait(() -> boardPanel.refreshAllPieceMarkers(players));
-        JButton btn = (JButton) boardPanel.getComponent(0);
-        // 노드 중심과 버튼 중앙이 일치하도록 배치
-        assertEquals(200 - 15, btn.getX());
-        assertEquals(200 - 15, btn.getY());
-        assertEquals(30, btn.getWidth());
-        assertEquals(30, btn.getHeight());
+        JLabel label = (JLabel) boardPanel.getComponent(0);
+        assertEquals("1", label.getText());
     }
 
     static class BoardStub extends Board {

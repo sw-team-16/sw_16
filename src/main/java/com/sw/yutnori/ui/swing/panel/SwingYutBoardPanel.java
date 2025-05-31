@@ -26,9 +26,10 @@ import com.sw.yutnori.model.Node;
 import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.model.enums.PieceState;
+import com.sw.yutnori.ui.panel.YutBoardPanel;
 import com.sw.yutnori.ui.swing.PiecePositionDisplayManager;
 
-public class SwingYutBoardPanel extends JPanel {
+public class SwingYutBoardPanel extends JPanel implements YutBoardPanel {
     private final Board board;
     private static final int BOARD_WIDTH = 1200;
     private static final int BOARD_HEIGHT = 1000;
@@ -42,13 +43,10 @@ public class SwingYutBoardPanel extends JPanel {
         setLayout(null);
         setPreferredSize(new Dimension(board.getWidth(), board.getHeight()));
     }
-    public void setInGameController(InGameController controller) {
-        this.controller = controller;
-    }
+
     private Long selectedPieceId;
     private LogicalPosition currentPosition;
     private SwingYutControlPanel controlPanel; // 주입 필수
-
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -125,9 +123,8 @@ public class SwingYutBoardPanel extends JPanel {
         return new Rectangle(nodeX - size/2, nodeY - size/2, size, size);
     }
 
-
-
-    public void renderPieceObjects(Long playerId, List<Piece> pieces) {
+    @Override
+    public void renderPieceObjects(List<Piece> pieces) {
         this.pieceList = pieces;
         removeAll();
         pieceButtons.clear();
@@ -137,10 +134,9 @@ public class SwingYutBoardPanel extends JPanel {
             JButton pieceBtn = new JButton("말 " + piece.getPieceId());
             pieceBtn.setBounds(x, y, 80, 40);
             pieceBtn.setBackground(Color.LIGHT_GRAY);
-            pieceBtn.addActionListener(e -> {
-                // highlightSelectedPiece(piece.getPieceId());
-                controller.setSelectedPieceId(piece.getPieceId());
-            });
+            pieceBtn.addActionListener(e ->
+                controller.setSelectedPieceId(piece.getPieceId())
+            );
             pieceButtons.put(piece.getPieceId(), pieceBtn);
             add(pieceBtn);
             y += 50;
@@ -180,27 +176,6 @@ public class SwingYutBoardPanel extends JPanel {
         g2.setStroke(new BasicStroke(1));
     }
 
-    public void renderPiecesForPlayer(Long playerId, List<Long> pieceIds) {
-        removeAll();
-        pieceButtons.clear();
-        int x = 50;
-        int y = 50;
-        for (Long pieceId : pieceIds) {
-            JButton pieceBtn = new JButton("말 " + pieceId);
-            pieceBtn.setBounds(x, y, 80, 40);
-            pieceBtn.setBackground(Color.LIGHT_GRAY);
-            pieceBtn.addActionListener(e -> {
-                // highlightSelectedPiece(pieceId);
-                controller.setSelectedPieceId(pieceId);
-            });
-            pieceButtons.put(pieceId, pieceBtn);
-            add(pieceBtn);
-            y += 50;
-        }
-        revalidate();
-        repaint();
-    }
-    // SwingYutBoardPanel.java
     @Override
     protected void processMouseEvent(MouseEvent e) {
         if (e.getID() == MouseEvent.MOUSE_CLICKED) {
@@ -208,7 +183,6 @@ public class SwingYutBoardPanel extends JPanel {
             if (clickedPos != null) {
                 selectedPieceId = clickedPos.getPieceId();
                 currentPosition = new LogicalPosition(clickedPos.getA(), clickedPos.getB());
-                controlPanel.enableYutSelection(); // 윷 선택 UI 열기
                 // 논리 좌표 기반 말 위치 표시
                 PiecePositionDisplayManager markerManager = new PiecePositionDisplayManager(board, this, gameManager);
                 markerManager.showLogicalPosition(currentPosition, selectedPieceId);
@@ -216,10 +190,18 @@ public class SwingYutBoardPanel extends JPanel {
             }
         }
     }
+
+    @Override
+    public void setInGameController(InGameController controller) {
+        this.controller = controller;
+    }
+
+    @Override
     public void setGameManager(GameManager gameManager) {
         this.gameManager = gameManager;
     }
 
+    @Override
     public void refreshAllPieceMarkers(List<Player> players) {
         removeAll(); // 모든 컴포넌트 제거(기존 마킬 제거)
         revalidate();
@@ -277,16 +259,10 @@ public class SwingYutBoardPanel extends JPanel {
         revalidate();
         repaint();
     }
-    // // 선택된 말 강조 표시 (JLabel용) -> 굳이 필요한지 잘 모르겠음
-    // public void highlightSelectedPiece(Long selectedId) {
-    //     for (Map.Entry<Long, JComponent> entry : pieceButtons.entrySet()) {
-    //         if (entry.getValue() instanceof JLabel label) {
-    //             if (entry.getKey().equals(selectedId)) {
-    //                 label.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 3));
-    //             } else {
-    //                 label.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
-    //             }
-    //         }
-    //     }
-    // }
+
+    // Swing UI에서는 getMainComponent()가 필요하지 않지만, 인터페이스 구현을 위해 추가
+    @Override
+    public Object getMainComponent() {
+        return null;
+    }
 }

@@ -1,17 +1,23 @@
-package com.sw.yutnori.ui.swing.display;
+package com.sw.yutnori.ui.javafx.display;
 
 import com.sw.yutnori.model.enums.YutResult;
 import com.sw.yutnori.ui.display.ResultDisplay;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
-import javax.swing.*;
 import java.util.List;
 
-public class SwingResultDisplay implements ResultDisplay {
-    private final JLabel[] resultLabels;
-    private final JLabel currentYutLabel;
+public class FxResultDisplay implements ResultDisplay {
+
+    private final Label[] resultLabels;
+    private final Label currentYutLabel;
     private int currentResultIndex = 0;
 
-    public SwingResultDisplay(JLabel[] resultLabels, JLabel currentYutLabel) {
+    public FxResultDisplay(Label[] resultLabels, Label currentYutLabel) {
         this.resultLabels = resultLabels;
         this.currentYutLabel = currentYutLabel;
     }
@@ -36,22 +42,37 @@ public class SwingResultDisplay implements ResultDisplay {
 
             // 기존에 윷 혹은 모가 있을 때 동일한 결과가 나온 경우
             if (labelText.equals(result)) {
-                resultLabels[i].setText("<html>" + result + "<sup>2</sup></html>");
+                // HTML 대신 HBox와 Text 노드 사용
+                Text baseText = new Text(result);
+                baseText.setFont(Font.font("System", FontWeight.BOLD, 32));
+
+                Text superText = new Text("2");
+                superText.setFont(Font.font("System", FontWeight.BOLD, 16));
+                superText.setTranslateY(-10); // 윗첨자 위치로 이동
+
+                HBox container = new HBox(0, baseText, superText);
+                container.setAlignment(Pos.CENTER);
+
+                resultLabels[i].setText("");
+                resultLabels[i].setGraphic(container);
                 return;
             }
 
-            // 동일한 윷, 모가 3번 이상 나오는 경우
-            if (labelText.startsWith("<html>") && labelText.contains(result + "<sup>")) {
-                try {
-                    int startIdx = labelText.indexOf("<sup>") + 5;
-                    int endIdx = labelText.indexOf("</sup>");
-                    String countStr = labelText.substring(startIdx, endIdx);
-                    int count = Integer.parseInt(countStr);
+            // 동일한 윷, 모가 3번 이상 나오는 경우 (Label의 graphic이 이미 설정된 경우)
+            if (resultLabels[i].getGraphic() instanceof HBox container && labelText.isEmpty()) {
+                if (container.getChildren().size() == 2 &&
+                        container.getChildren().get(0) instanceof Text baseText &&
+                        container.getChildren().get(1) instanceof Text superText) {
 
-                    resultLabels[i].setText("<html>" + result + "<sup>" + (count + 1) + "</sup></html>");
-                    return;
-                } catch (Exception e) {
-                    System.err.println("윗첨자 파싱 오류: " + e);
+                    if (baseText.getText().equals(result)) {
+                        try {
+                            int count = Integer.parseInt(superText.getText());
+                            superText.setText(String.valueOf(count + 1));
+                            return;
+                        } catch (NumberFormatException e) {
+                            System.err.println("윗첨자 파싱 오류: " + e);
+                        }
+                    }
                 }
             }
         }
@@ -100,15 +121,16 @@ public class SwingResultDisplay implements ResultDisplay {
     }
 
     @Override
+    public void updateCurrentYut(String yutType) {
+        currentYutLabel.setText(convertYutTypeToKorean(yutType));
+    }
+
+    @Override
     public void resetResults() {
-        for (JLabel label : resultLabels) {
+        for (Label label : resultLabels) {
             label.setText("-");
         }
         currentResultIndex = 0;
     }
 
-    @Override
-    public void updateCurrentYut(String yutType) {
-        currentYutLabel.setText(convertYutTypeToKorean(yutType));
-    }
 }
