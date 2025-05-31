@@ -62,4 +62,45 @@ public class BoardLayoutCalculatorTest {
             }
         }
     }
+
+    @Test
+    void testCreateNodes_nodeCountIsExactForEachBoardType() {
+        // 중앙 노드 제외 노드 개수
+        assertEquals(29, BoardLayoutCalculator.createNodes("square", 800, 800).size(), "Square board node count");
+        assertEquals(36, BoardLayoutCalculator.createNodes("pentagon", 800, 800).size(), "Pentagon board node count");
+        assertEquals(43, BoardLayoutCalculator.createNodes("hexagon", 800, 800).size(), "Hexagon board node count");
+    }
+
+    @Test
+    void testCreateNodes_centerNodeHasCorrectCoordinates() {
+        // 중앙 노드 좌표 확인
+        int width = 800, height = 800;
+        List<Node> nodes = BoardLayoutCalculator.createNodes("square", width, height);
+        Node center = nodes.stream().filter(n -> n.getA() == 3 && n.getB() == 10).findFirst().orElseThrow();
+        assertEquals(width / 2.0, center.getX(), 1.0, "Center node X should be near width/2");
+        assertEquals(height / 2.0, center.getY(), 1.0, "Center node Y should be near height/2");
+    }
+
+    @Test
+    void testCreateNodes_diagonalNodesExistAndAreConnected() {
+        // 대각선(지름길) 노드가 존재하고 중심 노드 또는 꼭짓점과 연결되어 있는지 확인
+        List<Node> nodes = BoardLayoutCalculator.createNodes("square", 800, 800);
+        Node center = nodes.stream().filter(n -> n.getA() == 3 && n.getB() == 10).findFirst().orElseThrow();
+        // 대각선(지름길) 노드는 a=0,10,20,30 등, b=1,2 등으로 생성됨
+        boolean foundDiagonal = false;
+        for (int logicA : new int[]{40, 10, 20, 30}) {
+            for (int b = 1; b <= 2; b++) {
+                final int bb = b;
+                Node diag = nodes.stream().filter(n -> n.getA() == logicA && n.getB() == bb).findFirst().orElse(null);
+                if (diag != null) {
+                    foundDiagonal = true;
+                    // 중심 노드 또는 꼭짓점과 연결되어 있는지
+                    boolean connectedToCenter = diag.getConnections().contains(center);
+                    boolean connectedToCorner = diag.getConnections().stream().anyMatch(n -> n.getA() == 0 && n.getB() == 1 || (n.getA() == 5 && n.getB() >= 1 && n.getB() <= 4));
+                    assertTrue(connectedToCenter || connectedToCorner, "Diagonal node should be connected to center or corner");
+                }
+            }
+        }
+        assertTrue(foundDiagonal, "At least one diagonal node should exist");
+    }
 }
