@@ -4,11 +4,9 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert;
-import com.sw.yutnori.ui.javafx.FxUIFactory;
 import com.sw.yutnori.controller.GameSetupController;
 import com.sw.yutnori.controller.InGameController;
 import com.sw.yutnori.ui.javafx.display.FxGameSetupDisplay;
-import javafx.scene.Parent;
 
 public class GameSetupUI extends Application {
     private Stage primaryStage;
@@ -34,7 +32,7 @@ public class GameSetupUI extends Application {
             showSetupScreen();
         });
         FxGameSetupDisplay setupDisplay = new FxGameSetupDisplay();
-        Scene scene = new Scene((Parent) setupDisplay.getPanel());
+        Scene scene = new Scene(setupDisplay.getMainComponent());
         primaryStage.setScene(scene);
         primaryStage.sizeToScene();
         primaryStage.show();

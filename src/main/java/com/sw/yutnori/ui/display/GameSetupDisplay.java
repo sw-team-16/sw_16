@@ -6,12 +6,11 @@
  * 
  */
 package com.sw.yutnori.ui.display;
-import javax.swing.*;
 
 public interface GameSetupDisplay {
     record PlayerInfo(String name, String color) {}
     record SetupData(String boardType, int playerCount, int pieceCount, java.util.List<PlayerInfo> players) {}
     
-    Object getPanel();
+    Object getMainComponent();
     void setOnStartCallback(java.util.function.Consumer<SetupData> callback);
 } 

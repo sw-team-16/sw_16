@@ -158,7 +158,7 @@ public class SwingGameSetupDisplay implements GameSetupDisplay {
     }
 
     @Override
-    public JPanel getPanel() {
+    public JPanel getMainComponent() {
         return panel;
     }
 

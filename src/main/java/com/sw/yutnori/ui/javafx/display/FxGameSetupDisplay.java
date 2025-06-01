@@ -143,11 +143,13 @@ public class FxGameSetupDisplay extends GridPane implements GameSetupDisplay {
     }
 
     // 패널 반환
-    public GridPane getPanel() {
+    @Override
+    public GridPane getMainComponent() {
         return this;
     }
 
     // 게임 시작 콜백 설정
+    @Override
     public void setOnStartCallback(Consumer<com.sw.yutnori.ui.display.GameSetupDisplay.SetupData> callback) {
         this.onStartCallback = callback;
     }
