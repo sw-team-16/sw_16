@@ -110,6 +110,7 @@ public class FxYutControlPanel extends VBox implements YutControlPanel {
         controlDisplay.restorePanel();
     }
 
+    @Override
     public Object getMainComponent() {
         return this;
     }

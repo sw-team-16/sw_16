@@ -129,6 +129,7 @@ public class FxResultDisplay implements ResultDisplay {
     public void resetResults() {
         for (Label label : resultLabels) {
             label.setText("-");
+            label.setGraphic(null);
         }
         currentResultIndex = 0;
     }
