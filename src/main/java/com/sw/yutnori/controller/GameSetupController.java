@@ -6,14 +6,12 @@ import com.sw.yutnori.model.Board;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.ui.UIFactory;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
-import com.sw.yutnori.ui.swing.SwingUIFactory;
 
 import java.util.*;
 import java.util.function.Consumer;
 
 public class GameSetupController {
     private InGameController inGameController;
-    private GameSetupDisplay.SetupData lastSetupData;
     private final Consumer<InGameController> onGameStartCallback;
     private Consumer<Result> resultCallback;
     private final UIFactory uiFactory;
@@ -52,7 +50,6 @@ public class GameSetupController {
             }
         }
 
-        this.lastSetupData = data;
         this.inGameController = createInGameController(data);
 
         if (resultCallback != null)

@@ -9,7 +9,6 @@
 package com.sw.yutnori.ui.swing.panel;
 
 import com.sw.yutnori.ui.panel.YutControlPanel;
-import com.sw.yutnori.ui.swing.SwingGameSetupFrame;
 import com.sw.yutnori.ui.display.*;
 import com.sw.yutnori.controller.InGameController;
 import com.sw.yutnori.ui.swing.display.SwingControlDisplay;

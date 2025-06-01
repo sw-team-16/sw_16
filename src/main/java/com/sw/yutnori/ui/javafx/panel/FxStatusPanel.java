@@ -1,6 +1,5 @@
 package com.sw.yutnori.ui.javafx.panel;
 
-import com.sw.yutnori.model.Piece;
 import com.sw.yutnori.model.Player;
 import com.sw.yutnori.model.enums.PieceState;
 import com.sw.yutnori.ui.display.GameSetupDisplay;

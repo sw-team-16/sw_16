@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 public class InGameController {
-    private final Board boardModel;
     private final GameManager gameManager;
     private final YutBoardPanel yutBoardPanel;
     private final YutControlPanel yutControlPanel;
@@ -34,7 +33,6 @@ public class InGameController {
     private YutResult selectedYutResult = null;
 
     public InGameController(Board boardModel, GameManager gameManager, GameSetupDisplay.SetupData setupData, UIFactory uiFactory) {
-        this.boardModel = boardModel;
         this.gameManager = gameManager;
 
         this.dialogDisplay = uiFactory.createDialogDisplay();
@@ -335,10 +333,6 @@ public class InGameController {
 
     public StatusPanel getStatusPanel() {
         return statusPanel;
-    }
-
-    public Board getBoardModel() {
-        return boardModel;
     }
 
     public DialogDisplay getDialogDisplay() {

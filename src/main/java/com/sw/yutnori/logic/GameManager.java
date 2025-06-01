@@ -14,7 +14,6 @@ import com.sw.yutnori.model.*;
 import com.sw.yutnori.model.enums.*;
 import com.sw.yutnori.ui.display.GameSetupDisplay;
 
-import javax.swing.*;
 import java.util.*;
 
 public class GameManager {
