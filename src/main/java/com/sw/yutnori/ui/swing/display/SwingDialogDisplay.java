@@ -12,6 +12,11 @@ import java.awt.*;
 public class SwingDialogDisplay implements DialogDisplay {
 
     private Component parentComponent;
+    private Runnable onRestartCallback;
+
+    public void setOnRestartCallback(Runnable callback) {
+        this.onRestartCallback = callback;
+    }
 
     @Override
     public void showErrorDialog(String message) {
@@ -77,7 +82,11 @@ public class SwingDialogDisplay implements DialogDisplay {
         // 버튼 동작
         restartBtn.addActionListener(e -> {
             frame.getGlassPane().setVisible(false);
-            closeWindowAndOpenSetup();
+            if (onRestartCallback != null) {
+                onRestartCallback.run();
+            } else {
+                closeWindowAndOpenSetup();
+            }
         });
         exitBtn.addActionListener(e -> System.exit(0));
 

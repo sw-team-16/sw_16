@@ -40,6 +40,8 @@ public class SwingUIFactory implements UIFactory {
 
     @Override
     public DialogDisplay createDialogDisplay() {
-        return new SwingDialogDisplay();
+        SwingDialogDisplay dialog = new SwingDialogDisplay();
+        if (restartCallback != null) dialog.setOnRestartCallback(restartCallback);
+        return dialog;
     }
 }
