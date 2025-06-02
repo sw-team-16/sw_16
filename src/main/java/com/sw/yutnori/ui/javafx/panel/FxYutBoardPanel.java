@@ -41,7 +41,6 @@ public class FxYutBoardPanel extends Pane implements YutBoardPanel {
     private void drawBoardBase() {
         getChildren().clear();
         List<Node> nodes = boardModel.getNodes();
-        // Draw lines
         for (Node node : nodes) {
             for (Node conn : node.getConnections()) {
                 if (node.getA() < conn.getA() || (node.getA() == conn.getA() && node.getB() < conn.getB())) {

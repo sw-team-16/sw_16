@@ -17,4 +17,4 @@ public class FxColorUtils {
             default: return Color.LIGHTGRAY;
         }
     }
-} 
+}
