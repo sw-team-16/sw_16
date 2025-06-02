@@ -17,6 +17,12 @@ import java.util.List;
 
 public class SwingUIFactory implements UIFactory {
 
+    private Runnable restartCallback;
+
+    public void setRestartCallback(Runnable callback) {
+        this.restartCallback = callback;
+    }
+
     @Override
     public YutBoardPanel createYutBoardPanel(Board board) {
         return new SwingYutBoardPanel(board);
